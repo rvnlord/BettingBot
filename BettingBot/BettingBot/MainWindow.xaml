@@ -126,7 +126,7 @@
                     <RadioButton x:Name="rbLowestOddsByPeriod" GroupName="LHS" Height="30" Content="Najniższy" HorizontalAlignment="Left" Margin="562,35,0,0" VerticalAlignment="Top" FontSize="14.667" IsEnabled="False"/>
                     <RadioButton x:Name="rbSumOddsByPeriod" GroupName="LHS" Height="30" Content="Sumuj" HorizontalAlignment="Left" Margin="652,35,0,0" VerticalAlignment="Top" FontSize="14.667" IsEnabled="False"/>
                     <Label x:Name="lblLHOddsByPeriodOdds" Content="kurs co" HorizontalAlignment="Left" Margin="722,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                    <telerik:RadNumericUpDown x:Name="rnumLHOddsPeriodInDays" IsEnabled="False" HorizontalAlignment="Left" Margin="773,35,0,0" VerticalAlignment="Top" Height="30" NumberDecimalDigits="0" Minimum="1" Maximum="30" NullValue="1" Value="1" CustomUnit="" FontSize="14.667" />
+                    <telerik:RadNumericUpDown x:Name="rnumLHOddsPeriodInDays" IsEnabled="False" HorizontalAlignment="Left" Margin="773,35,0,0" VerticalAlignment="Top" Height="30" NumberDecimalDigits="0" Minimum="1" Maximum="30" NullValue="1" Value="1" CustomUnit="" FontSize="14.667" Width="60" />
                     <Label x:Name="lblLHOddsPeriodInDays" Content="dni" HorizontalAlignment="Left" Margin="838,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
 
                     <CheckBox x:Name="cbOddsLesserGreaterThan" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,70,0,0" VerticalAlignment="Top" FontSize="14.667" Checked="cbOddsLesserGreaterThan_Checked" Unchecked="cbOddsLesserGreaterThan_Unchecked"/>
@@ -308,7 +308,7 @@
 
                     <TextBox x:Name="txtCalculatorResult" HorizontalAlignment="Left" Tag="Wyniki..."  TextWrapping="Wrap" VerticalAlignment="Top" Width="250" FontSize="14.667" FontFamily="Segoe UI" Height="105" TabIndex="2" AcceptsReturn="True" Margin="118,35,0,0" IsReadOnly="True">
                     </TextBox>
-                    <Button x:Name="btnCalculatorCalculate" Content="Oblicz" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="60" Click="btnCalculatorCalculate_Click" TabIndex="1" Margin="118,145,0,0" />
+                    <Button x:Name="btnCalculatorCalculate" Style="{DynamicResource AccentedSquareButtonStyle}" Content="Oblicz" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="75" Click="btnCalculatorCalculate_Click" TabIndex="1" Margin="118,145,0,0" Controls:ControlsHelper.ContentCharacterCasing="Normal" />
                     <telerik:RadNumericUpDown x:Name="rnumCalculatorMinStake" HorizontalAlignment="Left" Margin="33,35,0,0" VerticalAlignment="Top" Width="80" Height="30" NumberDecimalDigits="0" Minimum="0" Maximum="1000" Value="0" NullValue="0" CustomUnit="zł" />
                 </Grid>
             </Controls:Flyout>
