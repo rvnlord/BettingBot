@@ -1,0 +1,42 @@
+﻿<Application xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:BettingBot" xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation" x:Class="BettingBot.App" StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/System.Windows.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Chart.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Cloud.Controls.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Input.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Data.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.DataVisualization.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Diagrams.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Navigation.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Diagrams.Extensions.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Docking.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Documents.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Documents.Proofing.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.GridView.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Expressions.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.FixedDocumentViewers.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.FixedDocumentViewersUI.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.GanttView.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.ImageEditor.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Pivot.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.PivotFieldList.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.RibbonView.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.RichTextBoxUI.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.ScheduleView.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.Spreadsheet.xaml" />
+                <ResourceDictionary Source="/Telerik.Windows.Themes.Expression_Dark;component/Themes/Telerik.Windows.Controls.VirtualGrid.xaml" />
+
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Indigo.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml" />
+
+                <ResourceDictionary Source="Themes/CustomStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
