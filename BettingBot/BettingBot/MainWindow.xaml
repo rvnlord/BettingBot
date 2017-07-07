@@ -181,7 +181,7 @@
 
             <Controls:Flyout x:Name="foDatabase" IsOpen="false" Header="Baza Danych" AnimateOnPositionChange="{Binding AnimateOnPositionChange}" Position="Left" Width="453" Height="740" Margin="-1916,0,0,0">
                 <Grid Margin="10">
-                    <Controls:MetroAnimatedTabControl Margin="0,0,0,0">
+                    <Controls:MetroAnimatedTabControl Margin="0,0,0,0" Background="Transparent">
                         <Controls:MetroTabItem Header="Tipsterzy" Padding="3,0" Controls:ControlsHelper.HeaderFontSize="18" Controls:ControlsHelper.HeaderFontWeight="Bold" Height="38">
                             <Grid x:Name="gridTipsters">
                                 <Button x:Name="btnAddTipster" Content="Dodaj" Style="{DynamicResource SquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="60" Click="btnAddTipster_Click" TabIndex="1" Controls:ControlsHelper.ContentCharacterCasing="Normal" FontSize="14"/>
@@ -257,7 +257,7 @@
                         </telerik:RadGridView.Columns>
                     </telerik:RadGridView>
 
-                    <telerik:RadGridView x:Name="rgvGeneralStatistics" IsFilteringAllowed="False" CanUserSortColumns="False" CanUserSortGroups="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="-10,190,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="443" Height="335" MaxHeight="335" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" SelectionChanged="rgvGeneralStatistics_SelectionChanged">
+                    <telerik:RadGridView x:Name="rgvGeneralStatistics" IsFilteringAllowed="False" CanUserSortColumns="False" CanUserSortGroups="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,190,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="433" Height="335" MaxHeight="335" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" SelectionChanged="rgvGeneralStatistics_SelectionChanged">
                         <telerik:RadGridView.Resources>
                             <ResourceDictionary Source="Themes/DarkBlend/Styles.xaml"/>
                         </telerik:RadGridView.Resources>
@@ -277,9 +277,9 @@
                 </Grid>
             </Controls:Flyout>
 
-            <Controls:Flyout x:Name="foOptions" IsOpen="false" Header="Opcje" AnimateOnPositionChange="{Binding AnimateOnPositionChange}" Position="Left" Width="493" Height="740" Margin="-1000,0,0,-0.075">
+            <Controls:Flyout x:Name="foOptions" IsOpen="false" Header="Opcje" AnimateOnPositionChange="{Binding AnimateOnPositionChange}" Position="Left" Width="493" Height="740" Margin="-1000,0,0,0">
                 <Grid Margin="10">
-                    <Controls:MetroAnimatedTabControl Margin="0,0,0,0" TabStripPlacement="Left">
+                    <Controls:MetroAnimatedTabControl Margin="0,0,0,0" TabStripPlacement="Left" Background="Transparent">
                         <Controls:MetroTabItem Header="Ogólne" Padding="0,0,10,0" Controls:ControlsHelper.HeaderFontSize="18" Controls:ControlsHelper.HeaderFontWeight="Bold" Height="38">
                             <Grid>
                             </Grid>
@@ -298,7 +298,7 @@
                 </Grid>
             </Controls:Flyout>
 
-            <Controls:Flyout x:Name="foCalculator" IsOpen="false" Header="Kalkulator" AnimateOnPositionChange="{Binding AnimateOnPositionChange}" Position="Left" Width="453" Height="740" Margin="-2374,0,0,-0.075">
+            <Controls:Flyout x:Name="foCalculator" IsOpen="false" Header="Kalkulator" AnimateOnPositionChange="{Binding AnimateOnPositionChange}" Position="Left" Width="453" Height="740" Margin="-2374,0,0,0">
                 <Grid Margin="10">
                     <Label x:Name="lblDoubleChance" Content="Podwójna szansa:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                     <telerik:RadNumericUpDown x:Name="rnumCalculatorStake" HorizontalAlignment="Left" Margin="33,70,0,0" VerticalAlignment="Top" Width="80" Height="30" NumberDecimalDigits="0" Minimum="0" Maximum="1000" NullValue="0" Value="5" CustomUnit="zł" RenderTransformOrigin="-0.509,4.394" />

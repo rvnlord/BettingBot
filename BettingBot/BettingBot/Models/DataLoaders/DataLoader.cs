@@ -56,7 +56,7 @@ namespace BettingBot.Models.DataLoaders
 
             if (db.Tipsters.Any() && db.Tipsters.Any(t => t.Name + t.Website.Address == tipsterName + domain))
                 return db.Tipsters.Include(t => t.Website).Single(t => t.Name + t.Website.Address == tipsterName + domain);
-
+            
             var websiteId = db.Websites.SingleOrDefault(w => w.Address == domain)?.Id;
             if (websiteId == null)
             {
@@ -66,7 +66,7 @@ namespace BettingBot.Models.DataLoaders
                 db.SaveChanges();
                 websiteId = newWId;
             }
-
+            
             var tipster = new Tipster
             {
                 Id = db.Tipsters.Next(v => v.Id),
@@ -74,12 +74,13 @@ namespace BettingBot.Models.DataLoaders
                 Link = Url.ToString(),
                 WebsiteId = websiteId
             };
-
+            
             if (loadToDb)
             {
                 db.Tipsters.AddOrUpdate(tipster);
                 db.SaveChanges();
             }
+            
             db.Entry(tipster).Reference(e => e.Website).Load();
             return tipster;
         }

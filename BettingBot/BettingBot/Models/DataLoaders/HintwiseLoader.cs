@@ -120,7 +120,8 @@ namespace BettingBot.Models.DataLoaders
             }
 
             var histPredTable = Sdm.Driver.FindElementByXPath(".//div[@id='history-predictions']");
-            var histPredLastPageLink = histPredTable.FindElement(By.XPath(".//li[@class='last'][last()]//a")).GetAttribute("href").RemoveMany("https://", "www.", "hintwise.com");
+            var histPredLastPageLink = histPredTable.FindElement(By.XPath(".//li[@class='last'][last()]//a"))
+                .GetAttribute("href").RemoveMany("https://", "www.", "hintwise.com");
             var histPredLastPageUri = new Uri($"{Url.Scheme}://{Url.Host}{histPredLastPageLink}");
             var histPredQueries = HttpUtility.ParseQueryString(histPredLastPageUri.Query);
             var histPredLastPage = Convert.ToInt32(histPredQueries["page"]);
@@ -151,18 +152,22 @@ namespace BettingBot.Models.DataLoaders
                 foreach (var bp in currentBettingPicks)
                 {
                     var pickCols = bp.FindElements(By.TagName("td"));
-                    var noResults = pickCols.Count == 1 && pickCols.Single().FindElement(By.TagName("span")).Text.ToLower().Contains("no results found");
+                    var noResults = pickCols.Count == 1 && pickCols.Single()
+                        .FindElement(By.TagName("span")).Text.ToLower().Contains("no results found");
                     if (noResults) break;
                     Sdm.Driver.DisableImplicitWait();
                     var isFree = pickCols[3].FindElements(By.XPath("input[@type='button']")).Count == 0;
                     Sdm.Driver.EnableImplicitWait();
 
-                    var date = DateTime.ParseExact($"{pickCols[0].Text.RemoveHTMLSymbols().Trim()} 2000", "d. MMM HH:mm yyyy", new CultureInfo("en-GB"));
-                    date = new DateTime(date.Month > previousDate.Date.Month ? --year : year, date.Month, date.Day, date.Hour, date.Minute, date.Second).ToLocalTime();
+                    var date = DateTime.ParseExact($"{pickCols[0].Text.RemoveHTMLSymbols().Trim()} 2000", 
+                        "d. MMM HH:mm yyyy", new CultureInfo("en-GB"));
+                    date = new DateTime(date.Month > previousDate.Date.Month ? --year : year, date.Month, 
+                        date.Day, date.Hour, date.Minute, date.Second).ToLocalTime();
                     var matchStr = pickCols[2].FindElement(By.TagName("a")).Text.RemoveHTMLSymbols().Trim();
                     var pickStr = isFree ? pickCols[3].Text.UntilWithout("(").RemoveHTMLSymbols().Trim() : "Ukryty";
                     var parsedPick = Pick.Parse(pickStr, matchStr);
-                    var pickId = db.Picks.SingleOrDefault(p => p.Choice == parsedPick.Choice && p.Value == parsedPick.Value)?.Id;
+                    var pickId = db.Picks.SingleOrDefault(p => p.Choice == parsedPick.Choice 
+                        && p.Value == parsedPick.Value)?.Id;
                     if (pickId == null)
                     {
                         db.Picks.Add(parsedPick);
@@ -172,17 +177,12 @@ namespace BettingBot.Models.DataLoaders
 
                     var newBet = new Bet
                     {
-                        Id = ++currBetId,
-                        TipsterId = tipsterId,
-                        Date = date.ToLocalTime(),
-                        Match = matchStr,
-                        PickId = (int) pickId,
-                        PickOriginalString = pickStr,
-                        MatchResult = "",
-                        BetResult = Convert.ToInt32(Result.Pending),
-                        Odds = isFree ? Convert.ToDouble(pickCols[3].Text.Between("(", ")").RemoveHTMLSymbols().Trim(), CultureInfo.InvariantCulture) : 0
+                        Id = ++currBetId, TipsterId = tipsterId, Date = date.ToLocalTime(),
+                        Match = matchStr, PickId = (int) pickId, PickOriginalString = pickStr,
+                        MatchResult = "", BetResult = Convert.ToInt32(Result.Pending),
+                        Odds = isFree ? Convert.ToDouble(pickCols[3].Text.Between("(", ")")
+                            .RemoveHTMLSymbols().Trim(), CultureInfo.InvariantCulture) : 0
                     };
-
                     newBets.Add(newBet);
                     previousDate = date;
                 }
@@ -243,7 +243,7 @@ namespace BettingBot.Models.DataLoaders
                     break;
                 }
             }
-
+            
             if (newBets.Count > 0)
             {
                 var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystykie z tą datą
@@ -251,7 +251,6 @@ namespace BettingBot.Models.DataLoaders
                 db.Bets.AddRange(newBets); //b => new { b.TipsterId, b.Date, b.Match }
                 if (loadToDb) db.SaveChanges();
             }
-
             var bets = db.Bets.ToList();
             db.Dispose();
             return bets;

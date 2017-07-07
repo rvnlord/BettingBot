@@ -46,7 +46,7 @@ namespace BettingBot.Models
 
         public void NavigateAndWaitForUrl(string url, int forceCancelLoadAfter = 60) //, Action actionBeforeLoaded = null
         {
-            PreviousPage = Driver.Url;;
+            PreviousPage = Driver.Url;
             Driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(forceCancelLoadAfter);
             try
             {
