@@ -618,7 +618,7 @@ namespace BettingBot
             var isText = e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true);
             if (!isText) return;
             var text = e.SourceDataObject.GetData(DataFormats.UnicodeText) as string;
-            var value = text?.TryToDouble();
+            var value = text?.ToDoubleN();
             if (value == null) return;
 
             var rnum = ((RadNumericUpDown) sender);
@@ -1690,7 +1690,7 @@ namespace BettingBot
 
             var applyLowestHighestOddsByPeriodFilter = Dispatcher.Invoke(() => cbLHOddsByPeriodFilter.IsChecked) == true;
             var getHighestOddsByPeriod = Dispatcher.Invoke(() => rbHighestOddsByPeriod.IsChecked) == true;
-            var getLowestOddsByPeriod = Dispatcher.Invoke(() => rbHighestOddsByPeriod.IsChecked) == true;
+            var getLowestOddsByPeriod = Dispatcher.Invoke(() => rbLowestOddsByPeriod.IsChecked) == true;
             var period = (int) (Dispatcher.Invoke(() => rnumLHOddsPeriodInDays.Value) ?? 1);
 
             var dataFiltersList = new List<DataFilter>();
@@ -1748,13 +1748,9 @@ namespace BettingBot
 
             bs.ApplyFilters();
             bs.ApplyStaking();
-
-            //ClearGridViews();
+            
             Dispatcher.Invoke(() => rgvData.RefreshWith(bs.Bets, true, false));
-            //rgvTipsters.RefreshWith(db.Tipsters.Where(t => t.Name.ToLower() != "my").ToList().MapToVMCollection<TipsterForGvVM>(), true, false);
-            //rgvLogins.RefreshWith(db.Logins.MapToVMCollection<UserForGvVM>(), true, false);
 
-            //txtNotes.ResetValue();
             if (bs.Bets.Any())
             {
                 Dispatcher.Invoke(() => rgvAggregatedWinsLosesStatistics.RefreshWith(new AggregatedWinLoseStatistics(bs.LosesCounter, bs.WinsCounter), false));
@@ -1768,32 +1764,32 @@ namespace BettingBot
                 var winsInRow = bs.WinsCounter.Any(c => c.Value > 0) ? bs.WinsCounter.MaxBy(c => c.Value).ToString() : "-";
 
                 var lostOUfromWonBTTS = bs.Bets.Count(b => b.Pick.Choice == PickChoice.BothToScore && b.BetResult != Result.Pending && b.MatchResult.Contains("-") &&
-                                                           ((b.Pick.Value == 0 && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => Convert.ToInt32(x)).Sum() > 2) ||
-                                                            (b.Pick.Value == 1 && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => Convert.ToInt32(x)).Sum() <= 2)));
+                    (b.Pick.Value.ToDouble().Eq(0) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() > 2 ||
+                    b.Pick.Value.ToDouble().Eq(1) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() <= 2));
 
                 var wonOUfromLostBTTS = bs.Bets.Count(b => b.Pick.Choice == PickChoice.BothToScore && b.BetResult != Result.Pending && b.MatchResult.Contains("-") &&
-                                                           ((b.Pick.Value == 0 && b.BetResult == Result.Lose && b.MatchResult.Remove(" ").Split("-").Select(x => Convert.ToInt32(x)).Sum() <= 2) ||
-                                                            (b.Pick.Value == 1 && b.BetResult == Result.Lose && b.MatchResult.Remove(" ").Split("-").Select(x => Convert.ToInt32(x)).Sum() > 2)));
+                    (b.Pick.Value.ToDouble().Eq(0) && b.BetResult == Result.Lose && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() <= 2 ||
+                    b.Pick.Value.ToDouble().Eq(1) && b.BetResult == Result.Lose && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() > 2));
 
                 var wonBTTSwithOU = bs.Bets.Count(b => b.Pick.Choice == PickChoice.BothToScore && b.BetResult != Result.Pending && b.MatchResult.Contains("-") &&
-                                                       ((b.Pick.Value == 0 && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => Convert.ToInt32(x)).Sum() <= 2) ||
-                                                        (b.Pick.Value == 1 && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => Convert.ToInt32(x)).Sum() > 2)));
+                    (b.Pick.Value.ToDouble().Eq(0) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() <= 2 ||
+                    b.Pick.Value.ToDouble().Eq(1) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() > 2));
 
-                var generalStatistics = new GeneralStatistics();
-                generalStatistics.Add(new GeneralStatistic("Makymalna stawka:", $"{maxStakeBet.Stake:0.00} zł ({maxStakeBet.Nr})"));
-                generalStatistics.Add(new GeneralStatistic("Najwyższy budżet:", $"{maxBudgetBet.Budget:0.00} zł ({maxBudgetBet.Nr})"));
-                generalStatistics.Add(new GeneralStatistic("Najniższy budżet:", $"{minBudgetBet.Budget:0.00} zł ({minBudgetBet.Nr})"));
-                generalStatistics.Add(new GeneralStatistic("Najniższy budżet po odjęciu stawki:", $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} zł ({minBudgetInclStakeBet.Nr})"));
-                generalStatistics.Add(new GeneralStatistic("Porażki z rzędu:", $"{losesInRow}"));
-                generalStatistics.Add(new GeneralStatistic("Zwycięstwa z rzędu:", $"{winsInRow}"));
-                generalStatistics.Add(new GeneralStatistic("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == Result.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == Result.Pending && b.Date.ToDMY() == DateTime.Now.ToDMY())}]"));
-                generalStatistics.Add(new GeneralStatistic("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
+                var gs = new GeneralStatistics();
+                gs.Add(new GeneralStatistic("Makymalna stawka:", $"{maxStakeBet.Stake:0.00} zł ({maxStakeBet.Nr})"));
+                gs.Add(new GeneralStatistic("Najwyższy budżet:", $"{maxBudgetBet.Budget:0.00} zł ({maxBudgetBet.Nr})"));
+                gs.Add(new GeneralStatistic("Najniższy budżet:", $"{minBudgetBet.Budget:0.00} zł ({minBudgetBet.Nr})"));
+                gs.Add(new GeneralStatistic("Najniższy budżet po odjęciu stawki:", $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} zł ({minBudgetInclStakeBet.Nr})"));
+                gs.Add(new GeneralStatistic("Porażki z rzędu:", $"{losesInRow}"));
+                gs.Add(new GeneralStatistic("Zwycięstwa z rzędu:", $"{winsInRow}"));
+                gs.Add(new GeneralStatistic("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == Result.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == Result.Pending && b.Date.ToDMY() == DateTime.Now.ToDMY())}]"));
+                gs.Add(new GeneralStatistic("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
                 if (lostOUfromWonBTTS + wonBTTSwithOU != 0)
-                    generalStatistics.Add(new GeneralStatistic("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
+                    gs.Add(new GeneralStatistic("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
 
                 Dispatcher.Invoke(() =>
                 {
-                    rgvGeneralStatistics.RefreshWith(generalStatistics.ToList());
+                    rgvGeneralStatistics.RefreshWith(gs.ToList());
                     foStatistics.IsOpen = cbShowStatisticsOnEvaluateOption.IsChecked == true;
                 });
             }

@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Data.Entity;
+using System.Diagnostics;
 using DomainParser.Library;
 using MoreLinq;
 using OpenQA.Selenium;
@@ -166,8 +169,8 @@ namespace BettingBot.Models.DataLoaders
                     var matchStr = pickCols[2].FindElement(By.TagName("a")).Text.RemoveHTMLSymbols().Trim();
                     var pickStr = isFree ? pickCols[3].Text.UntilWithout("(").RemoveHTMLSymbols().Trim() : "Ukryty";
                     var parsedPick = Pick.Parse(pickStr, matchStr);
-                    var pickId = db.Picks.SingleOrDefault(p => p.Choice == parsedPick.Choice 
-                        && p.Value == parsedPick.Value)?.Id;
+                    var pickId = db.Picks.AsEnumerable().SingleOrDefault(p => p.Choice == parsedPick.Choice 
+                        && p.Value.Eq(parsedPick.Value))?.Id;
                     if (pickId == null)
                     {
                         db.Picks.Add(parsedPick);
@@ -180,8 +183,8 @@ namespace BettingBot.Models.DataLoaders
                         Id = ++currBetId, TipsterId = tipsterId, Date = date.ToLocalTime(),
                         Match = matchStr, PickId = (int) pickId, PickOriginalString = pickStr,
                         MatchResult = "", BetResult = Convert.ToInt32(Result.Pending),
-                        Odds = isFree ? Convert.ToDouble(pickCols[3].Text.Between("(", ")")
-                            .RemoveHTMLSymbols().Trim(), CultureInfo.InvariantCulture) : 0
+                        Odds = isFree ? pickCols[3].Text.Between("(", ")")
+                            .RemoveHTMLSymbols().Trim().ToDouble() : 0
                     };
                     newBets.Add(newBet);
                     previousDate = date;
@@ -229,7 +232,7 @@ namespace BettingBot.Models.DataLoaders
                         MatchResult = pickCols[4].Text.RemoveHTMLSymbols().Trim(),
                         BetResult = Convert.ToInt32(pickCols[5].Text.UntilWithout("(").RemoveHTMLSymbols().Trim().ToLower() == "win"
                             ? Result.Win : Result.Lose),
-                        Odds = Convert.ToDouble(pickCols[3].Text.Between("(", ")").RemoveHTMLSymbols().Trim(), CultureInfo.InvariantCulture)
+                        Odds = pickCols[3].Text.Between("(", ")").RemoveHTMLSymbols().Trim().ToDouble()
                     };
 
                     newBets.Add(newBet);
@@ -246,10 +249,11 @@ namespace BettingBot.Models.DataLoaders
             
             if (newBets.Count > 0)
             {
-                var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystykie z tą datą
+                var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystkie z tą datą
                 db.Bets.RemoveBy(b => b.Date >= minDate && b.TipsterId == tipsterId);
-                db.Bets.AddRange(newBets); //b => new { b.TipsterId, b.Date, b.Match }
-                if (loadToDb) db.SaveChanges();
+                db.Bets.AddRange(newBets.DistinctBy(b => new { b.TipsterId, b.Date, b.Match, b.PickId }));
+                if (loadToDb)
+                    db.SaveChanges();
             }
             var bets = db.Bets.ToList();
             db.Dispose();

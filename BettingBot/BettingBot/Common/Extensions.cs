@@ -29,6 +29,7 @@ using BettingBot.Common.UtilityClasses;
 using Telerik.Windows.Documents.Spreadsheet.Expressions.Functions;
 using Convert = System.Convert;
 using MenuItem = BettingBot.Common.UtilityClasses.MenuItem;
+using BettingBot.Annotations;
 
 namespace BettingBot.Common
 {
@@ -37,6 +38,8 @@ namespace BettingBot.Common
         #region Constants
 
         private const double TOLERANCE = 0.00001;
+
+        public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "," } };
 
         #endregion
 
@@ -62,6 +65,11 @@ namespace BettingBot.Common
         public static string Between(this string str, string start, string end)
         {
             return Regex.Match(str, $@"\{start}([^)]*)\{end}").Groups[1].Value;
+        }
+
+        public static string TakeUntil(this string str, string end)
+        {
+            return str.Split(new[] { end }, StringSplitOptions.None)[0];
         }
 
         public static string UntilWithout(this string str, string end)
@@ -235,27 +243,9 @@ namespace BettingBot.Common
             return str.SimilarWords(otherStrings, false, " ", 2).Any();
         }
 
-        public static double? TryToDouble(this string str)
-        {
-            str = str.Replace(',', '.');
-            double value;
-            var isParsable = double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
-            if (isParsable)
-                return value;
-            return null;
-        }
-
-        public static double ToDouble(this string str)
-        {
-            var parsedD = str.TryToDouble();
-            if (parsedD == null)
-                throw new InvalidCastException("Nie można sparsować wartości double");
-            return (double) parsedD;
-        }
-
         public static bool IsDouble(this string str)
         {
-            return str.TryToDouble() != null;
+            return str.ToDoubleN() != null;
         }
 
         public static bool StartsWithAny(this string str, params string[] strings)
@@ -303,6 +293,52 @@ namespace BettingBot.Common
             return DomainName.TryParse(new Uri(str).Host, out completeDomain) ? completeDomain.SLD : "";
         }
 
+        public static string AfterFirst(this string str, string substring)
+        {
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            {
+                var split = str.Split(substring);
+                return split.Skip(1).JoinAsString(substring);
+            }
+            return str;
+        }
+
+        public static string BeforeFirst(this string str, string substring)
+        {
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+                return str.Split(substring).First();
+            return str;
+        }
+
+        public static string AfterLast(this string str, string substring)
+        {
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+                return str.Split(substring).Last();
+            return str;
+        }
+
+        public static string BeforeLast(this string str, string substring)
+        {
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            {
+                var split = str.Split(substring);
+                var l = split.Length;
+                return split.Take(l - 1).JoinAsString(substring);
+            }
+
+            return str;
+        }
+
+        public static string ToStringDelimitedBy<T>(this IEnumerable<T> enumerable, string strBetween = "")
+        {
+            return string.Join(strBetween, enumerable);
+        }
+
+        public static string JoinAsString<T>(this IEnumerable<T> enumerable, string strBetween = "")
+        {
+            return enumerable.ToStringDelimitedBy(strBetween);
+        }
+
         #endregion
 
         #region Double Extensions
@@ -310,6 +346,15 @@ namespace BettingBot.Common
         public static bool Eq(this double x, double y)
         {
             return Math.Abs(x - y) < TOLERANCE;
+        }
+
+        public static bool Eq(this double? x, double? y)
+        {
+            if (x == null && y == null)
+                return true;
+            if (x == null || y == null)
+                return false;
+            return x.ToDouble().Eq(y.ToDouble());
         }
 
         #endregion
@@ -917,6 +962,118 @@ namespace BettingBot.Common
         public static Point Select(this Point absolutePoint, Func<Point, Point> selector)
         {
             return selector(absolutePoint);
+        }
+
+        #endregion
+
+        #region Object Extensions
+
+        public static T ToEnum<T>(this object value) where T : struct
+        {
+            if (!typeof(T).IsEnum) throw new ArgumentException("T must be an Enum");
+            return (T)Enum.Parse(typeof(T), value.ToString().RemoveMany(" ", "-"), true);
+        }
+
+        public static int? ToIntN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToInt32(obj);
+            return int.TryParse(obj.ToString().Replace(".", ",").TakeUntil(","), NumberStyles.Any, Culture, out int tmpvalue) ? tmpvalue : (int?)null;
+        }
+
+        public static int ToInt(this object obj)
+        {
+            var intN = obj.ToIntN();
+            if (intN != null) return (int)intN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static uint? ToUIntN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToUInt32(obj);
+            return uint.TryParse(obj.ToString().Replace(".", ",").TakeUntil(","), NumberStyles.Any, Culture, out uint tmpvalue) ? tmpvalue : (uint?)null;
+        }
+
+        public static uint ToUInt(this object obj)
+        {
+            var uintN = obj.ToUIntN();
+            if (uintN != null) return (uint)uintN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static long? ToLongN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToInt64(obj);
+            return long.TryParse(obj.ToString().Replace(".", ",").TakeUntil(","), NumberStyles.Any, Culture, out long tmpvalue) ? tmpvalue : (long?)null;
+        }
+
+        public static long ToLong(this object obj)
+        {
+            var longN = obj.ToLongN();
+            if (longN != null) return (long)longN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static double? ToDoubleN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToDouble(obj);
+            return double.TryParse(obj.ToString().Replace(".", ","), NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+        }
+
+        public static double ToDouble([NotNull] this object obj)
+        {
+            var doubleN = obj.ToDoubleN();
+            if (doubleN != null) return (double)doubleN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static decimal? ToDecimalN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToDecimal(obj);
+            return decimal.TryParse(obj.ToString().Replace(".", ","), NumberStyles.Any, Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
+        }
+
+        public static decimal ToDecimal([NotNull] this object obj)
+        {
+            var decimalN = obj.ToDecimalN();
+            if (decimalN != null) return (decimal)decimalN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static DateTime? ToDateTimeN(this object obj)
+        {
+            return DateTime.TryParse(obj?.ToString(), out DateTime tmpvalue) ? tmpvalue : (DateTime?)null;
+        }
+
+        public static DateTime ToDateTime(this object obj)
+        {
+            var DateTimeN = obj.ToDateTimeN();
+            if (DateTimeN != null) return (DateTime)DateTimeN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static DateTime ToDateTimeExact(this object obj, string format)
+        {
+            //var t = DateTime.UtcNow.ToString("ddd, d MMM yy HH:mm:ss", CultureInfo.InvariantCulture);
+            return DateTime.ParseExact(obj?.ToString(), format, CultureInfo.InvariantCulture);
+        }
+
+        public static bool? ToBoolN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return (bool)obj;
+            return bool.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
+        }
+
+        public static bool ToBool(this object obj)
+        {
+            var boolN = obj.ToBoolN();
+            if (boolN != null) return (bool)boolN;
+            throw new ArgumentNullException(nameof(obj));
         }
 
         #endregion

@@ -95,7 +95,7 @@ namespace BettingBot.Models
         public override void Load(DbSet<Option> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
-                Rnum.Value = Convert.ToDouble(dbOptions.Single(o => o.Key == Key).Value);
+                Rnum.Value = dbOptions.Single(o => o.Key == Key).Value.ToDouble();
         }
 
         public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)

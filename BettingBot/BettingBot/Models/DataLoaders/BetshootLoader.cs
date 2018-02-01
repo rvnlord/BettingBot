@@ -82,7 +82,7 @@ namespace BettingBot.Models.DataLoaders
                     PickOriginalString = pickStr,
                     MatchResult = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("mresult")).InnerText.RemoveHTMLSymbols().Replace(" ", "").Replace("-", " - "),
                     BetResult = Convert.ToInt32(betResult),
-                    Odds = Convert.ToDouble(bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("pick-odd")).InnerText.Replace(".", ","))
+                    Odds = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("pick-odd")).InnerText.Replace(".", ",").ToDouble()
                 };
                 newBets.Add(newBet);
             }

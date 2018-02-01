@@ -37,7 +37,7 @@ namespace BettingBot.Models
 
         public override string ToString()
         {
-            return $"{Id} - {Date}, {Match}, {Tipster.Name}";
+            return $"{Id} - {Date}, {Match}, ({TipsterId}) {Tipster?.Name ?? "(Brak)"}";
         }
 
         public override bool Equals(object obj)
