@@ -800,8 +800,18 @@ namespace BettingBot.Common
             {
                 var parentObject = LogicalTreeHelper.GetParent(child);
                 if (parentObject == null) return null;
-                var parent = parentObject as T;
-                if (parent != null) return parent;
+                if (parentObject is T parent) return parent;
+                child = parentObject;
+            }
+        }
+
+        public static T FindLogicalAncestor<T>(this DependencyObject child, Func<T, bool> condition) where T : DependencyObject
+        {
+            while (true)
+            {
+                var parentObject = LogicalTreeHelper.GetParent(child);
+                if (parentObject == null) return null;
+                if (parentObject is T parent && condition(parent)) return parent;
                 child = parentObject;
             }
         }
@@ -903,7 +913,7 @@ namespace BettingBot.Common
                 c.SlideToggle();
         }
 
-        public static async void SlideToggle(this Panel c, bool? openClose = null)
+        public static async void SlideToggle(this Panel c)
         {
             var strIsOpened = c.Name + "IsOpened";
             var isOpened = _panelAnimations.VorN_Ts(strIsOpened);
@@ -912,7 +922,7 @@ namespace BettingBot.Common
             var slideAni = new DoubleAnimation(isOpened ? 0 : c.Width, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
 
             if (isOpened) // jeśli otwarty na początku
-                c.Visibility = Visibility.Collapsed;
+                c.Visibility = Visibility.Hidden;
 
             await slideGrid.AnimateAsync(FrameworkElement.WidthProperty, slideAni);
             c.RemoveSlideGrid();

@@ -5,6 +5,7 @@
 lib/
 *.DotSettings
 *.licx
+*.txt
 
 # User-specific files
 *.suo

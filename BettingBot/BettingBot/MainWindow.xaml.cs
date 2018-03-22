@@ -167,7 +167,7 @@ namespace BettingBot
                         InitializeContextMenus();
                     });
 
-                    EvaluateBets();
+                    CalculateBets();
                 });
             }
             catch (Exception ex)
@@ -196,16 +196,16 @@ namespace BettingBot
 
         private async void MainWindow_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            var mouseHoveredElements = this.FindLogicalDescendants<FrameworkElement>() // TextBox, RadDatePicker, Flyout
+            var mouseHoveredElements = this.FindLogicalDescendants<FrameworkElement>() // TextBox, RadDatePicker, RadGridView
                 .Where(f =>
-                    f.GetType() != typeof(Flyout) && f.GetType() != typeof(MetroAnimatedTabControl) &&
-                    (f.FindLogicalAncestor<Flyout>() == null || f.FindLogicalAncestor<Flyout>().IsOpen) &&
+                    f.GetType() != typeof(Grid) && f.GetType() != typeof(MetroAnimatedTabControl) &&
+                    (f.FindLogicalAncestor<Grid>() == null || f.FindLogicalAncestor<Grid>().IsVisible) &&
                     (f.FindLogicalAncestor<MetroTabItem>() == null || f.FindLogicalAncestor<MetroTabItem>().IsSelected) &&
                     f.HasClientRectangle(this) && f.ClientRectangle(this).Contains(e.GetPosition(this))).ToList();
 
             mouseHoveredElements = mouseHoveredElements.GroupBy(Panel.GetZIndex).MaxBy(g => g.Key).ToList();
-            if (mouseHoveredElements.Any(f => f.FindLogicalAncestor<Flyout>() != null))
-                mouseHoveredElements.RemoveBy(f => f.FindLogicalAncestor<Flyout>() == null);
+            if (mouseHoveredElements.Any(f => f.FindLogicalAncestor<Grid>(anc => anc.Name.EndsWith("Flyout")) != null))
+                mouseHoveredElements.RemoveBy(f => f.FindLogicalAncestor<Grid>(anc => anc.Name.EndsWith("Flyout")) == null);
 
             if (mouseHoveredElements.Count > 1)
             {
@@ -235,7 +235,7 @@ namespace BettingBot
             {
                 DisableControls(_buttons);
                 ShowLoader(gridCalculationsFlyout);
-                await Task.Run(() => EvaluateBets());
+                await Task.Run(() => CalculateBets());
                 HideLoader(gridCalculationsFlyout);
                 EnableControls(_buttons);
             }
@@ -495,7 +495,11 @@ namespace BettingBot
         private void tlTab_Click(object sender, RoutedEventArgs e)
         {
             var tile = (Tile)sender;
-            var flyout = gridDataContainer.FindLogicalDescendants<Grid>().Single(fo => fo.Name.Between("grid", "Flyout") == tile.Name.AfterFirst("tl"));
+            var flyouts = gridDataContainer.FindLogicalDescendants<Grid>().Where(fo => fo.Name.EndsWith("Flyout")).ToList();
+            var flyout = flyouts.Single(fo => fo.Name.Between("grid", "Flyout") == tile.Name.AfterFirst("tl"));
+            var otherFlyouts = flyouts.Except(flyout);
+            foreach (var ofo in otherFlyouts)
+                ofo.SlideHide();
             flyout.SlideToggle();
         }
 
@@ -1057,7 +1061,7 @@ namespace BettingBot
                         UpdateGuiWithNewTipsters();
                         Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(newIds));
                         if (db.Bets.Any())
-                            EvaluateBets();
+                            CalculateBets();
                     }
                 });
             }
@@ -1298,7 +1302,7 @@ namespace BettingBot
 
                         Dispatcher.Invoke(() => txtNotes.Text = text);
                         if (Dispatcher.Invoke(() => cbWithoutMatchesFromNotesFilter.IsChecked == true))
-                            EvaluateBets();
+                            CalculateBets();
                         break;
                     }
                     case "Usuń z bazy":
@@ -1309,7 +1313,7 @@ namespace BettingBot
                             var db = new LocalDbContext();
                             db.Bets.RemoveByMany(b => b.Id, selectedBets.Select(b => b.Id));
                             db.SaveChanges();
-                            EvaluateBets();
+                            CalculateBets();
                         }
 
                         break;
@@ -1338,8 +1342,6 @@ namespace BettingBot
             {
                 tile.Highlight(_mouseOverMainMenuTileColor);
                 _selectedMainMenuTile = tile;
-                foreach (var ofo in this.FindLogicalDescendants<Grid>().Where(f => f.Name.EndsWith("Flyout") && f.Name != fo.Name))
-                    ofo.SlideHide();
             }
         }
 
@@ -1835,7 +1837,7 @@ namespace BettingBot
             }
         }
 
-        private void EvaluateBets()
+        private void CalculateBets()
         {
             var db = new LocalDbContext();
             var stakingTypeOnLose = (StakingTypeOnLose) Dispatcher.Invoke(() => rddlStakingTypeOnLose.SelectedValue);
@@ -1993,14 +1995,17 @@ namespace BettingBot
                 gs.Add(new GeneralStatistic("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
                 if (lostOUfromWonBTTS + wonBTTSwithOU != 0)
                     gs.Add(new GeneralStatistic("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
-
+                
                 Dispatcher.Invoke(() =>
                 {
                     rgvGeneralStatistics.RefreshWith(gs.ToList());
+
+                    var flyouts = gridDataContainer.FindLogicalDescendants<Grid>().Where(fo => fo.Name.EndsWith("Flyout")).ToList();
+                    var otherFlyouts = flyouts.Except(gridStatisticsFlyout);
+                    foreach (var ofo in otherFlyouts)
+                        ofo.SlideHide();
                     if (cbShowStatisticsOnEvaluateOption.IsChecked == true)
                         gridStatisticsFlyout.SlideShow();
-                    else
-                        gridStatisticsFlyout.SlideHide();
                 });
             }
 
