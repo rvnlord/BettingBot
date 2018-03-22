@@ -1,7 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation"
-                    xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls">
+                    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
 
     <Style TargetType="{x:Type telerik:GridViewHeaderCell}" BasedOn="{StaticResource GridViewHeaderCellStyle}">
         <Setter Property="Padding" Value="5" />
@@ -38,13 +39,68 @@
         <GradientStop Color="Red" Offset="1.0" />
     </LinearGradientBrush>
 
-    <Style x:Key="CustomTile" TargetType="controls:Tile">
+    <Style x:Key="CustomTile" TargetType="mah:Tile">
         <Setter Property="Background" Value="{StaticResource GreyBrush}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource ColorfulBrush}" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+
+    <SolidColorBrush x:Key="MouseOverMainMenuTileBrush" Color="#FF000096" />
+    <SolidColorBrush x:Key="DefaultMainMenuTileBrush" Color="#55000096" />
+
+    <Style x:Key="MainTabTile" TargetType="mah:Tile">
+        <Setter Property="Margin" Value="0,0,5,5"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Width" Value="50" />
+        <Setter Property="Background" Value="{StaticResource DefaultMainMenuTileBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="MainTabIcon" TargetType="iconPacks:PackIconModern">
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="12.5,12.5,0,0" />
+    </Style>
+
+    <Style x:Key="MainTabTextblock" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="50,0,0,0" />
+    </Style>
+
+    
+    <SolidColorBrush x:Key="MouseOverMainMenuResizeTileBrush" Color="#FFDD0000" />
+    <SolidColorBrush x:Key="DefaultMainMenuResizeTileBrush" Color="#00FF0000" />
+
+    <Style x:Key="MainTabResizeTile" TargetType="mah:Tile">
+        <Setter Property="Margin" Value="0,0,0,0"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Width" Value="50" />
+        <Setter Property="Background" Value="{StaticResource DefaultMainMenuResizeTileBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="MainTabResizeIcon" TargetType="iconPacks:PackIconModern">
+        <Setter Property="Width" Value="15" />
+        <Setter Property="Height" Value="15" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="17.5,7.5,0,0" />
     </Style>
 
 </ResourceDictionary>

@@ -56,8 +56,7 @@ namespace BettingBot.Models.DataLoaders
 
         public override string DownloadTipsterDomain()
         {
-            DomainName completeDomain;
-            return DomainName.TryParse(Url.Host, out completeDomain) ? completeDomain.SLD : "";
+            return DomainName.TryParse(Url.Host, out DomainName completeDomain) ? completeDomain.SLD : "";
         }
 
         public override void EnsureLogin()
@@ -127,7 +126,7 @@ namespace BettingBot.Models.DataLoaders
                 .GetAttribute("href").RemoveMany("https://", "www.", "hintwise.com");
             var histPredLastPageUri = new Uri($"{Url.Scheme}://{Url.Host}{histPredLastPageLink}");
             var histPredQueries = HttpUtility.ParseQueryString(histPredLastPageUri.Query);
-            var histPredLastPage = Convert.ToInt32(histPredQueries["page"]);
+            var histPredLastPage = histPredQueries["page"].ToInt();
 
             var currBetId = !db.Bets.Any() ? -1 : db.Bets.MaxBy(b => b.Id).Id;
             var previousDate = DateTime.Now;

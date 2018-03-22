@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
@@ -9,6 +10,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
 using BettingBot.Common;
+using OpenQA.Selenium.PhantomJS;
 
 namespace BettingBot.Models
 {
@@ -23,7 +25,7 @@ namespace BettingBot.Models
         {
         }
 
-        public void OpenOrReuseDriver(bool reuse = true)
+        public void OpenOrReuseDriver(bool reuse = true, bool headlessMode = false)
         {
             if (Driver.IsClosed())
             {
@@ -31,7 +33,24 @@ namespace BettingBot.Models
                     Driver = Drivers.Last();
                 else
                 {
-                    Driver = new ChromeDriver($@"{AppDomain.CurrentDomain.BaseDirectory}");
+                    var chromeService = ChromeDriverService.CreateDefaultService($@"{AppDomain.CurrentDomain.BaseDirectory}");
+                    var chromeOptions = new ChromeOptions();
+                    if (headlessMode)
+                    {
+                        chromeOptions.AddArguments(new List<string>
+                        {
+                            "--silent-launch",
+                            "--no-startup-window",
+                            "no-sandbox",
+                            "headless"
+                        });
+                        chromeService.HideCommandPromptWindow = true;
+                    }
+                    
+                    Driver = new ChromeDriver(chromeService, chromeOptions);
+                    var size = new Size(1240, 720);
+                    Driver.Manage().Window.Size = size;
+                    Driver.Manage().Window.Position = PointUtils.CenteredWindowTopLeft(size).ToDrawingPoint();
                     Driver.EnableImplicitWait();
                     Wait = new WebDriverWait(Driver, new TimeSpan(0, 0, 10));
                     Drivers.Add(Driver);

@@ -34,14 +34,16 @@ using System.Web.UI.WebControls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Telerik.Windows;
 using Telerik.Windows.Data;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
 using BettingBot.Models.DataLoaders;
+using MahApps.Metro.IconPacks;
 using static BettingBot.Common.Extensions;
-using static BettingBot.Common.Utilities;
+using static BettingBot.Common.StringUtils;
 using CheckBox = System.Windows.Controls.CheckBox;
 using Button = System.Windows.Controls.Button;
 using Color = System.Drawing.Color;
@@ -87,6 +89,23 @@ namespace BettingBot
         private List<UIElement> _pickFilterControls = new List<UIElement>();
         private List<Button> _buttons = new List<Button>();
 
+        private double _defaultMainMenuTileWidth;
+        private WPFColor _mouseOverMainMenuTileColor;
+        private WPFColor _defaultMainMenuTileColor;
+        private WPFColor _mouseOverMainMenuResizeTileColor;
+        private WPFColor _defaultMainMenuResizeTileColor;
+        private Tile _selectedMainMenuTile;
+        private List<Tile> _mainMenuTiles = new List<Tile>();
+        private bool _isMainMenuExtended;
+        private List<string> _mainMenuOrder;
+        private Point? _matcMainDraggingStartPoint;
+        private Canvas _cvMovingTile;
+        private Tile _tlToMove;
+        private Tile _tlMoving;
+        private readonly List<Tile> _switchingTIles = new List<Tile>();
+        private double? _emptyPosY;
+        private int _mainMenuResizeValue = 150;
+
         #endregion
 
         #region Properties
@@ -131,8 +150,8 @@ namespace BettingBot
 
                     Dispatcher.Invoke(() =>
                     {
-                        
-                        SetupFlyouts();
+                        SetupTiles();
+                        SetupGrids();
                         SetupTextBoxes();
                         SetupDatePickers();
                         SetupUpDowns();
@@ -144,6 +163,7 @@ namespace BettingBot
 
                         UpdateGuiWithNewTipsters();
                         LoadOptions();
+                        RunOptionsDependentAdjustments();
                         InitializeContextMenus();
                     });
 
@@ -158,7 +178,7 @@ namespace BettingBot
             HideLoader(gridDataContainer);
             EnableControls(_buttons);
         }
-
+        
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
@@ -174,18 +194,18 @@ namespace BettingBot
             }
         }
 
-        private async void MainWindow_OnPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        private async void MainWindow_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            var mouseHoveredElements = this.FindLogicalChildren<FrameworkElement>() // TextBox, RadDatePicker, Flyout
+            var mouseHoveredElements = this.FindLogicalDescendants<FrameworkElement>() // TextBox, RadDatePicker, Flyout
                 .Where(f =>
                     f.GetType() != typeof(Flyout) && f.GetType() != typeof(MetroAnimatedTabControl) &&
-                    (f.FindLogicalParent<Flyout>() == null || f.FindLogicalParent<Flyout>().IsOpen) &&
-                    (f.FindLogicalParent<MetroTabItem>() == null || f.FindLogicalParent<MetroTabItem>().IsSelected) &&
+                    (f.FindLogicalAncestor<Flyout>() == null || f.FindLogicalAncestor<Flyout>().IsOpen) &&
+                    (f.FindLogicalAncestor<MetroTabItem>() == null || f.FindLogicalAncestor<MetroTabItem>().IsSelected) &&
                     f.HasClientRectangle(this) && f.ClientRectangle(this).Contains(e.GetPosition(this))).ToList();
 
             mouseHoveredElements = mouseHoveredElements.GroupBy(Panel.GetZIndex).MaxBy(g => g.Key).ToList();
-            if (mouseHoveredElements.Any(f => f.FindLogicalParent<Flyout>() != null))
-                mouseHoveredElements.RemoveBy(f => f.FindLogicalParent<Flyout>() == null);
+            if (mouseHoveredElements.Any(f => f.FindLogicalAncestor<Flyout>() != null))
+                mouseHoveredElements.RemoveBy(f => f.FindLogicalAncestor<Flyout>() == null);
 
             if (mouseHoveredElements.Count > 1)
             {
@@ -214,9 +234,9 @@ namespace BettingBot
             try
             {
                 DisableControls(_buttons);
-                ShowLoader(gridCalculations);
+                ShowLoader(gridCalculationsFlyout);
                 await Task.Run(() => EvaluateBets());
-                HideLoader(gridCalculations);
+                HideLoader(gridCalculationsFlyout);
                 EnableControls(_buttons);
             }
             catch (Exception ex)
@@ -471,32 +491,173 @@ namespace BettingBot
         #endregion
 
         #region - Tile Events
-
-        private void tlCalculations_Click(object sender, RoutedEventArgs e)
-        {
-            foCalculations.IsOpen = !foCalculations.IsOpen;
-        }
-
-        private void tlStatistics_Click(object sender, RoutedEventArgs e)
-        {
-            foStatistics.IsOpen = !foStatistics.IsOpen;
-        }
-
-        private void tlDatabase_Click(object sender, RoutedEventArgs e)
-        {
-            foDatabase.IsOpen = !foDatabase.IsOpen;
-        }
-
-        private void tlOptions_Click(object sender, RoutedEventArgs e)
-        {
-            foOptions.IsOpen = !foOptions.IsOpen;
-        }
-
-        private void tlCalculator_Click(object sender, RoutedEventArgs e)
-        {
-            foCalculator.IsOpen = !foCalculator.IsOpen;
-        }
         
+        private void tlTab_Click(object sender, RoutedEventArgs e)
+        {
+            var tile = (Tile)sender;
+            var flyout = gridDataContainer.FindLogicalDescendants<Grid>().Single(fo => fo.Name.Between("grid", "Flyout") == tile.Name.AfterFirst("tl"));
+            flyout.SlideToggle();
+        }
+
+        private void tlTab_MouseEnter(object sender, MouseEventArgs e)
+        {
+            var tile = (Tile)sender;
+            if (Equals(tile, _selectedMainMenuTile)) return;
+            tile.Highlight(_mouseOverMainMenuTileColor);
+        }
+
+        private void tlTab_MouseLeave(object sender, MouseEventArgs e)
+        {
+            var tile = (Tile)sender;
+            if (Equals(tile, _selectedMainMenuTile)) return;
+            tile.Unhighlight(_defaultMainMenuTileColor);
+        }
+
+        private void tlTab_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _tlToMove = (Tile)sender;
+            var parentGrid = _tlToMove.FindLogicalAncestor<Grid>();
+            _matcMainDraggingStartPoint = e.GetPosition(parentGrid);
+        }
+
+        private void tlTab_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_emptyPosY == null) return;
+            var moveAni = new DoubleAnimation((double)_emptyPosY, new Duration(TimeSpan.FromMilliseconds(200)));
+            _tlMoving.Animate(Canvas.TopProperty, moveAni, (s, evt) =>
+            {
+                if (_emptyPosY == null) return;
+                _tlMoving.PositionY((double)_emptyPosY);
+                
+                var orderedDummyTiles = _cvMovingTile.FindLogicalDescendants<Tile>().OrderBy(tl => tl.PositionY());
+                var orderedTiles = orderedDummyTiles.Select(dtl => _mainMenuTiles.Single(tl => dtl.Name.Contains(tl.Name))).ToList();
+                var utilTiles = spMenu.FindLogicalDescendants<Tile>().Except(orderedTiles).ToList();
+                spMenu.Children.ReplaceAll(orderedTiles);
+                spMenu.Children.AddRange(utilTiles);
+                _mainMenuOrder.ReplaceAll(orderedTiles.Select(i => i.Name).ToList()); // bezpiecznie podmień elementy żeby uniknąć zepsucia idniesień przekazanych do metod
+                
+                if (_cvMovingTile != null)
+                    _tlToMove?.FindLogicalAncestor<Grid>().Children.Remove(_cvMovingTile);
+                _matcMainDraggingStartPoint = null;
+                _cvMovingTile = null;
+                _tlMoving = null;
+                _tlToMove = null;
+                _emptyPosY = null;
+                foreach (var tl in _mainMenuTiles)
+                    tl.Opacity = 1;
+            });
+        }
+
+        private void tlTab_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed || _matcMainDraggingStartPoint == null)
+                return;
+
+            var tile = (Tile)sender;
+            var parentGrid = tile.FindLogicalAncestor<Grid>();
+            var mousePos = e.GetPosition(parentGrid);
+            var draggingStartPoint = (Point)_matcMainDraggingStartPoint;
+            var diff = draggingStartPoint - mousePos;
+            if (!(Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance) && !(Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+                return;
+
+            if (_cvMovingTile == null)
+            {
+                _cvMovingTile = new Canvas { Name = "cvMovingTileContainer" };
+                parentGrid.Children.Add(_cvMovingTile);
+            }
+
+            if (_tlMoving == null)
+            {
+                var i = 0;
+                foreach (var tl in _mainMenuOrder.Select(o => _mainMenuTiles.Single(tl => tl.Name == o)))
+                {
+                    var clonedTile = tl.CloneControl($"{tl.Name}_Clone");
+                    _cvMovingTile.Children.Add(clonedTile);
+                    clonedTile.PositionY(i++ * (clonedTile.Height + clonedTile.Margin.Top + clonedTile.Margin.Bottom));
+                    if (Equals(tl, tile))
+                    {
+                        _tlMoving = clonedTile;
+                        _emptyPosY = _tlMoving.PositionY();
+                    }
+                }
+            }
+            if (_tlMoving == null || _emptyPosY == null) throw new NullReferenceException($"{nameof(_tlMoving)} or {nameof(_emptyPosY)} is still null after the loop");
+
+            foreach (var tl in _mainMenuTiles)
+                tl.Opacity = 0;
+
+            var initPosRelToTile = parentGrid.TranslatePoint(draggingStartPoint, _tlToMove);
+            _tlMoving.PositionY(Math.Min((_cvMovingTile.FindLogicalDescendants<Tile>().Count() - 1) * (tile.Height + tile.Margin.Top + tile.Margin.Bottom), Math.Max(0, mousePos.Y - initPosRelToTile.Y)));
+
+            var dummyTiles = _cvMovingTile.ChildrenOfType<Tile>().Except(_tlMoving).ToArray();
+            var tileHalfH = _tlMoving.Height / 2;
+
+            var tileMovingUp = dummyTiles.Where(tl => (_tlMoving.PositionY() + _tlMoving.Height - (tl.PositionY() + tileHalfH)).Between(0, tileHalfH)).ToArray();
+            var tileMovingDown = dummyTiles.Where(tl => (tl.PositionY() + tileHalfH - _tlMoving.PositionY()).Between(0, tileHalfH)).ToArray();
+            var matchingDummyTIles = tileMovingUp.Concat(tileMovingDown).Except(_switchingTIles).ToArray();
+            if (matchingDummyTIles.Length > 1) throw new ArgumentException($"{nameof(matchingDummyTIles)}.Length is greater than 1");
+            if (matchingDummyTIles.Length == 1)
+            {
+                var emptyPosYLocal = _emptyPosY;
+                var matchingDummyTIle = matchingDummyTIles.Single();
+                var moveAni = new DoubleAnimation((double)emptyPosYLocal, new Duration(TimeSpan.FromMilliseconds(200)));
+                var newEmptyPosY = matchingDummyTIle.PositionY();
+                _emptyPosY = newEmptyPosY;
+                _switchingTIles.Add(matchingDummyTIle);
+                _emptyPosY = newEmptyPosY;
+                matchingDummyTIle.Animate(Canvas.TopProperty, moveAni, (s, evt) =>
+                {
+                    _switchingTIles.Remove(matchingDummyTIle);
+                    matchingDummyTIle.PositionY((double)emptyPosYLocal);
+                });
+            }
+        }
+
+        private async void tlResizeMainMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var resizeTile = (Tile)sender;
+            var icon = resizeTile.FindLogicalDescendants<PackIconModern>().Single();
+            if (!_isMainMenuExtended)
+            {
+                _isMainMenuExtended = true;
+                var resizeAni = new DoubleAnimation(_defaultMainMenuTileWidth + _mainMenuResizeValue, new Duration(TimeSpan.FromMilliseconds(100)));
+                icon.Kind = PackIconModernKind.ArrowLeft;
+                foreach (var tl in _mainMenuOrder.Select(o => _mainMenuTiles.Single(tl => tl.Name == o)))
+                {
+                    if (_isMainMenuExtended) // nie kolejkuj kolejnych wywołań rozciągnięcia menu, jeżeli w międzyczasie zostało wywołane zwinięcie
+                    {
+                        await tl.AnimateAsync(WidthProperty, resizeAni);
+                        tl.Width = _defaultMainMenuTileWidth + _mainMenuResizeValue;
+                    }
+                }
+            }
+            else
+            {
+                _isMainMenuExtended = false;
+                var resizeAni = new DoubleAnimation(_defaultMainMenuTileWidth, new Duration(TimeSpan.FromMilliseconds(100)));
+                icon.Kind = PackIconModernKind.DoorLeave;
+                foreach (var tl in _mainMenuOrder.Select(o => _mainMenuTiles.Single(tl => tl.Name == o)).Reverse())
+                {
+                    if (!_isMainMenuExtended)
+                    {
+                        await tl.AnimateAsync(WidthProperty, resizeAni);
+                        tl.Width = _defaultMainMenuTileWidth;
+                    }
+                }
+            }
+        }
+
+        private void tlResizeMainMenu_MouseEnter(object sender, MouseEventArgs e)
+        {
+            ((Tile)sender).Highlight(_mouseOverMainMenuResizeTileColor);
+        }
+
+        private void tlResizeMainMenu_MouseLeave(object sender, MouseEventArgs e)
+        {
+            ((Tile)sender).Unhighlight(_defaultMainMenuResizeTileColor);
+        }
+
         #endregion
 
         #region - Checkbox Events
@@ -777,9 +938,9 @@ namespace BettingBot
             cm.IsOpen = true;
         }
 
-        private void RgvData_OnSelectionChanged(object sender, SelectionChangeEventArgs e)
+        private void rgvData_SelectionChanged(object sender, SelectionChangeEventArgs e)
         {
-            this.FindLogicalChildren<Flyout>().ForEach(f => f.IsOpen = false);
+            this.FindLogicalDescendants<Grid>().Where(g => g.Name.EndsWith("Flyout")).ForEach(f => f.SlideHide());
             var selBets = rgvData.SelectedItems.Cast<BetToDisplayVM>().ToList();
             if (selBets.Count == 1)
             {
@@ -1161,15 +1322,25 @@ namespace BettingBot
 
         #endregion
 
-        #region - Flyout Events
+        #region - Grid Events
 
-        private void foAll_OpenChanged(object sender, RoutedEventArgs e)
+        private void gridFlyout_VisibleChanged(object sender, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
         {
-            var fo = (sender as Flyout);
+            var fo = sender as Grid;
             if (fo == null) return;
-            if (fo.IsOpen)
-                foreach (var ofo in this.FindLogicalChildren<Flyout>().Where(f => f.Name != fo.Name))
-                    ofo.IsOpen = false;
+
+            var tile = spMenu.FindLogicalDescendants<Tile>().Single(tl => tl.Name.AfterFirst("tl") == fo.Name.Between("grid", "Flyout"));
+            if (!fo.IsVisible) // zamykanie flyouta
+            {
+                tile.Unhighlight(_defaultMainMenuTileColor);
+            }
+            else // otwieranie flyouta
+            {
+                tile.Highlight(_mouseOverMainMenuTileColor);
+                _selectedMainMenuTile = tile;
+                foreach (var ofo in this.FindLogicalDescendants<Grid>().Where(f => f.Name.EndsWith("Flyout") && f.Name != fo.Name))
+                    ofo.SlideHide();
+            }
         }
 
         #endregion
@@ -1264,20 +1435,21 @@ namespace BettingBot
             rddlProfitByPeriodStatistics.SelectByCustomId(-1);
             rddlProfitByPeriodStatistics.SelectionChanged += rddlProfitByPeriodStatistics_SelectionChanged;
 
-            var ddlitems = EnumToDdlItems<PickChoice>(Pick.ConvertChoiceToString);
+            var ddlitems = EnumUtils.EnumToDdlItems<PickChoice>(Pick.ConvertChoiceToString);
             mddlPickTypes.ItemsSource = ddlitems;
             mddlPickTypes.DisplayMemberPath = "Text";
             mddlPickTypes.SelectedValuePath = "Index";
             mddlPickTypes.SelectAll();
         }
 
-        private void SetupFlyouts()
+        private void SetupGrids()
         {
-            foreach (var fo in this.FindLogicalChildren<Flyout>())
+            foreach (var fo in this.FindLogicalDescendants<Grid>().Where(g => g.Name.EndsWith("Flyout")))
             {
                 var margin = fo.Margin;
-                fo.Margin = new Thickness(85, margin.Top, margin.Right, margin.Bottom);
-                fo.IsOpenChanged += foAll_OpenChanged;
+                fo.Margin = new Thickness(0, margin.Top, 0, 0);
+                fo.IsVisibleChanged += gridFlyout_VisibleChanged;
+                fo.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -1297,7 +1469,7 @@ namespace BettingBot
 
         private void SetupTextBoxes()
         {
-            foreach (var txtB in this.FindLogicalChildren<TextBox>().Where(t => t.Tag != null))
+            foreach (var txtB in this.FindLogicalDescendants<TextBox>().Where(t => t.Tag != null))
             {
                 txtB.GotFocus += TxtAll_GotFocus;
                 txtB.LostFocus += TxtAll_LostFocus;
@@ -1317,7 +1489,7 @@ namespace BettingBot
 
         private void SetupUpDowns()
         {
-            foreach (var ud in this.FindLogicalChildren<RadNumericUpDown>())
+            foreach (var ud in this.FindLogicalDescendants<RadNumericUpDown>())
             {
                 DataObject.AddPastingHandler(ud, rnumAll_Pasting);
             }
@@ -1332,12 +1504,47 @@ namespace BettingBot
             };
             cultureInfo.DateTimeFormat = dateInfo;
 
-            foreach (var dp in this.FindLogicalChildren<RadDatePicker>())
+            foreach (var dp in this.FindLogicalDescendants<RadDatePicker>())
                 dp.Culture = cultureInfo;
 
             dpLoadTipsFromDate.SelectedDate = DateTime.Now.Subtract(new TimeSpan(2, 0, 0, 0));
         }
+        
+        private void SetupTiles()
+        {
+            _defaultMainMenuTileWidth = tlCalculations.ActualWidth;
+            _mouseOverMainMenuTileColor = ((SolidColorBrush)FindResource("MouseOverMainMenuTileBrush")).Color;
+            _defaultMainMenuTileColor = ((SolidColorBrush)FindResource("DefaultMainMenuTileBrush")).Color;
+            _mouseOverMainMenuResizeTileColor = ((SolidColorBrush)FindResource("MouseOverMainMenuResizeTileBrush")).Color;
+            _defaultMainMenuResizeTileColor = ((SolidColorBrush)FindResource("DefaultMainMenuResizeTileBrush")).Color;
 
+            _mainMenuTiles = spMenu.FindLogicalDescendants<Tile>().Except(tlResizeMainMenu).ToList();
+            foreach (var tl in _mainMenuTiles)
+            {
+                tl.Background = new SolidColorBrush(_defaultMainMenuTileColor);
+                tl.Click += tlTab_Click;
+                tl.MouseEnter += tlTab_MouseEnter;
+                tl.MouseLeave += tlTab_MouseLeave;
+                tl.PreviewMouseLeftButtonDown += tlTab_PreviewMouseLeftButtonDown;
+                tl.PreviewMouseLeftButtonUp += tlTab_PreviewMouseLeftButtonUp;
+                tl.PreviewMouseMove += tlTab_PreviewMouseMove;
+            }
+
+            _isMainMenuExtended = false;
+            tlResizeMainMenu.Background = new SolidColorBrush(_defaultMainMenuResizeTileColor);
+            tlResizeMainMenu.Click += tlResizeMainMenu_Click;
+            tlResizeMainMenu.MouseEnter += tlResizeMainMenu_MouseEnter;
+            tlResizeMainMenu.MouseLeave += tlResizeMainMenu_MouseLeave;
+
+            _selectedMainMenuTile = null;
+            _mainMenuOrder = _mainMenuTiles.Select(tl => tl.Name).ToList();
+        }
+
+        private void RunOptionsDependentAdjustments()
+        {
+            _isMainMenuExtended = spMenu.FindLogicalDescendants<Tile>().First().Width >= _defaultMainMenuTileWidth + _mainMenuResizeValue;
+        }
+        
         private void InitializeControlGroups()
         {
             _lowestHighestOddsByPeriodFilterControls = new List<UIElement>
@@ -1381,7 +1588,7 @@ namespace BettingBot
                 mddlPickTypes,
             };
 
-            _buttons = this.FindLogicalChildren<Button>().Where(b => b.GetType() != typeof(MahApps.Metro.Controls.Tile)).ToList();
+            _buttons = this.FindLogicalDescendants<Button>().Where(b => b.GetType() != typeof(MahApps.Metro.Controls.Tile)).ToList();
         }
 
         private void InitializeContextMenus()
@@ -1443,7 +1650,7 @@ namespace BettingBot
                 new MenuItem("Dzisiejsza data")
             };
 
-            foreach (var dp in this.FindLogicalChildren<RadDatePicker>())
+            foreach (var dp in this.FindLogicalDescendants<RadDatePicker>())
             {
                 var cm = RadContextMenu.GetContextMenu(dp);
                 if (cm != null)
@@ -1462,7 +1669,7 @@ namespace BettingBot
                 new MenuItem("Wyczyść")
             };
 
-            foreach (var txt in this.FindLogicalChildren<TextBox>())
+            foreach (var txt in this.FindLogicalDescendants<TextBox>())
             {
                 var cm = RadContextMenu.GetContextMenu(txt);
                 if (cm != null)
@@ -1475,7 +1682,7 @@ namespace BettingBot
 
         private void ClearGridViews()
         {
-            foreach (var rgv in this.FindLogicalChildren<RadGridView>())
+            foreach (var rgv in this.FindLogicalDescendants<RadGridView>())
                 rgv.ItemsSource = null;
         }
 
@@ -1545,8 +1752,8 @@ namespace BettingBot
 
         private static void HideLoader(Panel control)
         {
-            var loaders = control.FindLogicalChildren<ProgressRing>().Where(c => c.Name == "prLoader" ).ToArray();
-            var loaderContainers = control.FindLogicalChildren<Rectangle>().Where(c => c.Name == "prLoaderContainer" ).ToArray();
+            var loaders = control.FindLogicalDescendants<ProgressRing>().Where(c => c.Name == "prLoader" ).ToArray();
+            var loaderContainers = control.FindLogicalDescendants<Rectangle>().Where(c => c.Name == "prLoaderContainer" ).ToArray();
 
             loaders.ForEach(l => l.IsActive = false);
 
@@ -1790,7 +1997,10 @@ namespace BettingBot
                 Dispatcher.Invoke(() =>
                 {
                     rgvGeneralStatistics.RefreshWith(gs.ToList());
-                    foStatistics.IsOpen = cbShowStatisticsOnEvaluateOption.IsChecked == true;
+                    if (cbShowStatisticsOnEvaluateOption.IsChecked == true)
+                        gridStatisticsFlyout.SlideShow();
+                    else
+                        gridStatisticsFlyout.SlideHide();
                 });
             }
 
@@ -1851,7 +2061,10 @@ namespace BettingBot
 
                 new CbState("DataLoadingLoadTipsFromDate", cbLoadTipsFromDate),
                 new CbState("DataLoadingLoadTipsOnlySelected", cbLoadTipsOnlySelected),
-                new RgvSelectionState("DataLoadingSelectedTipsters", rgvTipsters)
+                new RgvSelectionState("DataLoadingSelectedTipsters", rgvTipsters),
+
+                new TilesOrderState("MainMenuTabOrder", _mainMenuTiles, _mainMenuOrder),
+                new MenuExtendedState("MainMenuExtended", spMenu, _defaultMainMenuTileWidth.ToInt(), _mainMenuResizeValue) // nie przekazuje _isMainMenuExtended bo ta zmienna będzie zawsze przypisana raz, przy uruchomieniu, a potrzebna jest aktualna wartośc przy zamykaniu aplikacji
             );
             var db = new LocalDbContext();
             GuiState.Load(db, db.Options);

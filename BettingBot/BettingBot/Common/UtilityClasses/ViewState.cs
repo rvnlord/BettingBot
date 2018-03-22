@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ using System.Windows.Controls.Primitives;
 using Telerik.Windows.Controls;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
+using MahApps.Metro.IconPacks;
+using Tile = MahApps.Metro.Controls.Tile;
 
 namespace BettingBot.Models
 {
@@ -263,4 +266,79 @@ namespace BettingBot.Models
             if (saveInstantly) db.SaveChanges();
         }
     }
+
+    public class TilesOrderState : ControlState
+    {
+        public List<Tile> Tiles { get; set; }
+        public List<string> TabOrder { get; set; }
+
+        public TilesOrderState(string key, List<Tile> tiles, List<string> tabOrder) : base(key)
+        {
+            Tiles = tiles;
+            TabOrder = tabOrder;
+        }
+
+        public override void Load(DbSet<Option> dbOptions)
+        {
+            if (!dbOptions.Any(o => o.Key == Key)) return;
+            var val = dbOptions.Single(o => o.Key == Key).Value;
+            var valSplit = val.Split(",");
+            if (valSplit.Any(x => !x.EqualsAny(Tiles.Select(t => t.Name).ToArray()))) return;
+
+            TabOrder.ReplaceAll(valSplit); // nie rebinduj listy po zepsułoby to odniesienia
+            var container = Tiles.First().FindLogicalAncestor<Panel>();
+            var utilTiles = container.FindLogicalDescendants<Tile>().Except(Tiles).ToList();
+            var orderedTiles = Tiles.OrderByWith(t => t.Name, TabOrder).ToList();
+            container.Children.ReplaceAll(orderedTiles);
+            container.Children.AddRange(utilTiles);
+        }
+
+        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        {
+            dbOptions.AddOrUpdate(new Option(Key, TabOrder.JoinAsString(",")));
+            if (saveInstantly) db.SaveChanges();
+        }
+    }
+
+    public class MenuExtendedState : ControlState
+    {
+        public StackPanel SpMenu { get; set; }
+        public int DefaultWidth { get; }
+        public int ResizeValue { get; }
+
+        public MenuExtendedState(string key, StackPanel spMenu, int defaultWidth, int resizeVAlue) : base(key)
+        {
+            SpMenu = spMenu;
+            DefaultWidth = defaultWidth;
+            ResizeValue = resizeVAlue;
+        }
+        
+        public override void Load(DbSet<Option> dbOptions)
+        {
+            if (!dbOptions.Any(o => o.Key == Key)) return;
+
+            var val = dbOptions.Single(o => o.Key == Key).Value;
+            var valSplit = val.Split(",");
+
+            var isExtended = valSplit[0].ToBool();
+            var defaultWidth = valSplit[1].ToInt();
+            var resizeValue = valSplit[2].ToInt();
+
+            var tiles = SpMenu.FindLogicalDescendants<Tile>();
+            var resizeTile = SpMenu.FindLogicalDescendants<Tile>().Single(tl => tl.Name.StartsWith("tlResize"));
+            foreach (var tile in tiles.Except(resizeTile))
+                tile.Width = isExtended ? defaultWidth + resizeValue : defaultWidth;
+
+            var icon = resizeTile.FindLogicalDescendants<PackIconModern>().Single();
+            icon.Kind = isExtended ? PackIconModernKind.ArrowLeft : PackIconModernKind.DoorLeave;
+        }
+
+        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        {
+            var isExtended = SpMenu.FindLogicalDescendants<Tile>().First().ActualWidth >= DefaultWidth + ResizeValue;
+            dbOptions.AddOrUpdate(new Option(Key, new[] { isExtended.ToString(), DefaultWidth.ToString(), ResizeValue.ToString() }.JoinAsString(",")));
+            if (saveInstantly) db.SaveChanges();
+        }
+    }
+
 }

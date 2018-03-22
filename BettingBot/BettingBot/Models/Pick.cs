@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using MahApps.Metro.Controls;
 using MoreLinq;
 using BettingBot.Common;
-using static BettingBot.Common.Utilities;
+using static BettingBot.Common.StringUtils;
 
 namespace BettingBot.Models
 {
@@ -71,18 +71,18 @@ namespace BettingBot.Models
             var pickArr = pickStr.Split(".", true).Select(s => s.Trim()).ToArray();
             for (var i = 1; i < pickArr.Length - 1; i++)
             {
-                if (pickArr[i] == "." && !pickArr[i - 1].EndsWithAny(Numbers) && !pickArr[i + 1].StartsWithAny(Numbers))
+                if (pickArr[i] == "." && !pickArr[i - 1].EndsWithAny(ArrayUtils.Numbers) && !pickArr[i + 1].StartsWithAny(ArrayUtils.Numbers))
                     pickArr[i] += " ";
             }
             pickStr = string.Join("", pickArr);
             pickStr = pickStr.Replace("- ", "-").Replace("-", "- ").Replace(" dnb", " +0").Replace(" 0", " +0");
 
-            if (!pickStr.ContainsAny(Operators))
+            if (!pickStr.ContainsAny(ArrayUtils.Operators))
             {
                 if (!pickStr.HasSameWords(or))
                 {
                     var pickStrSplit = pickStr.Split(" ");
-                    if (pickStrSplit.Length >= 2 && pickStrSplit[1].ContainsAny(Numbers))
+                    if (pickStrSplit.Length >= 2 && pickStrSplit[1].ContainsAny(ArrayUtils.Numbers))
                     {
                         if (pickStr.HasSameWords(under))
                             return new Pick(newId, PickChoice.Under, pickStr.Split(Space).SkipUntil(s => s == under).Take(1).Single().ToDouble());

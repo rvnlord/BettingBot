@@ -5,7 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
 using System.Data.Entity.ModelConfiguration.Configuration;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Policy;
@@ -15,7 +17,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Threading;
+using System.Xml;
 using AutoMapper;
 using DomainParser.Library;
 using MoreLinq;
@@ -30,6 +36,10 @@ using Telerik.Windows.Documents.Spreadsheet.Expressions.Functions;
 using Convert = System.Convert;
 using MenuItem = BettingBot.Common.UtilityClasses.MenuItem;
 using BettingBot.Annotations;
+using Point = System.Windows.Point;
+using DPoint = System.Drawing.Point;
+using Size = System.Windows.Size;
+using DSize = System.Drawing.Size;
 
 namespace BettingBot.Common
 {
@@ -39,8 +49,16 @@ namespace BettingBot.Common
 
         private const double TOLERANCE = 0.00001;
 
-        public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "," } };
+        #endregion
 
+        #region Fields
+
+        private static readonly Dictionary<FrameworkElement, Storyboard> _storyBoards = new Dictionary<FrameworkElement, Storyboard>();
+        private static readonly Dictionary<string, bool> _panelAnimations = new Dictionary<string, bool>();
+        private static readonly object _lock = new object(); 
+
+        public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "," } };
+        
         #endregion
 
         #region T Extensions
@@ -64,7 +82,7 @@ namespace BettingBot.Common
 
         public static string Between(this string str, string start, string end)
         {
-            return Regex.Match(str, $@"\{start}([^)]*)\{end}").Groups[1].Value;
+            return str.AfterFirst(start).BeforeLast(end);
         }
 
         public static string TakeUntil(this string str, string end)
@@ -298,6 +316,8 @@ namespace BettingBot.Common
             if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
+                if (str.StartsWith(substring))
+                    split = new[] { "" }.Concat(split).ToArray();
                 return split.Skip(1).JoinAsString(substring);
             }
             return str;
@@ -322,6 +342,8 @@ namespace BettingBot.Common
             if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
+                if (str.EndsWith(substring))
+                    split = split.Concat(new[] { "" }).ToArray();
                 var l = split.Length;
                 return split.Take(l - 1).JoinAsString(substring);
             }
@@ -337,6 +359,21 @@ namespace BettingBot.Common
         public static string JoinAsString<T>(this IEnumerable<T> enumerable, string strBetween = "")
         {
             return enumerable.ToStringDelimitedBy(strBetween);
+        }
+
+        public static string ToUrlEncoded(this string str)
+        {
+            return Uri.EscapeDataString(str);
+        }
+
+        public static string Take(this string str, int n)
+        {
+            return new string(str.AsEnumerable().Take(n).ToArray());
+        }
+
+        public static string Skip(this string str, int n)
+        {
+            return new string(str.AsEnumerable().Skip(n).ToArray());
         }
 
         #endregion
@@ -355,6 +392,17 @@ namespace BettingBot.Common
             if (x == null || y == null)
                 return false;
             return x.ToDouble().Eq(y.ToDouble());
+        }
+
+        public static bool Between(this double d, double greaterThan, double lesserThan)
+        {
+            if (lesserThan < greaterThan)
+            {
+                var temp = lesserThan;
+                lesserThan = greaterThan;
+                greaterThan = temp;
+            }
+            return d > greaterThan && d < lesserThan;
         }
 
         #endregion
@@ -450,6 +498,17 @@ namespace BettingBot.Common
             return array;
         }
 
+        public static void ReplaceAll<T>(this List<T> list, List<T> newList)
+        {
+            list.Clear();
+            list.AddRange(newList);
+        }
+
+        public static void ReplaceAll<T>(this List<T> list, T[] newList)
+        {
+            list.Clear();
+            list.AddRange(newList);
+        }
 
         #endregion
 
@@ -485,6 +544,15 @@ namespace BettingBot.Common
             return source.Where(e => matches.Any(sel => Equals(sel, selector(e))));
         }
 
+        public static IEnumerable<TSource> OrderByWith<TSource, TResult>(this IEnumerable<TSource> en, Func<TSource, TResult> selector, IEnumerable<TResult> order)
+        {
+            return order.Select(el => en.Select(x => new { x, res = selector(x) }).Single(e => Equals(e.res, el)).x);
+        }
+
+        public static IEnumerable<T> Except<T>(this IEnumerable<T> enumerable, T el)
+        {
+            return enumerable.Except(new[] { el });
+        }
 
         #endregion
 
@@ -559,6 +627,110 @@ namespace BettingBot.Common
 
         #endregion
 
+        #region - UIElementCollection Extensions
+
+        public static void ReplaceAll<T>(this UIElementCollection col, List<T> children) where T : UIElement
+        {
+            col.Clear();
+            col.AddRange(children);
+        }
+
+        #endregion
+
+        #region - Dictionary Extensions
+
+        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            TValue value;
+            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+        }
+
+        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+        {
+            TValue value;
+            return dictionary.TryGetValue(key, out value) ? value : defaultValue;
+        }
+
+        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defaultValueProvider)
+        {
+            TValue value;
+            return dictionary.TryGetValue(key, out value) ? value
+                : defaultValueProvider();
+        }
+
+        public static TValue VorDef<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            return GetValueOrDefault(dictionary, key);
+        }
+
+        public static TValue VorDef<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+        {
+            return GetValueOrDefault(dictionary, key, defaultValue);
+        }
+
+        public static TValue VorDef<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defaultValueProvider)
+        {
+            return GetValueOrDefault(dictionary, key, defaultValueProvider);
+        }
+
+        public static TValue GetValueOrNull<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
+        {
+            dictionary.TryGetValue(key, out TValue val);
+            return val;
+        }
+
+        public static TValue VorN<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
+        {
+            return GetValueOrNull(dictionary, key);
+        }
+
+        public static TValue VorN_Ts<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
+        {
+            lock (_lock)
+                return GetValueOrNull(dictionary, key);
+        }
+
+        public static void V_Ts<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue val)
+        {
+            lock (_lock)
+                dictionary[key] = val;
+        }
+
+        public static void AddIfNotNull<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value) where TValue : class
+        {
+            if (value != null)
+                dictionary.Add(key, value);
+        }
+
+        public static void AddIfNotNullAnd<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, bool? condition, TKey key, TValue value) where TValue : class
+        {
+            if (value != null && condition == true)
+                dictionary.Add(key, value);
+        }
+
+        public static string ToQueryString(this Dictionary<string, string> parameters)
+        {
+            if (parameters == null || parameters.Count <= 0) return "";
+            var sb = new StringBuilder();
+            foreach (var item in parameters)
+                sb.Append($"&{item.Key.ToUrlEncoded()}={item.Value.ToUrlEncoded()}");
+            return sb.ToString().Skip(1);
+        }
+
+        public static bool Exists<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) where TValue : class
+        {
+            return dict.VorN(key) != null;
+        }
+
+        public static void RemoveIfExists<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) where TValue : class
+        {
+            if (dict.Exists(key))
+                dict.Remove(key);
+        }
+
+
+        #endregion
+
         #endregion
 
         #region PrimitivePropertyConfiguration Extensions
@@ -581,7 +753,7 @@ namespace BettingBot.Common
 
         #region DependencyObject
 
-        public static IEnumerable<T> FindLogicalChildren<T>(this DependencyObject depObj) where T : DependencyObject
+        public static IEnumerable<T> FindLogicalDescendants<T>(this DependencyObject depObj) where T : DependencyObject
         {
             if (depObj == null) yield break;
             foreach (var rawChild in LogicalTreeHelper.GetChildren(depObj))
@@ -593,18 +765,18 @@ namespace BettingBot.Common
                 if (tChild != null)
                     yield return tChild;
 
-                foreach (var childOfChild in FindLogicalChildren<T>(child))
+                foreach (var childOfChild in FindLogicalDescendants<T>(child))
                     yield return childOfChild;
             }
         }
 
-        public static IEnumerable<Control> FindLogicalChildren<T1, T2>(this DependencyObject depObj) 
+        public static IEnumerable<Control> FindLogicalDescendants<T1, T2>(this DependencyObject depObj)
             where T1 : DependencyObject
             where T2 : DependencyObject
         {
-            return ConcatMany(FindLogicalChildren<T1>(depObj).Cast<Control>(), FindLogicalChildren<T2>(depObj).Cast<Control>());
+            return ConcatMany(FindLogicalDescendants<T1>(depObj).Cast<Control>(), FindLogicalDescendants<T2>(depObj).Cast<Control>());
         }
-        
+
         public static ScrollViewer GetScrollViewer(this DependencyObject o)
         {
             if (o is ScrollViewer) { return (ScrollViewer)o; }
@@ -622,7 +794,7 @@ namespace BettingBot.Common
             return null;
         }
 
-        public static T FindLogicalParent<T>(this DependencyObject child) where T : DependencyObject
+        public static T FindLogicalAncestor<T>(this DependencyObject child) where T : DependencyObject
         {
             while (true)
             {
@@ -670,7 +842,149 @@ namespace BettingBot.Common
         {
             return RadContextMenu.GetContextMenu(el);
         }
+        
+        public static Task AnimateAsync(this FrameworkElement fwElement, DependencyProperty dp, AnimationTimeline animation)
+        {
+            lock (_lock)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                var storyBoard = new Storyboard();
+                void storyBoard_Completed(object s, EventArgs e) => tcs.TrySetResult(true);
 
+                var isSbInDict = _storyBoards.VorN(fwElement) != null;
+                if (isSbInDict)
+                {
+                    _storyBoards[fwElement].Stop(fwElement);
+                    _storyBoards.Remove(fwElement);
+                    _storyBoards.Add(fwElement, storyBoard);
+                }
+                Storyboard.SetTarget(animation, fwElement);
+                Storyboard.SetTargetProperty(animation, new PropertyPath(dp));
+                storyBoard.Children.Add(animation);
+                storyBoard.Completed += storyBoard_Completed;
+
+                storyBoard.Begin(fwElement, true);
+                return tcs.Task;
+            }
+        }
+
+        public static void Animate(this FrameworkElement fwElement, DependencyProperty dp, AnimationTimeline animation, EventHandler callback = null)
+        {
+            lock (_lock)
+            {
+                var storyBoard = new Storyboard();
+
+                var isSbInDict = _storyBoards.VorN(fwElement) != null;
+                if (isSbInDict)
+                {
+                    _storyBoards[fwElement].Stop(fwElement);
+                    _storyBoards.Remove(fwElement);
+                    _storyBoards.Add(fwElement, storyBoard);
+                }
+                Storyboard.SetTarget(animation, fwElement);
+                Storyboard.SetTargetProperty(animation, new PropertyPath(dp));
+                storyBoard.Children.Add(animation);
+                if (callback != null)
+                    storyBoard.Completed += callback;
+
+                storyBoard.Begin(fwElement, true);
+            }
+        }
+
+        public static void SlideShow(this Panel c)
+        {
+            if (!_panelAnimations.VorN_Ts(c.Name + "IsOpened"))
+                c.SlideToggle();
+        }
+
+        public static void SlideHide(this Panel c)
+        {
+            if (_panelAnimations.VorN_Ts(c.Name + "IsOpened"))
+                c.SlideToggle();
+        }
+
+        public static async void SlideToggle(this Panel c, bool? openClose = null)
+        {
+            var strIsOpened = c.Name + "IsOpened";
+            var isOpened = _panelAnimations.VorN_Ts(strIsOpened);
+            var slideGrid = c.HasSlideGrid() ? c.GetSlideGrid() : c.CreateAndAddSlideGrid(!isOpened ? 0 : c.Width);
+            _panelAnimations.V_Ts(strIsOpened, !isOpened);
+            var slideAni = new DoubleAnimation(isOpened ? 0 : c.Width, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
+
+            if (isOpened) // jeśli otwarty na początku
+                c.Visibility = Visibility.Collapsed;
+
+            await slideGrid.AnimateAsync(FrameworkElement.WidthProperty, slideAni);
+            c.RemoveSlideGrid();
+
+            if (_panelAnimations.VorN_Ts(strIsOpened)) // jeśli otwarty po animacji (w dowolnej kolejności)
+                c.Visibility = Visibility.Visible;
+        }
+
+        private static bool HasSlideGrid(this Panel c)
+        {
+            lock (_lock)
+            {
+                var parentGrid = c.FindLogicalAncestor<Grid>();
+                return parentGrid.ChildrenOfType<Grid>().Any(grid => grid.Name == "gridSlide" + c.Name);
+            }
+        }
+
+        private static Grid GetSlideGrid(this Panel c)
+        {
+            lock (_lock)
+            {
+                var parentGrid = c.FindLogicalAncestor<Grid>();
+                return parentGrid.ChildrenOfType<Grid>().Single(grid => grid.Name == "gridSlide" + c.Name);
+            }
+        }
+
+        private static Grid CreateSlideGrid(this Panel c, double slideGridWidth)
+        {
+            lock (_lock)
+            {
+                var phName = "gridSlide" + c.Name;
+                var gridPh = new Grid
+                {
+                    Width = slideGridWidth,
+                    Height = c.Height,
+                    Background = c.Background,
+                    Margin = c.Margin,
+                    HorizontalAlignment = c.HorizontalAlignment,
+                    VerticalAlignment = c.VerticalAlignment,
+                    Name = phName
+                };
+                Panel.SetZIndex(gridPh, Panel.GetZIndex(c));
+                return gridPh;
+            }
+        }
+
+        private static Grid AddSlideGrid(this Panel c, Grid slideGrid)
+        {
+            lock (_lock)
+            {
+                var parentGrid = c.FindLogicalAncestor<Grid>();
+                parentGrid.Children.Add(slideGrid);
+                return slideGrid;
+            }
+        }
+
+        private static Grid CreateAndAddSlideGrid(this Panel c, double slideGridWidth)
+        {
+             return c.AddSlideGrid(c.CreateSlideGrid(slideGridWidth));
+        }
+
+        private static void RemoveSlideGrid(this Panel c)
+        {
+            lock (_lock)
+            {
+                var parentGrid = c.FindLogicalAncestor<Grid>();
+                var slideGrid = parentGrid.ChildrenOfType<Grid>().SingleOrDefault(grid => grid.Name == "gridSlide" + c.Name);
+                if (slideGrid != null)
+                    parentGrid.Children.Remove(slideGrid);
+            }
+        }
+        
         #endregion
 
         #region Textbox Extensions
@@ -964,6 +1278,25 @@ namespace BettingBot.Common
             return selector(absolutePoint);
         }
 
+        public static Point ToPoint(this System.Drawing.Point p)
+        {
+            return new Point(p.X, p.Y);
+        }
+
+        public static DPoint ToDrawingPoint(this Point p)
+        {
+            return new DPoint(p.X.ToInt(), p.Y.ToInt());
+        }
+
+        #endregion
+
+        #region Size Extensions
+
+        public static Size ToSize(this System.Drawing.Size s)
+        {
+            return new Size(s.Width, s.Height);
+        }
+
         #endregion
 
         #region Object Extensions
@@ -1076,6 +1409,73 @@ namespace BettingBot.Common
             throw new ArgumentNullException(nameof(obj));
         }
 
+        #endregion
+
+        #region Control Extensions
+
+        public static void Highlight(this Control tile, Color color)
+        {
+            var colorAni = new ColorAnimation(color, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
+            tile.Background.BeginAnimation(SolidColorBrush.ColorProperty, colorAni);
+        }
+
+        public static void Unhighlight(this Control tile, Color defaultColor)
+        {
+            var colorAni = new ColorAnimation(defaultColor, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
+            tile.Background.BeginAnimation(SolidColorBrush.ColorProperty, colorAni);
+        }
+
+        public static T CloneControl<T>(this T control, string newName) where T : Control
+        {
+            var sb = new StringBuilder();
+            var writer = XmlWriter.Create(sb, new XmlWriterSettings
+            {
+                Indent = true,
+                ConformanceLevel = ConformanceLevel.Fragment,
+                OmitXmlDeclaration = true,
+                NamespaceHandling = NamespaceHandling.OmitDuplicates,
+            });
+            var mgr = new XamlDesignerSerializationManager(writer) { XamlWriterMode = XamlWriterMode.Expression };
+            XamlWriter.Save(control, mgr);
+            var sr = new StringReader(sb.ToString());
+            var xmlReader = XmlReader.Create(sr);
+            var clonedControl = (T)XamlReader.Load(xmlReader);
+            if (!string.IsNullOrWhiteSpace(newName))
+                clonedControl.Name = newName;
+            return clonedControl;
+        }
+
+        public static void Position(this Control control, Point pos)
+        {
+            Canvas.SetLeft(control, pos.X);
+            Canvas.SetTop(control, pos.Y);
+        }
+
+        public static void PositionX(this Control control, double posX)
+        {
+            Canvas.SetLeft(control, posX);
+        }
+
+        public static void PositionY(this Control control, double posY)
+        {
+            Canvas.SetTop(control, posY);
+        }
+
+        public static Point Position(this Control control)
+        {
+            return new Point(Canvas.GetLeft(control), Canvas.GetTop(control));
+        }
+
+        public static double PositionX(this Control control)
+        {
+            return Canvas.GetLeft(control);
+        }
+
+        public static double PositionY(this Control control)
+        {
+            return Canvas.GetTop(control);
+        }
+        
         #endregion
     }
 }
