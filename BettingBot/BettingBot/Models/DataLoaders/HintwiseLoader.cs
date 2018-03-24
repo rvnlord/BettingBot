@@ -19,13 +19,13 @@ namespace BettingBot.Models.DataLoaders
 {
     public class HintWiseLoader : DataLoader
     {
-        public HintWiseLoader(string url) : base(url)
+        public HintWiseLoader(string url, bool headlessMode) : base(url)
         {
-            Sdm.OpenOrReuseDriver();
+            Sdm.OpenOrReuseDriver(true, headlessMode);
             Sdm.NavigateAndWaitForUrl(Url);
         }
 
-        public HintWiseLoader(string url, string login, string password) : base(url)
+        public HintWiseLoader(string url, string login, string password, bool headlessMode) : base(url)
         {
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
                 throw new Exception("Niepoprawny login");
@@ -44,7 +44,7 @@ namespace BettingBot.Models.DataLoaders
             db.SaveChanges();
             db.Dispose();
 
-            Sdm.OpenOrReuseDriver();
+            Sdm.OpenOrReuseDriver(true, headlessMode);
             Sdm.NavigateAndWaitForUrl(Url);
             ClosePopups();
         }

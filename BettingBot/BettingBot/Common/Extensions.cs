@@ -498,16 +498,25 @@ namespace BettingBot.Common
             return array;
         }
 
-        public static void ReplaceAll<T>(this List<T> list, List<T> newList)
+        public static List<T> ReplaceAll<T>(this List<T> list, List<T> newList)
         {
             list.Clear();
             list.AddRange(newList);
+            return list;
         }
 
-        public static void ReplaceAll<T>(this List<T> list, T[] newList)
+        public static List<T> ReplaceAll<T>(this List<T> list, IEnumerable<T> newList)
         {
             list.Clear();
             list.AddRange(newList);
+            return list;
+        }
+
+        public static List<T> ReplaceAll<T>(this List<T> list, T[] newList)
+        {
+            list.Clear();
+            list.AddRange(newList);
+            return list;
         }
 
         #endregion
@@ -1155,7 +1164,7 @@ namespace BettingBot.Common
 
         public static IEnumerable<MenuItem> ContextItems(this RadContextMenu cm)
         {
-            return cm.Items.ToArray<MenuItem>();
+            return cm?.Items.ToArray<MenuItem>();
         }
 
         public static void EnableAll(this RadContextMenu cm)
@@ -1417,6 +1426,16 @@ namespace BettingBot.Common
             var boolN = obj.ToBoolN();
             if (boolN != null) return (bool)boolN;
             throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static T GetProperty<T>(this object src, string propName)
+        {
+            return (T) src.GetType().GetProperty(propName)?.GetValue(src, null);
+        }
+
+        public static void SetProperty<T>(this object src, string propName, T propValue)
+        {
+            src.GetType().GetProperty(propName)?.SetValue(src, propValue);
         }
 
         #endregion

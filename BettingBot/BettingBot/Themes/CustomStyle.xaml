@@ -48,11 +48,51 @@
         </Style.Triggers>
     </Style>
 
+    <Style TargetType="{x:Type mah:MetroTabItem}">
+        <Setter
+            Property="Template">
+            <Setter.Value>
+                <ControlTemplate
+                    TargetType="{x:Type mah:MetroTabItem}">
+                    <Border
+                        x:Name="Spacer"
+                        Width="Auto"
+                        Height="Auto"
+                        Padding="0 0 0 0"
+                        Margin="0 0 0 0"
+                        BorderBrush="Transparent"
+                        BorderThickness="0">
+                        <Border
+                            x:Name="Border"
+                            BorderThickness="0,0,0,0"
+                            CornerRadius="0,0,0,0"
+                            Cursor="Hand"
+                            VerticalAlignment="Top">
+                            <ContentPresenter
+                                x:Name="ContentSite"
+                                TextElement.FontSize="14pt"
+                                TextElement.FontFamily="Arial"
+                                TextElement.Foreground="White"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Left"
+                                ContentSource="Header"
+                                Margin="0,0,0,0"
+                                Width="Auto"
+                                Height="Auto" 
+                                Cursor="Arrow" />
+                        </Border>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
+    <!-- Main Menu Tile -->
+    
     <SolidColorBrush x:Key="MouseOverMainMenuTileBrush" Color="#FF000096" />
     <SolidColorBrush x:Key="DefaultMainMenuTileBrush" Color="#55000096" />
 
-    <Style x:Key="MainTabTile" TargetType="mah:Tile">
+    <Style x:Key="MainMenuTile" TargetType="mah:Tile">
         <Setter Property="Margin" Value="0,0,5,5"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Top"/>
@@ -63,7 +103,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
-    <Style x:Key="MainTabIcon" TargetType="iconPacks:PackIconModern">
+    <Style x:Key="MainMenuIcon" TargetType="iconPacks:PackIconModern">
         <Setter Property="Width" Value="25" />
         <Setter Property="Height" Value="25" />
         <Setter Property="HorizontalAlignment" Value="Left" />
@@ -72,18 +112,19 @@
         <Setter Property="Margin" Value="12.5,12.5,0,0" />
     </Style>
 
-    <Style x:Key="MainTabTextblock" TargetType="TextBlock">
+    <Style x:Key="MainMenuTextblock" TargetType="TextBlock">
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="50,0,0,0" />
     </Style>
 
+    <!-- Main Menu Resize Tile -->
     
     <SolidColorBrush x:Key="MouseOverMainMenuResizeTileBrush" Color="#FFDD0000" />
     <SolidColorBrush x:Key="DefaultMainMenuResizeTileBrush" Color="#00FF0000" />
 
-    <Style x:Key="MainTabResizeTile" TargetType="mah:Tile">
+    <Style x:Key="MainMenuResizeTile" TargetType="mah:Tile">
         <Setter Property="Margin" Value="0,0,0,0"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Top"/>
@@ -94,13 +135,156 @@
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
-    <Style x:Key="MainTabResizeIcon" TargetType="iconPacks:PackIconModern">
+    <Style x:Key="MainMenuResizeIcon" TargetType="iconPacks:PackIconModern">
         <Setter Property="Width" Value="15" />
         <Setter Property="Height" Value="15" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="17.5,7.5,0,0" />
+    </Style>
+
+    <!-- Flyout Header Tile -->
+    
+    <SolidColorBrush x:Key="MouseOverFlyoutHeaderTileBrush" Color="#FF000096" />
+    <SolidColorBrush x:Key="DefaultFlyoutHeaderTileBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="DefaultFlyoutHeaderIconBrush" Color="#FF000000" />
+
+    <Style x:Key="FlyoutHeaderTile" TargetType="mah:Tile">
+        <Setter Property="Margin" Value="0,0,0,0"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Width" Value="260" />
+        <Setter Property="Background" Value="{StaticResource DefaultFlyoutHeaderTileBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="FlyoutHeaderArrow" TargetType="iconPacks:PackIconEntypo">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="5,5,0,0" />
+        <Setter Property="Kind" Value="ChevronWithCircleLeft" />
+    </Style>
+
+    <Style x:Key="FlyoutHeaderIcon" TargetType="iconPacks:PackIconModern">
+        <Setter Property="Width" Value="50" />
+        <Setter Property="Height" Value="50" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="12.5" />
+        <Setter Property="Margin" Value="50,0,0,0" />
+        <Setter Property="Background" Value="{StaticResource DefaultFlyoutHeaderIconBrush}" />
+    </Style>
+
+    <Style x:Key="FlyoutHeaderTextblock" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="110,0,0,0" />
+    </Style>
+
+    <!-- Main Grid Tab Tile -->
+
+    <SolidColorBrush x:Key="MouseOverMainGridTabTileBrush" Color="#FF888800" />
+    <SolidColorBrush x:Key="DefaultMainGridTabTileBrush" Color="#88888800" />
+
+    <Style x:Key="MainGridTabTile" TargetType="mah:Tile">
+        <Setter Property="Margin" Value="0,0,5,5"/>
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Width" Value="200" />
+        <Setter Property="Background" Value="{StaticResource DefaultMainGridTabTileBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="MainGridTabIcon" TargetType="iconPacks:PackIconModern">
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="12.5,12.5,0,0" />
+    </Style>
+
+    <Style x:Key="MainGridTabTextblock" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="50,0,0,0" />
+    </Style>
+
+    <!-- Database Tab Tile -->
+
+    <SolidColorBrush x:Key="MouseOverDatabaseTabTileBrush" Color="#FF963E00" />
+    <SolidColorBrush x:Key="DefaultDatabaseTabTileBrush" Color="#AA963E00" />
+
+    <Style x:Key="DatabaseTabTile" TargetType="mah:Tile">
+        <Setter Property="Margin" Value="0,0,5,5"/>
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Width" Value="200" />
+        <Setter Property="Background" Value="{StaticResource DefaultDatabaseTabTileBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="DatabaseTabIcon" TargetType="iconPacks:PackIconModern">
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="12.5,12.5,0,0" />
+    </Style>
+
+    <Style x:Key="DatabaseTabTextblock" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="50,0,0,0" />
+    </Style>
+
+    <!-- Options Tab Tile -->
+
+    <SolidColorBrush x:Key="MouseOverOptionsTabTileBrush" Color="#FF009600" />
+    <SolidColorBrush x:Key="DefaultOptionsTabTileBrush" Color="#55009600" />
+
+    <Style x:Key="OptionsTabTile" TargetType="mah:Tile">
+        <Setter Property="Margin" Value="0,0,5,5"/>
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Width" Value="200" />
+        <Setter Property="Background" Value="{StaticResource DefaultOptionsTabTileBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="OptionsTabIcon" TargetType="iconPacks:PackIconModern">
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="12.5,12.5,0,0" />
+    </Style>
+
+    <Style x:Key="OptionsTabTextblock" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="50,0,0,0" />
     </Style>
 
 </ResourceDictionary>

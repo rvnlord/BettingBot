@@ -46,9 +46,9 @@ using static BettingBot.Common.Extensions;
 using static BettingBot.Common.StringUtils;
 using CheckBox = System.Windows.Controls.CheckBox;
 using Button = System.Windows.Controls.Button;
-using Color = System.Drawing.Color;
+using DColor = System.Drawing.Color;
+using Color = System.Windows.Media.Color;
 using Tile = MahApps.Metro.Controls.Tile;
-using WPFColor = System.Windows.Media.Color;
 using Control = System.Windows.Controls.Control;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using RadioButton = System.Windows.Controls.RadioButton;
@@ -87,13 +87,27 @@ namespace BettingBot
         private List<UIElement> _fromDateFilterControls = new List<UIElement>();
         private List<UIElement> _toDateFilterControls = new List<UIElement>();
         private List<UIElement> _pickFilterControls = new List<UIElement>();
-        private List<Button> _buttons = new List<Button>();
+        private List<object> _buttonsAndContextMenus = new List<object>();
 
         private double _defaultMainMenuTileWidth;
-        private WPFColor _mouseOverMainMenuTileColor;
-        private WPFColor _defaultMainMenuTileColor;
-        private WPFColor _mouseOverMainMenuResizeTileColor;
-        private WPFColor _defaultMainMenuResizeTileColor;
+        private Color _mouseOverMainMenuTileColor;
+        private Color _defaultMainMenuTileColor;
+        private Color _mouseOverMainMenuResizeTileColor;
+        private Color _defaultMainMenuResizeTileColor;
+
+        private Color _defaultFlyoutHeaderTileColor;
+        private Color _mouseOverFlyoutHeaderTileColor;
+        private Color _defaultFlyoutHeaderIconColor;
+
+        private Color _defaultMainGridTabTileColor;
+        private Color _mouseOverMainGridTabTileColor;
+
+        private Color _defaultDatabaseTabTileColor;
+        private Color _mouseOverDatabaseTabTileColor;
+
+        private Color _defaultOptionsTabTileColor;
+        private Color _mouseOverOptionsTabTileColor;
+
         private Tile _selectedMainMenuTile;
         private List<Tile> _mainMenuTiles = new List<Tile>();
         private bool _isMainMenuExtended;
@@ -134,7 +148,7 @@ namespace BettingBot
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridDataContainer);
             try
             {
@@ -157,6 +171,9 @@ namespace BettingBot
                         SetupUpDowns();
                         SetupDropdowns();
                         SetupGridviews();
+                        SetupTabControls();
+                        InitializeContextMenus();
+
                         InitializeControlGroups();
 
                         SetupZIndexes(this);
@@ -164,7 +181,6 @@ namespace BettingBot
                         UpdateGuiWithNewTipsters();
                         LoadOptions();
                         RunOptionsDependentAdjustments();
-                        InitializeContextMenus();
                     });
 
                     CalculateBets();
@@ -176,7 +192,7 @@ namespace BettingBot
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
             HideLoader(gridDataContainer);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
         
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -233,11 +249,11 @@ namespace BettingBot
         {
             try
             {
-                DisableControls(_buttons);
+                DisableControls(_buttonsAndContextMenus);
                 ShowLoader(gridCalculationsFlyout);
                 await Task.Run(() => CalculateBets());
                 HideLoader(gridCalculationsFlyout);
-                EnableControls(_buttons);
+                EnableControls(_buttonsAndContextMenus);
             }
             catch (Exception ex)
             {
@@ -248,7 +264,7 @@ namespace BettingBot
 
         private async void btnClearDatabase_Click(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridDataContainer);
 
             await Task.Run(async () =>
@@ -269,7 +285,7 @@ namespace BettingBot
                 }
             });
 
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
             HideLoader(gridDataContainer);
         }
 
@@ -283,7 +299,7 @@ namespace BettingBot
 
         private async void btnAddTipster_Click(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridTipsters);
 
             try
@@ -306,17 +322,17 @@ namespace BettingBot
             }
 
             HideLoader(gridTipsters);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
 
         private async void btnDownloadTips_Click(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridTipsters);
 
             try
             {
-                await Task.Run(() => DownloadTipsToDb()); 
+                await Task.Run(() => DownloadTipsToDb());
             }
             catch (Exception ex)
             {
@@ -325,7 +341,7 @@ namespace BettingBot
             }
 
             HideLoader(gridTipsters);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
 
         private void btnCalculatorCalculate_Click(object sender, RoutedEventArgs e)
@@ -381,7 +397,7 @@ namespace BettingBot
 
         private async void btnSaveLogin_Click(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridTipsters);
 
             try
@@ -433,12 +449,12 @@ namespace BettingBot
             }
             
             HideLoader(gridTipsters);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
 
         private async void btnAddNewLogin_Click(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridTipsters);
 
             try
@@ -485,7 +501,7 @@ namespace BettingBot
             }
 
             HideLoader(gridTipsters);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
 
         #endregion
@@ -660,6 +676,68 @@ namespace BettingBot
         private void tlResizeMainMenu_MouseLeave(object sender, MouseEventArgs e)
         {
             ((Tile)sender).Unhighlight(_defaultMainMenuResizeTileColor);
+        }
+
+        private void tlFlyoutHeader_Click(object sender, RoutedEventArgs e)
+        {
+            var tile = (Tile) sender;
+            var flyout = tile.FindLogicalAncestor<Grid>(grid => grid.Name.EndsWith("Flyout"));
+            flyout.SlideHide();
+        }
+
+        private void tlFlyoutHeader_MouseEnter(object sender, MouseEventArgs e)
+        {
+            ((Tile)sender).Highlight(_mouseOverFlyoutHeaderTileColor);
+        }
+
+        private void tlFlyoutHeader_MouseLeave(object sender, MouseEventArgs e)
+        {
+            ((Tile)sender).Unhighlight(_defaultFlyoutHeaderTileColor);
+        }
+
+        private void tlMainGridTab_Click(object sender, RoutedEventArgs e)
+        {
+            SelectTab((Tile)sender);
+        }
+
+        private void tlMainGridTab_MouseEnter(object sender, MouseEventArgs e)
+        {
+            HighlightTabTile((Tile) sender, _mouseOverMainGridTabTileColor);
+        }
+
+        private void tlMainGridTab_MouseLeave(object sender, MouseEventArgs e)
+        {
+            HighlightTabTile((Tile) sender, _defaultMainGridTabTileColor);
+        }
+
+        private void tlDatabaseTab_Click(object sender, RoutedEventArgs e)
+        {
+            SelectTab((Tile)sender);
+        }
+
+        private void tlDatabaseTab_MouseEnter(object sender, MouseEventArgs e)
+        {
+            HighlightTabTile((Tile)sender, _mouseOverDatabaseTabTileColor);
+        }
+
+        private void tlDatabaseTab_MouseLeave(object sender, MouseEventArgs e)
+        {
+            HighlightTabTile((Tile)sender, _defaultDatabaseTabTileColor);
+        }
+
+        private void tlOptionsTab_Click(object sender, RoutedEventArgs e)
+        {
+            SelectTab((Tile)sender);
+        }
+
+        private void tlOptionsTab_MouseEnter(object sender, MouseEventArgs e)
+        {
+            HighlightTabTile((Tile)sender, _mouseOverOptionsTabTileColor);
+        }
+
+        private void tlOptionsTab_MouseLeave(object sender, MouseEventArgs e)
+        {
+            HighlightTabTile((Tile)sender, _defaultOptionsTabTileColor);
         }
 
         #endregion
@@ -1040,7 +1118,7 @@ namespace BettingBot
 
         private async void rgvTipsters_Deleted(object sender, GridViewDeletedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridTipsters);
 
             try
@@ -1072,12 +1150,12 @@ namespace BettingBot
             }
 
             HideLoader(gridTipsters);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
         
         private async void rgvLogins_Deleted(object sender, GridViewDeletedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridTipsters);
 
             try
@@ -1111,7 +1189,7 @@ namespace BettingBot
             }
 
             HideLoader(gridTipsters);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
 
         private void rgvLogins_SelectionChanged(object sender, SelectionChangeEventArgs e)
@@ -1245,7 +1323,7 @@ namespace BettingBot
 
         private async void cmForRgvData_ItemClick(object sender, RoutedEventArgs e)
         {
-            DisableControls(_buttons);
+            DisableControls(_buttonsAndContextMenus);
             ShowLoader(gridData);
 
             var selectedBets = rgvData.SelectedItems.Cast<BetToDisplayVM>().ToArray();
@@ -1321,14 +1399,14 @@ namespace BettingBot
                 }
             });
             HideLoader(gridData);
-            EnableControls(_buttons);
+            EnableControls(_buttonsAndContextMenus);
         }
 
         #endregion
 
         #region - Grid Events
 
-        private void gridFlyout_VisibleChanged(object sender, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
+        private void gridFlyout_VisibilityChanged(object sender, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
         {
             var fo = sender as Grid;
             if (fo == null) return;
@@ -1337,12 +1415,32 @@ namespace BettingBot
             if (!fo.IsVisible) // zamykanie flyouta
             {
                 tile.Unhighlight(_defaultMainMenuTileColor);
+                _selectedMainMenuTile = null;
             }
             else // otwieranie flyouta
             {
                 tile.Highlight(_mouseOverMainMenuTileColor);
                 _selectedMainMenuTile = tile;
             }
+        }
+
+        #endregion
+
+        #region - TabControl Events
+
+        private void matcMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectTabTile((MetroAnimatedTabControl) sender, _defaultMainGridTabTileColor, _mouseOverMainGridTabTileColor);
+        }
+
+        private void matcDatabase_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectTabTile((MetroAnimatedTabControl)sender, _defaultDatabaseTabTileColor, _mouseOverDatabaseTabTileColor);
+        }
+
+        private void matcOptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectTabTile((MetroAnimatedTabControl)sender, _defaultOptionsTabTileColor, _mouseOverOptionsTabTileColor);
         }
 
         #endregion
@@ -1450,7 +1548,7 @@ namespace BettingBot
             {
                 var margin = fo.Margin;
                 fo.Margin = new Thickness(0, margin.Top, 0, 0);
-                fo.IsVisibleChanged += gridFlyout_VisibleChanged;
+                fo.IsVisibleChanged += gridFlyout_VisibilityChanged;
                 fo.Visibility = Visibility.Collapsed;
             }
         }
@@ -1479,7 +1577,7 @@ namespace BettingBot
                 var currBg = ((SolidColorBrush) txtB.Foreground).Color;
                 txtB.FontStyle = FontStyles.Italic;
                 txtB.Text = txtB.Tag.ToString();
-                txtB.Foreground = new SolidColorBrush(WPFColor.FromArgb(128, currBg.R, currBg.G, currBg.B));
+                txtB.Foreground = new SolidColorBrush(Color.FromArgb(128, currBg.R, currBg.G, currBg.B));
             }
         }
 
@@ -1511,14 +1609,14 @@ namespace BettingBot
 
             dpLoadTipsFromDate.SelectedDate = DateTime.Now.Subtract(new TimeSpan(2, 0, 0, 0));
         }
-        
+
         private void SetupTiles()
         {
             _defaultMainMenuTileWidth = tlCalculations.ActualWidth;
-            _mouseOverMainMenuTileColor = ((SolidColorBrush)FindResource("MouseOverMainMenuTileBrush")).Color;
-            _defaultMainMenuTileColor = ((SolidColorBrush)FindResource("DefaultMainMenuTileBrush")).Color;
-            _mouseOverMainMenuResizeTileColor = ((SolidColorBrush)FindResource("MouseOverMainMenuResizeTileBrush")).Color;
-            _defaultMainMenuResizeTileColor = ((SolidColorBrush)FindResource("DefaultMainMenuResizeTileBrush")).Color;
+            _mouseOverMainMenuTileColor = ((SolidColorBrush) FindResource("MouseOverMainMenuTileBrush")).Color;
+            _defaultMainMenuTileColor = ((SolidColorBrush) FindResource("DefaultMainMenuTileBrush")).Color;
+            _mouseOverMainMenuResizeTileColor = ((SolidColorBrush) FindResource("MouseOverMainMenuResizeTileBrush")).Color;
+            _defaultMainMenuResizeTileColor = ((SolidColorBrush) FindResource("DefaultMainMenuResizeTileBrush")).Color;
 
             _mainMenuTiles = spMenu.FindLogicalDescendants<Tile>().Except(tlResizeMainMenu).ToList();
             foreach (var tl in _mainMenuTiles)
@@ -1540,6 +1638,71 @@ namespace BettingBot
 
             _selectedMainMenuTile = null;
             _mainMenuOrder = _mainMenuTiles.Select(tl => tl.Name).ToList();
+
+
+            _defaultFlyoutHeaderTileColor = ((SolidColorBrush)FindResource("DefaultFlyoutHeaderTileBrush")).Color;
+            _mouseOverFlyoutHeaderTileColor = ((SolidColorBrush)FindResource("MouseOverFlyoutHeaderTileBrush")).Color;
+            _defaultFlyoutHeaderIconColor = ((SolidColorBrush)FindResource("DefaultFlyoutHeaderIconBrush")).Color;
+
+            var flyoutCloseTiles = this.FindLogicalDescendants<Tile>().Where(tl => tl.Name.EndsWith("FlyoutHeader")).ToArray();
+            foreach (var tl in flyoutCloseTiles)
+            {
+                tl.Background = new SolidColorBrush(_defaultFlyoutHeaderTileColor);
+                tl.Click += tlFlyoutHeader_Click;
+                tl.MouseEnter += tlFlyoutHeader_MouseEnter;
+                tl.MouseLeave += tlFlyoutHeader_MouseLeave;
+            }
+
+
+            _defaultMainGridTabTileColor = ((SolidColorBrush)FindResource("DefaultMainGridTabTileBrush")).Color;
+            _mouseOverMainGridTabTileColor = ((SolidColorBrush)FindResource("MouseOverMainGridTabTileBrush")).Color;
+
+            var mainGridTabTiles = this.FindLogicalDescendants<Tile>().Where(tl => tl.Name.EndsWith("MainGridTab")).ToArray();
+            foreach (var tl in mainGridTabTiles)
+            {
+                tl.Background = new SolidColorBrush(_defaultMainGridTabTileColor);
+                tl.Click += tlMainGridTab_Click;
+                tl.MouseEnter += tlMainGridTab_MouseEnter;
+                tl.MouseLeave += tlMainGridTab_MouseLeave;
+            }
+
+
+            _defaultDatabaseTabTileColor = ((SolidColorBrush)FindResource("DefaultDatabaseTabTileBrush")).Color;
+            _mouseOverDatabaseTabTileColor = ((SolidColorBrush)FindResource("MouseOverDatabaseTabTileBrush")).Color;
+
+            var DatabaseTabTiles = this.FindLogicalDescendants<Tile>().Where(tl => tl.Name.EndsWith("DatabaseTab")).ToArray();
+            foreach (var tl in DatabaseTabTiles)
+            {
+                tl.Background = new SolidColorBrush(_defaultDatabaseTabTileColor);
+                tl.Click += tlDatabaseTab_Click;
+                tl.MouseEnter += tlDatabaseTab_MouseEnter;
+                tl.MouseLeave += tlDatabaseTab_MouseLeave;
+            }
+
+
+            _defaultOptionsTabTileColor = ((SolidColorBrush)FindResource("DefaultOptionsTabTileBrush")).Color;
+            _mouseOverOptionsTabTileColor = ((SolidColorBrush)FindResource("MouseOverOptionsTabTileBrush")).Color;
+
+            var OptionsTabTiles = this.FindLogicalDescendants<Tile>().Where(tl => tl.Name.EndsWith("OptionsTab")).ToArray();
+            foreach (var tl in OptionsTabTiles)
+            {
+                tl.Background = new SolidColorBrush(_defaultOptionsTabTileColor);
+                tl.Click += tlOptionsTab_Click;
+                tl.MouseEnter += tlOptionsTab_MouseEnter;
+                tl.MouseLeave += tlOptionsTab_MouseLeave;
+            }
+        }
+
+        private void SetupTabControls()
+        {
+            matcMain_SelectionChanged(matcMain, null); // wywołaj sztucznie raz na początku
+            matcMain.SelectionChanged += matcMain_SelectionChanged;
+
+            matcDatabase_SelectionChanged(matcDatabase, null);
+            matcDatabase.SelectionChanged += matcDatabase_SelectionChanged;
+
+            matcOptions_SelectionChanged(matcOptions, null);
+            matcOptions.SelectionChanged += matcOptions_SelectionChanged;
         }
 
         private void RunOptionsDependentAdjustments()
@@ -1590,7 +1753,9 @@ namespace BettingBot
                 mddlPickTypes,
             };
 
-            _buttons = this.FindLogicalDescendants<Button>().Where(b => b.GetType() != typeof(MahApps.Metro.Controls.Tile)).ToList();
+            var buttons = this.FindLogicalDescendants<Button>().Where(b => b.GetType() != typeof(Tile)).ToList();
+            var contextMenus = this.FindLogicalDescendants<FrameworkElement>().Select(fe => fe.ContextMenu()).Where(cm => cm != null);
+            _buttonsAndContextMenus.ReplaceAll(buttons).AddRange(contextMenus);
         }
 
         private void InitializeContextMenus()
@@ -1688,22 +1853,22 @@ namespace BettingBot
                 rgv.ItemsSource = null;
         }
 
-        private static void DisableControls(IEnumerable<UIElement> controls)
+        private static void DisableControls(IEnumerable<object> controls)
         {
             foreach (var c in controls)
-                c.IsEnabled = false;
+                c.SetProperty("IsEnabled", false);
         }
 
-        private static void EnableControls(IEnumerable<UIElement> controls)
+        private static void EnableControls(IEnumerable<object> controls)
         {
             foreach (var c in controls)
-                c.IsEnabled = true;
+                c.SetProperty("IsEnabled", true);
         }
 
-        private static void ToggleControls(IEnumerable<UIElement> controls)
+        private static void ToggleControls(IEnumerable<object> controls)
         {
             foreach (var c in controls)
-                c.IsEnabled = !c.IsEnabled;
+                c.SetProperty("IsEnabled", c.GetProperty<bool>("IsEnabled"));
         }
 
         private void HandleContextMenu(FrameworkElement fe, MouseEventArgs e)
@@ -1730,7 +1895,7 @@ namespace BettingBot
             var rect = new Rectangle
             {
                 Margin = new Thickness(0),
-                Fill = new SolidColorBrush(WPFColor.FromArgb(192, 40, 40, 40)),
+                Fill = new SolidColorBrush(Color.FromArgb(192, 40, 40, 40)),
                 Name = "prLoaderContainer"
             };
 
@@ -1761,6 +1926,36 @@ namespace BettingBot
 
             loaders.ForEach(l => control.Children.Remove(l));
             loaderContainers.ForEach(r => control.Children.Remove(r));
+        }
+
+        private static void SelectTab(DependencyObject tile)
+        {
+            var tabItem = tile.FindLogicalAncestor<MetroTabItem>();
+            var tabControl = tabItem.FindLogicalAncestor<MetroAnimatedTabControl>();
+            tabControl.SelectedItem = tabItem;
+        }
+
+        private static void HighlightTabTile(Control tile, Color color)
+        {
+            var tabControl = tile.FindLogicalAncestor<MetroAnimatedTabControl>();
+            var gridTabTiles = tabControl.FindLogicalDescendants<Tile>().Where(tl => tl.Name.EndsWith("Tab")).ToArray();
+            var selectedTile = gridTabTiles.Single(tl => tl.FindLogicalAncestor<MetroTabItem>().IsSelected);
+            if (Equals(tile, selectedTile))
+                return;
+
+            tile.Highlight(color);
+        }
+
+        private static void SelectTabTile(Selector tabControl, Color defaultCOlor, Color mouseOverCOlor)
+        {
+            var selectedTab = (MetroTabItem)tabControl.SelectedItem;
+            var selectedTile = selectedTab.FindLogicalDescendants<Tile>().Single();
+            var gridTabTiles = tabControl.FindLogicalDescendants<Tile>().Where(tl => tl.Name.EndsWith("Tab")).ToArray();
+            var otherTiles = gridTabTiles.Except(selectedTile);
+
+            foreach (var tl in otherTiles)
+                tl.Unhighlight(defaultCOlor);
+            selectedTile.Highlight(mouseOverCOlor);
         }
 
         #endregion
@@ -1794,14 +1989,23 @@ namespace BettingBot
         {
             try
             {
-                var newLink = Dispatcher.Invoke(() => txtLoad.Text);
-                var placeholder = Dispatcher.Invoke(() => txtLoad.Tag)?.ToString();
+                string newLink = null;
+                string placeholder = null;
+                var headlessMode = false;
+                Dispatcher.Invoke(() =>
+                {
+                    headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
+                    newLink = txtLoad.Text;
+                    placeholder = txtLoad.Tag?.ToString();
+                });
 
                 if (!newLink.IsNullWhiteSpaceOrDefault(placeholder))
+                {
                     if (new Uri(newLink).Host.ToLower().Contains(betshoot))
                         new BetShootLoader(newLink).DownloadNewTipster();
                     else if (new Uri(newLink).Host.ToLower().Contains(hintwise))
-                        new HintWiseLoader(newLink).DownloadNewTipster();
+                        new HintWiseLoader(newLink, headlessMode).DownloadNewTipster();
+                }
             }
             finally
             {
@@ -1819,13 +2023,26 @@ namespace BettingBot
                 var tipsters = db.Tipsters.Include(t => t.Website).Where(t => t.Name != me.Name).ToArray();
                 var selectedTipstersIds = rgvTipsters.SelectedItems.Cast<TipsterForGvVM>().Select(t => t.Id).ToArray();
                 var selectedTipsters = tipsters.WhereByMany(t => t.Id, selectedTipstersIds).ToArray();
-                foreach (var t in Dispatcher.Invoke(() => cbLoadTipsOnlySelected.IsChecked == true) ? selectedTipsters : tipsters)
+
+                var headlessMode = false;
+                var onlySelected = false;
+                DateTime? fromDate = null;
+                Dispatcher.Invoke(() =>
+                {
+                    headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
+                    fromDate = cbLoadTipsFromDate.IsChecked == true
+                        ? dpLoadTipsFromDate.SelectedDate.ToDMY()
+                        : null;
+                    onlySelected = cbLoadTipsOnlySelected.IsChecked == true;
+                });
+                
+                foreach (var t in onlySelected ? selectedTipsters : tipsters)
                 {
                     db.Entry(t.Website).Reference(e => e.Login).Load();
                     if (t.Website.Address.ToLower() == betshoot)
                         new BetShootLoader(t.Link).DownloadTips();
                     else if (t.Website.Address.ToLower() == hintwise)
-                        new HintWiseLoader(t.Link, t.Website.Login?.Name, t.Website.Login?.Password).DownloadTips(Dispatcher.Invoke(() => cbLoadTipsFromDate.IsChecked == true) ? Dispatcher.Invoke(() => dpLoadTipsFromDate.SelectedDate.ToDMY()) : null);
+                        new HintWiseLoader(t.Link, t.Website.Login?.Name, t.Website.Login?.Password, headlessMode).DownloadTips(fromDate);
                     else
                         throw new Exception($"Nie istnieje loader dla strony: {t.Website}");
                 }
@@ -2063,6 +2280,7 @@ namespace BettingBot
 
                 new CbState("ShowStatisticsOnEvaluateOption", cbShowStatisticsOnEvaluateOption),
                 new CbState("HideLoginPasswordsOption", cbHideLoginPasswordsOption),
+                new CbState("ShowBrowserOnDataLoadingOption", cbShowBrowserOnDataLoadingOption),
 
                 new CbState("DataLoadingLoadTipsFromDate", cbLoadTipsFromDate),
                 new CbState("DataLoadingLoadTipsOnlySelected", cbLoadTipsOnlySelected),

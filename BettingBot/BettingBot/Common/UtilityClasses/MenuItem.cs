@@ -17,7 +17,7 @@ namespace BettingBot.Common.UtilityClasses
 
         public bool IsEnabled
         {
-            get { return isEnabled; }
+            get => isEnabled;
             set
             {
                 if (isEnabled == value) return;
@@ -28,7 +28,7 @@ namespace BettingBot.Common.UtilityClasses
 
         public string Text
         {
-            get { return _text; }
+            get => _text;
             set
             {
                 if (_text == value) return;
@@ -39,7 +39,7 @@ namespace BettingBot.Common.UtilityClasses
 
         public ObservableCollection<MenuItem> SubItems
         {
-            get { return _subItems ?? (_subItems = new ObservableCollection<MenuItem>()); }
+            get => _subItems ?? (_subItems = new ObservableCollection<MenuItem>());
             set
             {
                 if (_subItems == value) return;
