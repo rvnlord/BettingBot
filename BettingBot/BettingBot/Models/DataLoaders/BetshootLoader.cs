@@ -25,19 +25,24 @@ namespace BettingBot.Models.DataLoaders
         public override List<Bet> DownloadTips(bool loadToDb = true)
         {
             var db = new LocalDbContext();
+            OnInformationSending("Określanie nazwy Tipstera...");
             var tipsterName = DownloadTipsterName();
+            OnInformationSending("Ustalanie strony Tipstera...");
             var tipsterDomain = DownloadTipsterDomain();
             var tipsterId = db.Tipsters.Single(t => tipsterName == t.Name && tipsterDomain == t.Website.Address).Id;
             var newBets = new List<Bet>();
 
             var htmlBettingPicks = Root
                 .Descendants()
-                .Where(n => n.GetAttributeValue("class", "").Equals("bettingpick"));
+                .Where(n => n.GetAttributeValue("class", "").Equals("bettingpick"))
+                .ToArray();
 
             var currId = !db.Bets.Any() ? -1 : db.Bets.MaxBy(b => b.Id).Id;
+            var i = 0;
 
             foreach (var bp in htmlBettingPicks)
             {
+                OnInformationSending($"Wczytywanie zakładów ({++i} z {htmlBettingPicks.Length})...");
                 var date = bp.Descendants()
                     .Single(x => x.GetAttributeValue("class", "").Equals("bettingpickdate"))
                     .InnerText;
@@ -76,17 +81,18 @@ namespace BettingBot.Models.DataLoaders
                 {
                     Id = ++currId,
                     TipsterId = tipsterId,
-                    Date = new DateTime(Convert.ToInt32(dateArr[2]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[0])),
+                    Date = new DateTime(dateArr[2].ToInt(), dateArr[1].ToInt(), dateArr[0].ToInt()),
                     Match = matchStr,
-                    PickId = (int) pickId,
+                    PickId = pickId.ToInt(),
                     PickOriginalString = pickStr,
                     MatchResult = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("mresult")).InnerText.RemoveHTMLSymbols().Replace(" ", "").Replace("-", " - "),
-                    BetResult = Convert.ToInt32(betResult),
+                    BetResult = betResult.ToInt(),
                     Odds = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("pick-odd")).InnerText.Replace(".", ",").ToDouble()
                 };
                 newBets.Add(newBet);
             }
-        
+
+            OnInformationSending("Zapisywanie zakładów...");
             if (newBets.Count > 0)
             {
                 var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystykie z tą datą

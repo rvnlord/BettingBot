@@ -102,10 +102,13 @@ namespace BettingBot.Models.DataLoaders
         public List<Bet> DownloadTips(DateTime? fromDate = null, bool loadToDb = true)
         {
             var db = new LocalDbContext();
+            OnInformationSending("Określanie nazwy Tipstera...");
             var tipsterName = DownloadTipsterName();
+            OnInformationSending("Ustalanie strony Tipstera...");
             var tipsterDomain = DownloadTipsterDomain();
             var tipsterId = db.Tipsters.Single(t => tipsterName == t.Name && tipsterDomain == t.Website.Address).Id;
 
+            OnInformationSending("Wczytywanie informacji o zakładach...");
             var currPredTable = Sdm.Driver.FindElementByXPath(".//div[@id='predictions-grid']");
 
             Sdm.Driver.DisableImplicitWait();
@@ -118,7 +121,7 @@ namespace BettingBot.Models.DataLoaders
                 var currPredLastPageLink = aList.Single().GetAttribute("href").RemoveMany("https://", "www.", "hintwise.com");
                 var currPredLastPageUri = new Uri($"{Url.Scheme}://{Url.Host}{currPredLastPageLink}");
                 currPredQueries = HttpUtility.ParseQueryString(currPredLastPageUri.Query);
-                currPredLastPage = Convert.ToInt32(currPredQueries["Prediction_page"]);
+                currPredLastPage = currPredQueries["Prediction_page"].ToInt();
             }
 
             var histPredTable = Sdm.Driver.FindElementByXPath(".//div[@id='history-predictions']");
@@ -139,6 +142,7 @@ namespace BettingBot.Models.DataLoaders
 
             for (var i = 1; i <= currPredLastPage; i++) // 
             {
+                OnInformationSending($"Wczytywanie nowych zakładów (strona {i} z {currPredLastPage})...");
                 if (currPredLastPage > 1 && currPredQueries != null)
                 {
                     var uriBuilder = new UriBuilder(Url);
@@ -180,8 +184,8 @@ namespace BettingBot.Models.DataLoaders
                     var newBet = new Bet
                     {
                         Id = ++currBetId, TipsterId = tipsterId, Date = date.ToLocalTime(),
-                        Match = matchStr, PickId = (int) pickId, PickOriginalString = pickStr,
-                        MatchResult = "", BetResult = Convert.ToInt32(Result.Pending),
+                        Match = matchStr, PickId = pickId.ToInt(), PickOriginalString = pickStr,
+                        MatchResult = "", BetResult = Result.Pending.ToInt(),
                         Odds = isFree ? pickCols[3].Text.Between("(", ")")
                             .RemoveHTMLSymbols().Trim().ToDouble() : 0
                     };
@@ -194,6 +198,7 @@ namespace BettingBot.Models.DataLoaders
 
             for (var i = 1; i <= histPredLastPage; i++) // 
             {
+                OnInformationSending($"Wczytywanie historycznych zakładów (strona {i} z {histPredLastPage})...");
                 var uriBuilder = new UriBuilder(Url);
                 histPredQueries.Set("page", i.ToString());
                 uriBuilder.Query = histPredQueries.ToString();
@@ -226,11 +231,11 @@ namespace BettingBot.Models.DataLoaders
                         TipsterId = tipsterId,
                         Date = date,
                         Match = matchStr,
-                        PickId = (int) pickId,
+                        PickId = pickId.ToInt(),
                         PickOriginalString = pickStr,
                         MatchResult = pickCols[4].Text.RemoveHTMLSymbols().Trim(),
-                        BetResult = Convert.ToInt32(pickCols[5].Text.UntilWithout("(").RemoveHTMLSymbols().Trim().ToLower() == "win"
-                            ? Result.Win : Result.Lose),
+                        BetResult = (pickCols[5].Text.BeforeFirst("(").RemoveHTMLSymbols().Trim().ToLower() == "win"
+                            ? Result.Win : Result.Lose).ToInt(),
                         Odds = pickCols[3].Text.Between("(", ")").RemoveHTMLSymbols().Trim().ToDouble()
                     };
 
@@ -245,7 +250,8 @@ namespace BettingBot.Models.DataLoaders
                     break;
                 }
             }
-            
+
+            OnInformationSending("Zapisywanie zakładów...");
             if (newBets.Count > 0)
             {
                 var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystkie z tą datą

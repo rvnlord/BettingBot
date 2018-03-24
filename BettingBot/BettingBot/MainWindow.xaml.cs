@@ -1445,6 +1445,20 @@ namespace BettingBot
 
         #endregion
 
+        #region - DataLoader Events
+
+        private void dl_InformationSent(object sender, InformationSentEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var loaderStatuses = this.FindLogicalDescendants<TextBlock>().Where(c => c.Name == "prLoaderStatus").ToArray();
+                foreach (var tb in loaderStatuses)
+                    tb.Text = e.Information;
+            });
+        }
+
+        #endregion
+
         #endregion
 
         #region Methods
@@ -1895,7 +1909,7 @@ namespace BettingBot
             var rect = new Rectangle
             {
                 Margin = new Thickness(0),
-                Fill = new SolidColorBrush(Color.FromArgb(192, 40, 40, 40)),
+                Fill = new SolidColorBrush(Color.FromArgb(192, 0, 0, 0)),
                 Name = "prLoaderContainer"
             };
 
@@ -1910,22 +1924,32 @@ namespace BettingBot
                 Name = "prLoader"
             };
 
+            var status = new TextBlock
+            {
+                Foreground = Brushes.White,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 18,
+                Margin = new Thickness(0, 125, 0, 0),
+                Text = "Ładowanie...",
+                Name = "prLoaderStatus"
+            };
+
             Panel.SetZIndex(rect, 10000);
             Panel.SetZIndex(loader, 10001);
+            Panel.SetZIndex(status, 10001);
 
-            control.Children.Add(rect);
-            control.Children.Add(loader);
+            control.Children.AddRange(new FrameworkElement[] { rect, loader, status });
         }
 
         private static void HideLoader(Panel control)
         {
-            var loaders = control.FindLogicalDescendants<ProgressRing>().Where(c => c.Name == "prLoader" ).ToArray();
-            var loaderContainers = control.FindLogicalDescendants<Rectangle>().Where(c => c.Name == "prLoaderContainer" ).ToArray();
+            var loaders = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoader" ).ToArray();
+            var loaderContainers = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderContainer" ).ToArray();
+            var loaderStatuses = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderStatus").ToArray();
+            var loaderParts = ArrayUtils.ConcatMany(loaders, loaderContainers, loaderStatuses);
 
-            loaders.ForEach(l => l.IsActive = false);
-
-            loaders.ForEach(l => control.Children.Remove(l));
-            loaderContainers.ForEach(r => control.Children.Remove(r));
+            loaderParts.ForEach(lp => control.Children.Remove(lp));
         }
 
         private static void SelectTab(DependencyObject tile)
@@ -1959,7 +1983,7 @@ namespace BettingBot
         }
 
         #endregion
-
+        
         #region - Core Functionality
 
         public void UpdateGuiWithNewTipsters()
@@ -2001,10 +2025,15 @@ namespace BettingBot
 
                 if (!newLink.IsNullWhiteSpaceOrDefault(placeholder))
                 {
+                    DataLoader dl;
                     if (new Uri(newLink).Host.ToLower().Contains(betshoot))
-                        new BetShootLoader(newLink).DownloadNewTipster();
+                        dl = new BetShootLoader(newLink);
                     else if (new Uri(newLink).Host.ToLower().Contains(hintwise))
-                        new HintWiseLoader(newLink, headlessMode).DownloadNewTipster();
+                        dl = new HintWiseLoader(newLink, headlessMode);
+                    else
+                        throw new Exception($"Nie istnieje loader dla strony: {newLink}");
+                    dl.InformationSent += dl_InformationSent;
+                    dl.DownloadNewTipster();
                 }
             }
             finally
@@ -2039,12 +2068,21 @@ namespace BettingBot
                 foreach (var t in onlySelected ? selectedTipsters : tipsters)
                 {
                     db.Entry(t.Website).Reference(e => e.Login).Load();
+                    DataLoader dl;
                     if (t.Website.Address.ToLower() == betshoot)
-                        new BetShootLoader(t.Link).DownloadTips();
+                    {
+                        dl = new BetShootLoader(t.Link);
+                        dl.InformationSent += dl_InformationSent;
+                        dl.DownloadTips();
+                    }
                     else if (t.Website.Address.ToLower() == hintwise)
-                        new HintWiseLoader(t.Link, t.Website.Login?.Name, t.Website.Login?.Password, headlessMode).DownloadTips(fromDate);
+                    {
+                        dl = new HintWiseLoader(t.Link, t.Website.Login?.Name, t.Website.Login?.Password, headlessMode);
+                        dl.InformationSent += dl_InformationSent;
+                        ((HintWiseLoader) dl).DownloadTips(fromDate);
+                    }
                     else
-                        throw new Exception($"Nie istnieje loader dla strony: {t.Website}");
+                        throw new Exception($"Nie istnieje loader dla strony: {t.Website.Address}");
                 }
             }
             finally

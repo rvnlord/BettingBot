@@ -26,7 +26,9 @@
 ![Calculator](/Images/2018-03-24_031253.png?raw=true "Calculator")
 
 * Program is portable (using SQLite accessed via EF)
-* [NEW] From now on Selenium headless mode is supported too
+* [NEW] Now Selenium headless mode with visual feedback
+
+![SeleniumHeadlessFeedback](/Images/2018-03-24_184526.png?raw=true "SeleniumHeadlessFeedback")
 
 The ultimate goal of this software is to automate betting process entirely so it can be more easily considered as an investment option. For now however you can use it for advanced analysis of tipster performance.
 

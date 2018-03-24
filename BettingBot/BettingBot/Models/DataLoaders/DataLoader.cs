@@ -2,23 +2,9 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using DomainParser.Library;
 using HtmlAgilityPack;
-using MoreLinq;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.Support.UI;
 using BettingBot.Common;
 using BettingBot.Models.Interfaces;
 
@@ -51,9 +37,12 @@ namespace BettingBot.Models.DataLoaders
         public virtual Tipster DownloadNewTipster(bool loadToDb = true)
         {
             var db = new LocalDbContext();
+            OnInformationSending("Określanie nazwy Tipstera...");
             var tipsterName = DownloadTipsterName();
+            OnInformationSending("Ustalanie strony Tipstera...");
             var domain = DownloadTipsterDomain();
 
+            OnInformationSending("Pozyskiwanie informacji o osobie z bazy danych...");
             if (db.Tipsters.Any() && db.Tipsters.Any(t => t.Name + t.Website.Address == tipsterName + domain))
                 return db.Tipsters.Include(t => t.Website).Single(t => t.Name + t.Website.Address == tipsterName + domain);
             
@@ -91,5 +80,22 @@ namespace BettingBot.Models.DataLoaders
         public abstract void EnsureLogin();
         public abstract bool IsLogged();
         public abstract void Login();
+
+        public event InformationSentEventHandler InformationSent;
+
+        protected virtual void OnInformationSending(InformationSentEventArgs e) => InformationSent?.Invoke(this, e);
+        protected virtual void OnInformationSending(string information) => OnInformationSending(new InformationSentEventArgs(information));
+    }
+
+    public delegate void InformationSentEventHandler(object sender, InformationSentEventArgs e);
+
+    public class InformationSentEventArgs
+    {
+        public string Information { get; }
+
+        public InformationSentEventArgs(string information)
+        {
+            Information = information;
+        }
     }
 }

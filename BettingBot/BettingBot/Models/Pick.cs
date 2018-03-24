@@ -150,7 +150,7 @@ namespace BettingBot.Models
             sb.Append(ConvertChoiceToString(Choice));
 
             if (Choice == PickChoice.BothToScore)
-                sb.Append(Convert.ToBoolean(Value) ? " - Y" : " - N");
+                sb.Append(Value.ToBool() ? " - Y" : " - N");
             else if (Value != null)
                 sb.Append($" {Value}");
 
@@ -178,7 +178,7 @@ namespace BettingBot.Models
 
         public bool EqualsWoId(Pick otherPick)
         {
-            return Choice == otherPick.Choice && Value == otherPick.Value;
+            return Choice == otherPick.Choice && Value.Eq(otherPick.Value);
         }
     }
 

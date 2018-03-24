@@ -168,7 +168,6 @@ namespace BettingBot.Models
 
             foreach (var g in betsGroups)
             {
-                //var groupOdds = g.Select(b => b.Pick.ToLower().Contains("both") ? b.Odds - 0.240 : b.Odds).Sum();
                 var groupOdds = g.Select(b => b.Odds).Sum();
                 var groupSize = g.Count();
 
@@ -191,7 +190,6 @@ namespace BettingBot.Models
 
                 foreach (var bet in g)
                 {
-                    //bet.Odds = bet.Pick.ToLower().Contains("both") ? bet.Odds - 0.240 : bet.Odds;
                     var betVM = new BetToDisplayVM();
                     Mapper.Map(bet, betVM);
                     

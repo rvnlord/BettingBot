@@ -57,7 +57,7 @@ namespace BettingBot.Common
         private static readonly Dictionary<string, bool> _panelAnimations = new Dictionary<string, bool>();
         private static readonly object _lock = new object(); 
 
-        public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "," } };
+        public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "." } };
         
         #endregion
 
@@ -120,18 +120,7 @@ namespace BettingBot.Common
         {
             return substrings.Aggregate(str, (current, substring) => current.Remove(substring));
         }
-
-        public static bool IsSimilarTo(this string str, string otherStr)
-        {
-            var m = new Metaphone();
-            return m.Encode(str) == m.Encode(otherStr);
-        }
-
-        public static bool IsSimilarToAny(this string str, params string[] strings)
-        {
-            return strings.Any(s => s.IsSimilarTo(str));
-        }
-
+        
         public static string[] Split(this string str, string separator, bool includeSeparator = false)
         {
             var split = str.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
@@ -203,64 +192,7 @@ namespace BettingBot.Common
         {
             return str.SameWords(otherStrings, false, " ", 1).Any();
         }
-
-        public static string[] SimilarWords(this string str, string otherStr, bool caseSensitive = false, string splitBy = " ", int minWordLength = 2, bool includeMistyped = true)
-        {
-            if (caseSensitive)
-            {
-                str = str.ToLower();
-                otherStr = otherStr.ToLower();
-            }
-
-            var str1Arr = str.Split(splitBy).Where(w => w.Length >= minWordLength).ToArray();
-            var str2Arr = otherStr.Split(splitBy).Where(w => w.Length >= minWordLength).ToArray();
-
-            var m = new Metaphone();
-            var metaphoneStr1Arr = str1Arr.Select(w => m.Encode(w)).ToArray();
-            var metaphoneStr2Arr = str2Arr.Select(w => m.Encode(w)).ToArray();
-            var metaphoneIntersection = metaphoneStr1Arr.Intersect(metaphoneStr2Arr).ToArray();
-
-            var mistypedIntersection = new List<string>();
-
-            if (includeMistyped) // uwaga, przy takim porównywaniu wyjdzie, że II is similar to Munich
-                foreach (var s1 in str1Arr)
-                    foreach (var s2 in str2Arr)
-                        if (Math.Abs(s1.Length - s2.Length) <= 2 && (s1.ContainsAll(s2.Select(c => c.ToString()).ToArray()) || s2.ContainsAll(s1.Select(c => c.ToString()).ToArray())))
-                            mistypedIntersection.Add(m.Encode(s1));
-
-            return metaphoneIntersection.Concat(mistypedIntersection).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
-        }
-
-        public static string[] SimilarWords(this string str, string[] otherStrings, bool caseSensitive, string splitBy = " ", int minWordLength = 2)
-        {
-            var sameWords = new List<string>();
-
-            foreach (var otherStr in otherStrings)
-                sameWords.AddRange(str.SimilarWords(otherStr, caseSensitive, splitBy, minWordLength));
-
-            return sameWords.Distinct().ToArray();
-        }
-
-        public static string[] SimilarWords(this string str, params string[] otherStrings)
-        {
-            return str.SimilarWords(otherStrings, false, " ", 2);
-        }
-
-        public static bool HasSimilarWords(this string str, string otherStr, bool caseSensitive = false, string splitBy = " ", int minWordLength = 2)
-        {
-            return str.SimilarWords(otherStr, caseSensitive, splitBy, minWordLength).Any();
-        }
-
-        public static bool HasSimilarWords(this string str, string[] otherStrings, bool caseSensitive, string splitBy = " ", int minWordLength = 2)
-        {
-            return str.SimilarWords(otherStrings, caseSensitive, splitBy, minWordLength).Any();
-        }
-
-        public static bool HasSimilarWords(this string str, params string[] otherStrings)
-        {
-            return str.SimilarWords(otherStrings, false, " ", 2).Any();
-        }
-
+        
         public static bool IsDouble(this string str)
         {
             return str.ToDoubleN() != null;
@@ -403,6 +335,11 @@ namespace BettingBot.Common
                 greaterThan = temp;
             }
             return d > greaterThan && d < lesserThan;
+        }
+
+        public static double Round(this double number, int digits = 0)
+        {
+            return Math.Round(number, digits);
         }
 
         #endregion
@@ -1318,128 +1255,6 @@ namespace BettingBot.Common
 
         #endregion
 
-        #region Object Extensions
-
-        public static T ToEnum<T>(this object value) where T : struct
-        {
-            if (!typeof(T).IsEnum) throw new ArgumentException("T must be an Enum");
-            return (T)Enum.Parse(typeof(T), value.ToString().RemoveMany(" ", "-"), true);
-        }
-
-        public static int? ToIntN(this object obj)
-        {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToInt32(obj);
-            return int.TryParse(obj.ToString().Replace(".", ",").TakeUntil(","), NumberStyles.Any, Culture, out int tmpvalue) ? tmpvalue : (int?)null;
-        }
-
-        public static int ToInt(this object obj)
-        {
-            var intN = obj.ToIntN();
-            if (intN != null) return (int)intN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static uint? ToUIntN(this object obj)
-        {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToUInt32(obj);
-            return uint.TryParse(obj.ToString().Replace(".", ",").TakeUntil(","), NumberStyles.Any, Culture, out uint tmpvalue) ? tmpvalue : (uint?)null;
-        }
-
-        public static uint ToUInt(this object obj)
-        {
-            var uintN = obj.ToUIntN();
-            if (uintN != null) return (uint)uintN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static long? ToLongN(this object obj)
-        {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToInt64(obj);
-            return long.TryParse(obj.ToString().Replace(".", ",").TakeUntil(","), NumberStyles.Any, Culture, out long tmpvalue) ? tmpvalue : (long?)null;
-        }
-
-        public static long ToLong(this object obj)
-        {
-            var longN = obj.ToLongN();
-            if (longN != null) return (long)longN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static double? ToDoubleN(this object obj)
-        {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToDouble(obj);
-            return double.TryParse(obj.ToString().Replace(".", ","), NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
-        }
-
-        public static double ToDouble([NotNull] this object obj)
-        {
-            var doubleN = obj.ToDoubleN();
-            if (doubleN != null) return (double)doubleN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static decimal? ToDecimalN(this object obj)
-        {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToDecimal(obj);
-            return decimal.TryParse(obj.ToString().Replace(".", ","), NumberStyles.Any, Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
-        }
-
-        public static decimal ToDecimal([NotNull] this object obj)
-        {
-            var decimalN = obj.ToDecimalN();
-            if (decimalN != null) return (decimal)decimalN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static DateTime? ToDateTimeN(this object obj)
-        {
-            return DateTime.TryParse(obj?.ToString(), out DateTime tmpvalue) ? tmpvalue : (DateTime?)null;
-        }
-
-        public static DateTime ToDateTime(this object obj)
-        {
-            var DateTimeN = obj.ToDateTimeN();
-            if (DateTimeN != null) return (DateTime)DateTimeN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static DateTime ToDateTimeExact(this object obj, string format)
-        {
-            //var t = DateTime.UtcNow.ToString("ddd, d MMM yy HH:mm:ss", CultureInfo.InvariantCulture);
-            return DateTime.ParseExact(obj?.ToString(), format, CultureInfo.InvariantCulture);
-        }
-
-        public static bool? ToBoolN(this object obj)
-        {
-            if (obj == null) return null;
-            if (obj is bool) return (bool)obj;
-            return bool.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
-        }
-
-        public static bool ToBool(this object obj)
-        {
-            var boolN = obj.ToBoolN();
-            if (boolN != null) return (bool)boolN;
-            throw new ArgumentNullException(nameof(obj));
-        }
-
-        public static T GetProperty<T>(this object src, string propName)
-        {
-            return (T) src.GetType().GetProperty(propName)?.GetValue(src, null);
-        }
-
-        public static void SetProperty<T>(this object src, string propName, T propValue)
-        {
-            src.GetType().GetProperty(propName)?.SetValue(src, propValue);
-        }
-
-        #endregion
-
         #region Control Extensions
 
         public static void Highlight(this Control tile, Color color)
@@ -1504,7 +1319,132 @@ namespace BettingBot.Common
         {
             return Canvas.GetTop(control);
         }
-        
+
+        #endregion
+
+        #region Object Extensions
+
+        public static T ToEnum<T>(this object value) where T : struct
+        {
+            if (!typeof(T).IsEnum) throw new ArgumentException("T must be an Enum");
+            return (T)Enum.Parse(typeof(T), value.ToString().RemoveMany(" ", "-"), true);
+        }
+
+        public static int? ToIntN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToInt32(obj);
+            if (obj.GetType().IsEnum) return (int) obj;
+            return int.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out int val) ? val : (int?) null;
+        }
+
+        public static int ToInt(this object obj)
+        {
+            var intN = obj.ToIntN();
+            if (intN != null) return (int)intN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static uint? ToUIntN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToUInt32(obj);
+            if (obj.GetType().IsEnum) return (uint) obj;
+            return uint.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out uint val) ? val : (uint?)null;
+        }
+
+        public static uint ToUInt(this object obj)
+        {
+            var uintN = obj.ToUIntN();
+            if (uintN != null) return (uint)uintN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static long? ToLongN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToInt64(obj);
+            if (obj.GetType().IsEnum) return (long) obj;
+            return long.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out long val) ? val : (long?)null;
+        }
+
+        public static long ToLong(this object obj)
+        {
+            var longN = obj.ToLongN();
+            if (longN != null) return (long)longN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static double? ToDoubleN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToDouble(obj);
+            return double.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+        }
+
+        public static double ToDouble([NotNull] this object obj)
+        {
+            var doubleN = obj.ToDoubleN();
+            if (doubleN != null) return (double)doubleN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static decimal? ToDecimalN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return Convert.ToDecimal(obj);
+            return decimal.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
+        }
+
+        public static decimal ToDecimal([NotNull] this object obj)
+        {
+            var decimalN = obj.ToDecimalN();
+            if (decimalN != null) return (decimal)decimalN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static DateTime? ToDateTimeN(this object obj)
+        {
+            return DateTime.TryParse(obj?.ToString(), out DateTime tmpvalue) ? tmpvalue : (DateTime?)null;
+        }
+
+        public static DateTime ToDateTime(this object obj)
+        {
+            var DateTimeN = obj.ToDateTimeN();
+            if (DateTimeN != null) return (DateTime)DateTimeN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static DateTime ToDateTimeExact(this object obj, string format)
+        {
+            return DateTime.ParseExact(obj?.ToString(), format, CultureInfo.InvariantCulture);
+        }
+
+        public static bool? ToBoolN(this object obj)
+        {
+            if (obj == null) return null;
+            if (obj is bool) return (bool) obj;
+            if (obj.ToIntN() != null) return Convert.ToBoolean(obj.ToInt());
+            return bool.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
+        }
+
+        public static bool ToBool(this object obj)
+        {
+            var boolN = obj.ToBoolN();
+            if (boolN != null) return (bool)boolN;
+            throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static T GetProperty<T>(this object src, string propName)
+        {
+            return (T)src.GetType().GetProperty(propName)?.GetValue(src, null);
+        }
+
+        public static void SetProperty<T>(this object src, string propName, T propValue)
+        {
+            src.GetType().GetProperty(propName)?.SetValue(src, propValue);
+        }
+
         #endregion
     }
 }

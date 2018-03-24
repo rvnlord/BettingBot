@@ -121,7 +121,7 @@ namespace BettingBot.Models
         public override void Load(DbSet<Option> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
-                Rddl.SelectedItem = Rddl.Items.SourceCollection.Cast<DdlItem>().Single(i => i.Index == Convert.ToInt32(dbOptions.Single(o => o.Key == Key).Value));
+                Rddl.SelectedItem = Rddl.Items.SourceCollection.Cast<DdlItem>().Single(i => i.Index == dbOptions.Single(o => o.Key == Key).Value.ToInt());
 
         }
 
@@ -147,7 +147,7 @@ namespace BettingBot.Models
             {
                 Mddl.UnselectAll();
                 var val = dbOptions.Single(o => o.Key == Key).Value;
-                var ids = string.IsNullOrWhiteSpace(val) ? new[] { -1 } : val.Split(',').Select(v => Convert.ToInt32(v));
+                var ids = string.IsNullOrWhiteSpace(val) ? new[] { -1 } : val.Split(',').Select(v => v.ToInt());
                 foreach (var item in Mddl.Items.SourceCollection.Cast<DdlItem>().Where(i => ids.Any(id => id == i.Index)).ToList())
                     Mddl.SelectedItems.Add(item);
             }
@@ -172,12 +172,12 @@ namespace BettingBot.Models
         public override void Load(DbSet<Option> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
-                Cb.IsChecked = Convert.ToBoolean(Convert.ToInt32(dbOptions.Single(o => o.Key == Key).Value));
+                Cb.IsChecked = dbOptions.Single(o => o.Key == Key).Value.ToBool();
         }
 
         public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, Convert.ToInt32(Cb.IsChecked == true).ToString()));
+            dbOptions.AddOrUpdate(new Option(Key, (Cb.IsChecked == true).ToInt().ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -194,7 +194,7 @@ namespace BettingBot.Models
         public override void Load(DbSet<Option> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
-                Rbs[Convert.ToInt32(dbOptions.Single(o => o.Key == Key).Value)].IsChecked = true;
+                Rbs[dbOptions.Single(o => o.Key == Key).Value.ToInt()].IsChecked = true;
         }
 
         public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
@@ -223,7 +223,7 @@ namespace BettingBot.Models
             if (dbOptions.Any(o => o.Key == Key))
             {
                 var val = dbOptions.Single(o => o.Key == Key).Value;
-                Dp.SelectedDate = string.IsNullOrWhiteSpace(val) ? (DateTime?)null : Convert.ToDateTime(val);
+                Dp.SelectedDate = string.IsNullOrWhiteSpace(val) ? (DateTime?)null : val.ToDateTime();
             }
         }
 
@@ -250,11 +250,11 @@ namespace BettingBot.Models
             if (dbOptions.Any(o => o.Key == Key))
             {
                 var val = dbOptions.Single(o => o.Key == Key).Value;
-                var ids = val.Split(",").Select(v => Convert.ToInt32(v)).ToArray();
+                var ids = val.Split(",").Select(v => v.ToInt()).ToArray();
                 foreach (var item in Rgv.Items)
                 {
-                    var itemId = (int) item.GetType().GetProperty(ByProperty).GetValue(item, null);
-                    if (itemId.EqualsAny(ids))
+                    var itemId = item.GetType().GetProperty(ByProperty)?.GetValue(item, null);
+                    if (itemId.ToInt().EqualsAny(ids))
                         Rgv.SelectedItems.Add(item);
                 }
             }

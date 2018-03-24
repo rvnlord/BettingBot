@@ -21,6 +21,8 @@ namespace BettingBot.Common
         public static string[] Numbers { get; } = "1234567890".ToArray().Select(c => c.ToString()).ToArray();
         public static string[] Operators { get; } = "+-/*".ToArray().Select(c => c.ToString()).ToArray();
         public static string[] NumbersAndOperators => Numbers.Concat(Operators).ToArray();
+
+        public static T[] ConcatMany<T>(params T[][] arrays) => arrays.SelectMany(x => x).ToArray();
     }
 
     public static class EnumUtils

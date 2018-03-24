@@ -446,7 +446,6 @@
     <Compile Include="Models\Interfaces\ISeleniumConnectable.cs" />
     <Compile Include="Models\LocalDbContext.cs" />
     <Compile Include="Common\UtilityClasses\MenuItem.cs" />
-    <Compile Include="Models\Metaphone.cs" />
     <Compile Include="Models\Option.cs" />
     <Compile Include="Models\Pick.cs" />
     <Compile Include="Models\ProfitByPeriodStatistics.cs" />
@@ -480,8 +479,8 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Themes\DarkBlend\Styles.xaml">
-      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -503,6 +502,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <Content Include="Data\database.sqlite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
