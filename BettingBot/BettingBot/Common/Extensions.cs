@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
@@ -10,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,6 +23,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml;
 using AutoMapper;
@@ -32,14 +36,18 @@ using Telerik.Windows.Controls.GridView;
 using Expression = System.Linq.Expressions.Expression;
 using BettingBot.Models;
 using BettingBot.Common.UtilityClasses;
-using Telerik.Windows.Documents.Spreadsheet.Expressions.Functions;
 using Convert = System.Convert;
 using MenuItem = BettingBot.Common.UtilityClasses.MenuItem;
 using BettingBot.Annotations;
+using MahApps.Metro.Controls;
+using Telerik.Windows.Data;
+using Telerik.Windows.Documents.Primitives;
 using Point = System.Windows.Point;
 using DPoint = System.Drawing.Point;
 using Size = System.Windows.Size;
 using DSize = System.Drawing.Size;
+using GridViewColumn = Telerik.Windows.Controls.GridViewColumn;
+using TelerikGridViewColumnCollection = Telerik.Windows.Controls.GridViewColumnCollection;
 
 namespace BettingBot.Common
 {
@@ -55,7 +63,8 @@ namespace BettingBot.Common
 
         private static readonly Dictionary<FrameworkElement, Storyboard> _storyBoards = new Dictionary<FrameworkElement, Storyboard>();
         private static readonly Dictionary<string, bool> _panelAnimations = new Dictionary<string, bool>();
-        private static readonly object _lock = new object(); 
+        private static readonly object _lock = new object();
+        private static readonly Action _emptyDelegate = delegate { };
 
         public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "." } };
         
@@ -75,9 +84,9 @@ namespace BettingBot.Common
         public static bool HasValueBetween(this string str, string start, string end)
         {
             return !string.IsNullOrEmpty(str) && !string.IsNullOrEmpty(start) && !string.IsNullOrEmpty(end) &&
-                   str.Contains(start) &&
-                   str.Contains(end) &&
-                   str.IndexOf(start, StringComparison.Ordinal) < str.IndexOf(end, StringComparison.Ordinal);
+                str.Contains(start) &&
+                str.Contains(end) &&
+                str.IndexOf(start, StringComparison.Ordinal) < str.IndexOf(end, StringComparison.Ordinal);
         }
 
         public static string Between(this string str, string start, string end)
@@ -103,7 +112,7 @@ namespace BettingBot.Common
 
         public static bool IsNullWhiteSpaceOrDefault(this string str, string defVal)
         {
-            return string.IsNullOrWhiteSpace(str) || str == defVal;
+            return String.IsNullOrWhiteSpace(str) || str == defVal;
         }
 
         public static bool ContainsAny(this string str, params string[] strings)
@@ -215,7 +224,7 @@ namespace BettingBot.Common
 
         public static string RemoveWord(this string str, string word, string separator = " ")
         {
-            return string.Join(separator, str.Split(separator).Where(w => w != word));
+            return String.Join(separator, str.Split(separator).Where(w => w != word));
         }
 
         public static string RemoveWords(this string str, string[] words, string separator)
@@ -245,7 +254,7 @@ namespace BettingBot.Common
 
         public static string AfterFirst(this string str, string substring)
         {
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
                 if (str.StartsWith(substring))
@@ -257,21 +266,21 @@ namespace BettingBot.Common
 
         public static string BeforeFirst(this string str, string substring)
         {
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).First();
             return str;
         }
 
         public static string AfterLast(this string str, string substring)
         {
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).Last();
             return str;
         }
 
         public static string BeforeLast(this string str, string substring)
         {
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
                 if (str.EndsWith(substring))
@@ -285,7 +294,7 @@ namespace BettingBot.Common
 
         public static string ToStringDelimitedBy<T>(this IEnumerable<T> enumerable, string strBetween = "")
         {
-            return string.Join(strBetween, enumerable);
+            return String.Join(strBetween, enumerable);
         }
 
         public static string JoinAsString<T>(this IEnumerable<T> enumerable, string strBetween = "")
@@ -431,29 +440,43 @@ namespace BettingBot.Common
         public static object[] ToArray(this IList list)
         {
             var array = new object[list.Count];
-            list.CopyTo(array, 0);
+            for (var i = 0; i < list.Count; i++)
+                array[i] = list[i];
             return array;
-        }
-
-        public static List<T> ReplaceAll<T>(this List<T> list, List<T> newList)
-        {
-            list.Clear();
-            list.AddRange(newList);
-            return list;
         }
 
         public static List<T> ReplaceAll<T>(this List<T> list, IEnumerable<T> newList)
         {
-            list.Clear();
+            list.RemoveAll();
             list.AddRange(newList);
             return list;
         }
 
-        public static List<T> ReplaceAll<T>(this List<T> list, T[] newList)
+        public static List<T> ReplaceAll<T>(this List<T> list, T newEl)
         {
-            list.Clear();
-            list.AddRange(newList);
-            return list;
+            return list.ReplaceAll(newEl.ToEnumerable());
+        }
+        
+        public static void RemoveAll<T>(this IList<T> collection)
+        {
+            while (collection.Count != 0)
+                collection.RemoveAt(0);
+        }
+        
+        public static int RemoveAll(this IList list, Predicate<object> match)
+        {
+            var list2 = list.Cast<object>().Where(current => match(current)).ToList();
+            foreach (var current2 in list2)
+                list.Remove(current2);
+            return list2.Count;
+        }
+
+        public static void AddRange(this IList list, IEnumerable items)
+        {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+            foreach (var current in items)
+                list.Add(current);
         }
 
         #endregion
@@ -466,7 +489,7 @@ namespace BettingBot.Common
             return en.Any() ? en.Last() : (T)Convert.ChangeType(null, typeof(T));
         }
 
-        public static List<T> MapToVMCollection<T>(this IEnumerable source)
+        public static List<T> MapTo<T>(this IEnumerable source)
         {
             var dest = new List<T>();
             foreach (var srcEl in source)
@@ -500,6 +523,35 @@ namespace BettingBot.Common
             return enumerable.Except(new[] { el });
         }
 
+        public static void DisableControls(this IEnumerable<object> controls)
+        {
+            foreach (var c in controls)
+                c.SetProperty("IsEnabled", false);
+        }
+
+        public static void EnableControls(this IEnumerable<object> controls)
+        {
+            foreach (var c in controls)
+                c.SetProperty("IsEnabled", true);
+        }
+
+        public static void ToggleControls(this IEnumerable<object> controls)
+        {
+            foreach (var c in controls)
+                c.SetProperty("IsEnabled", c.GetProperty<bool>("IsEnabled"));
+        }
+
+        public static bool AllEqual<T>(this IEnumerable<T> en)
+        {
+            var arr = en.ToArray();
+            return arr.All(el => Equals(el, arr.First()));
+        }
+
+        public static TilesMenu TilesMenu(this Panel spMenu, bool isFullSize, int resizeValue, Color mouseOverColor, Color mouseOutColor, Color resizeMouseOverColor, Color resizeMouseOutColor)
+        {
+            return new TilesMenu(spMenu, isFullSize, resizeValue, mouseOverColor, mouseOutColor, resizeMouseOverColor, resizeMouseOutColor);
+        }
+
         #endregion
 
         #region - IQueryable Extensions
@@ -520,19 +572,19 @@ namespace BettingBot.Common
             return query.Single(Expression.Lambda<Func<TEntity, bool>>(equalsOne, p));
         }
 
+        public static IQueryable<Tipster> ButSelf(this IQueryable<Tipster> tipsters)
+        {
+            var self = Tipster.Me();
+            return tipsters.Where(t => t.Name != self.Name);
+        }
 
         #endregion
 
         #region - DbSet Extensions
 
-        public static void RemoveBy<TSource>(this DbSet<TSource> dbSet, Func<TSource, bool> selector) where TSource : class
+        public static void RemoveBy<TSource>(this DbSet<TSource> dbSet, Expression<Func<TSource, bool>> selector) where TSource : class
         {
-            var set = dbSet.ToArray();
-            foreach (var entity in set)
-            {
-                if (selector(entity))
-                    dbSet.Remove(entity);
-            }
+            dbSet.RemoveRange(dbSet.Where(selector));
         }
 
         public static void RemoveByMany<TSource, TKey>(this DbSet<TSource> dbSet, Func<TSource, TKey> selector, IEnumerable<TKey> matches) where TSource : class
@@ -553,22 +605,96 @@ namespace BettingBot.Common
         {
             return dbSet.Any() ? dbSet.Select(selector).Max() + 1 : 0;
         }
-
-        public static IQueryable<Tipster> ButSelf(this DbSet<Tipster> tipsters)
+        
+        public static void RemoveUnused(this DbSet<Website> dbWebsites, IQueryable<Tipster> dbTipsters)
         {
-            var self = Tipster.Me();
-            return tipsters.Where(t => t.Name != self.Name);
+            var websiteIdsWoLogin = dbWebsites.Where(w => w.LoginId == null).Select(w => w.Id).ToArray();
+            var usedWebsiteIds = dbTipsters.ButSelf().Select(t => t.WebsiteId).Where(wid => wid != null).Cast<int>().Distinct().ToArray();
+            var notUsedWebsiteIds = websiteIdsWoLogin.Except(usedWebsiteIds);
+            dbWebsites.RemoveByMany(ws => ws.Id, notUsedWebsiteIds);
+        }
+
+        #endregion
+
+        #region - ICollection Extensions
+
+        public static T[] ToArray<T>(this ICollection<T> col)
+        {
+            var array = new T[col.Count];
+            col.CopyTo(array, 0);
+            return array;
+        }
+
+        public static object[] ToArray(this ICollection col)
+        {
+            var array = new object[col.Count];
+            col.CopyTo(array, 0);
+            return array;
+        }
+
+        public static int Index<T>(this ICollection<T> col, T item)
+        {
+            return Array.IndexOf(col.ToArray(), item);
+        }
+
+        public static int Index(this ICollection col, object item)
+        {
+            return Array.IndexOf(col.ToArray(), item);
+        }
+
+        public static int RemoveAll<T>(this ICollection<T> collection, Predicate<T> match)
+        {
+            var array = (from item in collection
+                where match(item)
+                select item).ToArray();
+            var array2 = array;
+            foreach (var item2 in array2)
+                collection.Remove(item2);
+            return array.Length;
+        }
+
+        public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
+        {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+            items.ForEach(collection.Add);
         }
 
         #endregion
 
         #region - ItemCollection Extensions
 
-        public static T[] ToArray<T>(this ItemCollection list)
+        public static T[] ToArray<T>(this ItemCollection col)
         {
-            var array = new T[list.Count];
-            list.CopyTo(array, 0);
+            var array = new T[col.Count];
+            col.CopyTo(array, 0);
             return array;
+        }
+
+        public static void AddRange(this ItemCollection list, IEnumerable items)
+        {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+            foreach (var current in items)
+                list.Add(current);
+        }
+
+        #endregion
+
+        #region - DataItemCollection Extensions
+
+        public static object Last(this DataItemCollection col)
+        {
+            return col[col.Count - 1];
+        }
+
+        #endregion
+
+        #region - TelerikGridViewColumnCollection Extensions
+
+        public static GridViewColumn Last(this TelerikGridViewColumnCollection col)
+        {
+            return col[col.Count - 1];
         }
 
         #endregion
@@ -577,8 +703,20 @@ namespace BettingBot.Common
 
         public static void ReplaceAll<T>(this UIElementCollection col, List<T> children) where T : UIElement
         {
-            col.Clear();
+            col.RemoveAll();
             col.AddRange(children);
+        }
+
+        public static void ReplaceAll<T>(this UIElementCollection col, IEnumerable<T> children) where T : UIElement
+        {
+            col.RemoveAll();
+            col.AddRange(children);
+        }
+
+        public static void RemoveAll(this UIElementCollection collection)
+        {
+            while (collection.Count != 0)
+                collection.RemoveAt(0);
         }
 
         #endregion
@@ -677,6 +815,28 @@ namespace BettingBot.Common
 
         #endregion
 
+        #region - Observable Collection Extensions
+
+        public static ObservableCollection<T> ReplaceAll<T>(this ObservableCollection<T> obsCol, IEnumerable<T> newEnumerable)
+        {
+            obsCol.RemoveAll();
+            obsCol.AddRange(newEnumerable);
+            return obsCol;
+        }
+
+        public static ObservableCollection<T> ReplaceAll<T>(this ObservableCollection<T> obsCol, T newEl)
+        {
+            return obsCol.ReplaceAll(newEl.ToEnumerable());
+        }
+
+        #endregion
+
+        #endregion
+
+        #region DbContext Extensions
+
+
+
         #endregion
 
         #region PrimitivePropertyConfiguration Extensions
@@ -715,7 +875,7 @@ namespace BettingBot.Common
                     yield return childOfChild;
             }
         }
-
+        
         public static IEnumerable<Control> FindLogicalDescendants<T1, T2>(this DependencyObject depObj)
             where T1 : DependencyObject
             where T2 : DependencyObject
@@ -865,7 +1025,7 @@ namespace BettingBot.Common
             var isOpened = _panelAnimations.VorN_Ts(strIsOpened);
             var slideGrid = c.HasSlideGrid() ? c.GetSlideGrid() : c.CreateAndAddSlideGrid(!isOpened ? 0 : c.Width);
             _panelAnimations.V_Ts(strIsOpened, !isOpened);
-            var slideAni = new DoubleAnimation(isOpened ? 0 : c.Width, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
+            var slideAni = new DoubleAnimation(isOpened ? 0 : c.Width, new Duration(TimeSpan.FromMilliseconds(500)));
 
             if (isOpened) // jeśli otwarty na początku
                 c.Visibility = Visibility.Hidden;
@@ -940,6 +1100,16 @@ namespace BettingBot.Common
                     parentGrid.Children.Remove(slideGrid);
             }
         }
+
+        public static int ZIndex(this FrameworkElement fe)
+        {
+            return Panel.GetZIndex(fe);
+        }
+
+        public static void ZIndex(this FrameworkElement fe, int zINdex)
+        {
+            Panel.SetZIndex(fe, zINdex);
+        }
         
         #endregion
 
@@ -953,7 +1123,7 @@ namespace BettingBot.Common
                 return;
 
             var placeholder = tag.ToString();
-            if (text != placeholder && !string.IsNullOrWhiteSpace(text) && !force)
+            if (text != placeholder && !String.IsNullOrWhiteSpace(text) && !force)
                 return;
 
             var currBg = ((SolidColorBrush)thisTxtBox.Foreground).Color;
@@ -980,7 +1150,7 @@ namespace BettingBot.Common
 
             thisTxtBox.FontStyle = FontStyles.Normal;
             thisTxtBox.Foreground = newBrush;
-            thisTxtBox.Text = string.Empty;
+            thisTxtBox.Text = String.Empty;
         }
 
         public static bool IsNullWhitespaceOrTag(this TextBox txt)
@@ -1051,35 +1221,37 @@ namespace BettingBot.Common
 
         #region RadGridView Extensions
 
-        public static void RefreshWith<T>(this RadGridView rgv, ICollection<T> data, bool scrollToEnd = true, bool selectLast = true)
-        {
-            rgv.ItemsSource = null;
-            rgv.ItemsSource = data;
-            if (scrollToEnd) rgv.ScrollToEnd(selectLast);
-        }
-
-        public static void ScrollToEnd(this RadGridView rgv, bool selectLast = false)
+        public static void ScrollToEnd(this RadGridView rgv)
         {
             if (rgv.Items.Count > 0)
-                rgv.ScrollIntoViewAsync(rgv.Items[rgv.Items.Count - 1],
-                    rgv.Columns[rgv.Columns.Count - 1],
-                    (frameworkElement) =>
-                    {
-                        var gridViewRow = frameworkElement as GridViewRow;
-                        if (gridViewRow != null && selectLast) gridViewRow.IsSelected = true;
-                    });
+                rgv.ScrollIntoView(rgv.Items.Last());
         }
 
-        public static void ScrollToStart(this RadGridView rgv, bool selectLast = false)
+        public static void ScrollToStart(this RadGridView rgv)
         {
             if (rgv.Items.Count > 0)
-                rgv.ScrollIntoViewAsync(rgv.Items[0],
-                    rgv.Columns[0],
-                    (frameworkElement) =>
-                    {
-                        var gridViewRow = frameworkElement as GridViewRow;
-                        if (gridViewRow != null) gridViewRow.IsSelected = selectLast;
-                    });
+                rgv.ScrollIntoView(rgv.Items[0]);
+        }
+
+        public static void ScrollTo<T>(this RadGridView rgv, T item)
+        {
+            if (rgv.Items.Count > 0)
+            {
+                rgv.ScrollIntoView(rgv.Items.Last());
+                rgv.ScrollIntoView(rgv.Items.Cast<T>().Single(i => Equals(i, item)));
+            }
+        }
+
+        public static void ScrollToAsync<T>(this RadGridView rgv, T item, Action before = null, Action after = null)
+        {
+            if (rgv.Items.Count > 0)
+            {
+                before?.Invoke();
+                void scrollToItem() => rgv.ScrollIntoViewAsync(rgv.Items.Cast<T>()
+                    .Single(i => Equals(i, item)), rgv.Columns.Last(), fe => after?.Invoke());
+                rgv.ScrollIntoViewAsync(rgv.Items.Last(), rgv.Columns.Last(), 
+                    fe => scrollToItem(), scrollToItem);
+            }
         }
 
         public static void ScrollToStart(this RadListBox lv, bool selectLast = false)
@@ -1094,6 +1266,10 @@ namespace BettingBot.Common
                 lv.GetScrollViewer().ScrollToBottom();
         }
 
+        public static void SetSelecteditemsSource<T>(this RadGridView rgv, ObservableCollection<T> items)
+        {
+            GridViewSelectionUtilities.SetSelectedItems(rgv, items);
+        }
 
         #endregion
 
@@ -1234,7 +1410,7 @@ namespace BettingBot.Common
             return selector(absolutePoint);
         }
 
-        public static Point ToPoint(this System.Drawing.Point p)
+        public static Point ToPoint(this DPoint p)
         {
             return new Point(p.X, p.Y);
         }
@@ -1248,7 +1424,7 @@ namespace BettingBot.Common
 
         #region Size Extensions
 
-        public static Size ToSize(this System.Drawing.Size s)
+        public static Size ToSize(this DSize s)
         {
             return new Size(s.Width, s.Height);
         }
@@ -1259,13 +1435,13 @@ namespace BettingBot.Common
 
         public static void Highlight(this Control tile, Color color)
         {
-            var colorAni = new ColorAnimation(color, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
+            var colorAni = new ColorAnimation(color, new Duration(TimeSpan.FromMilliseconds(500)));
             tile.Background.BeginAnimation(SolidColorBrush.ColorProperty, colorAni);
         }
 
         public static void Unhighlight(this Control tile, Color defaultColor)
         {
-            var colorAni = new ColorAnimation(defaultColor, new System.Windows.Duration(TimeSpan.FromMilliseconds(500)));
+            var colorAni = new ColorAnimation(defaultColor, new Duration(TimeSpan.FromMilliseconds(500)));
             tile.Background.BeginAnimation(SolidColorBrush.ColorProperty, colorAni);
         }
 
@@ -1284,7 +1460,7 @@ namespace BettingBot.Common
             var sr = new StringReader(sb.ToString());
             var xmlReader = XmlReader.Create(sr);
             var clonedControl = (T)XamlReader.Load(xmlReader);
-            if (!string.IsNullOrWhiteSpace(newName))
+            if (!String.IsNullOrWhiteSpace(newName))
                 clonedControl.Name = newName;
             return clonedControl;
         }
@@ -1307,17 +1483,109 @@ namespace BettingBot.Common
 
         public static Point Position(this Control control)
         {
+            control.Refresh();
             return new Point(Canvas.GetLeft(control), Canvas.GetTop(control));
         }
 
         public static double PositionX(this Control control)
         {
+            control.Refresh();
             return Canvas.GetLeft(control);
         }
 
         public static double PositionY(this Control control)
         {
+            control.Refresh();
             return Canvas.GetTop(control);
+        }
+
+        public static Size Size(this Control control)
+        {
+            control.Refresh();
+            return new Size(control.Width, control.Height);
+        }
+
+        public static void Refresh(this Control control)
+        {
+            control.Dispatcher.Invoke(DispatcherPriority.Render, _emptyDelegate);
+        }
+
+
+
+        #endregion
+
+        #region Panel Extensions
+
+        public static void ShowLoader(this Panel control)
+        {
+            var rect = new Rectangle
+            {
+                Margin = new Thickness(0),
+                Fill = new SolidColorBrush(Color.FromArgb(192, 0, 0, 0)),
+                Name = "prLoaderContainer"
+            };
+
+            var loader = new ProgressRing
+            {
+                Foreground = (Brush)control.FindLogicalAncestor<Window>().FindResource("AccentColorBrush"),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Width = 80,
+                Height = 80,
+                IsActive = true,
+                Name = "prLoader"
+            };
+
+            var status = new TextBlock
+            {
+                Foreground = Brushes.White,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 18,
+                Margin = new Thickness(0, 125, 0, 0),
+                Text = "Ładowanie...",
+                Name = "prLoaderStatus"
+            };
+
+            var zIndex = control.FindLogicalDescendants<FrameworkElement>().Concat(control).MaxBy(Panel.GetZIndex).ZIndex();
+            Panel.SetZIndex(rect, zIndex + 1);
+            Panel.SetZIndex(loader, zIndex + 1);
+            Panel.SetZIndex(status, zIndex + 1);
+
+            control.Children.AddRange(new FrameworkElement[] { rect, loader, status });
+        }
+
+        public static void HideLoader(this Panel control)
+        {
+            var loaders = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoader").ToArray();
+            var loaderContainers = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderContainer").ToArray();
+            var loaderStatuses = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderStatus").ToArray();
+            var loaderParts = ArrayUtils.ConcatMany(loaders, loaderContainers, loaderStatuses);
+
+            loaderParts.ForEach(lp => control.Children.Remove(lp));
+        }
+
+        public static bool HasLoader(this Panel control)
+        {
+            return control.FindLogicalDescendants<Rectangle>().Any(r => r.Name == "prLoaderContainer");
+        }
+
+        #endregion
+
+        #region - WIndow Extensions
+
+        public static void CenterOnScreen(this Window wnd)
+        {
+            wnd.Position(PointUtils.CenteredWindowTopLeft(wnd.Size()));
+        }
+
+        #endregion
+
+        #region T Extensions
+
+        public static IEnumerable<T> ToEnumerable<T>(this T item)
+        {
+            yield return item;
         }
 
         #endregion
@@ -1335,7 +1603,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToInt32(obj);
             if (obj.GetType().IsEnum) return (int) obj;
-            return int.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out int val) ? val : (int?) null;
+            return Int32.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out int val) ? val : (int?) null;
         }
 
         public static int ToInt(this object obj)
@@ -1350,7 +1618,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToUInt32(obj);
             if (obj.GetType().IsEnum) return (uint) obj;
-            return uint.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out uint val) ? val : (uint?)null;
+            return UInt32.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out uint val) ? val : (uint?)null;
         }
 
         public static uint ToUInt(this object obj)
@@ -1365,7 +1633,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToInt64(obj);
             if (obj.GetType().IsEnum) return (long) obj;
-            return long.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out long val) ? val : (long?)null;
+            return Int64.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out long val) ? val : (long?)null;
         }
 
         public static long ToLong(this object obj)
@@ -1379,7 +1647,7 @@ namespace BettingBot.Common
         {
             if (obj == null) return null;
             if (obj is bool) return Convert.ToDouble(obj);
-            return double.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+            return Double.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
         }
 
         public static double ToDouble([NotNull] this object obj)
@@ -1393,7 +1661,7 @@ namespace BettingBot.Common
         {
             if (obj == null) return null;
             if (obj is bool) return Convert.ToDecimal(obj);
-            return decimal.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
+            return Decimal.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
         }
 
         public static decimal ToDecimal([NotNull] this object obj)
@@ -1425,7 +1693,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return (bool) obj;
             if (obj.ToIntN() != null) return Convert.ToBoolean(obj.ToInt());
-            return bool.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
+            return Boolean.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
         }
 
         public static bool ToBool(this object obj)
@@ -1444,6 +1712,18 @@ namespace BettingBot.Common
         {
             src.GetType().GetProperty(propName)?.SetValue(src, propValue);
         }
+
+        public static T GetField<T>(this object src, string fieldName)
+        {
+            return (T)src.GetType().GetField(fieldName)?.GetValue(src);
+        }
+
+        public static void SetField<T>(this object src, string fieldName, T fieldValue)
+        {
+            src.GetType().GetField(fieldName)?.SetValue(src, fieldValue);
+        }
+
+
 
         #endregion
     }

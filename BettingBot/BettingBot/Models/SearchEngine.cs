@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BettingBot.Models.SiteManagers;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Models
 {
@@ -22,7 +23,7 @@ namespace BettingBot.Models
             };
         }
 
-        public List<BetToSendVM> FindBet(BetToDisplayVM betTdVM)
+        public List<BetToSendVM> FindBet(BetToDisplayRgvVM betTdVM)
         {
             var newBets = SiteManagers.Select(sm => sm.FindBet(betTdVM)).ToList();
             FoundBets.AddRange(newBets);

@@ -2,7 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation"
                     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                    xmlns:converters="http://metro.mahapps.com/winfx/xaml/shared">
 
     <Style TargetType="{x:Type telerik:GridViewHeaderCell}" BasedOn="{StaticResource GridViewHeaderCellStyle}">
         <Setter Property="Padding" Value="5" />
@@ -30,23 +31,6 @@
         <GradientStop Color="Gray" Offset="0.33" />
         <GradientStop Color="White" Offset="0.66" />
     </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="ColorfulBrush" StartPoint="0,0" EndPoint="1,1" >
-        <GradientStop Color="Blue" Offset="0.1" />
-        <GradientStop Color="Orange" Offset="0.25" />
-        <GradientStop Color="Yellow" Offset="0.50" />
-        <GradientStop Color="Green" Offset="0.75" />
-        <GradientStop Color="Red" Offset="1.0" />
-    </LinearGradientBrush>
-
-    <Style x:Key="CustomTile" TargetType="mah:Tile">
-        <Setter Property="Background" Value="{StaticResource GreyBrush}" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource ColorfulBrush}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
 
     <Style TargetType="{x:Type mah:MetroTabItem}">
         <Setter
@@ -87,20 +71,90 @@
         </Setter>
     </Style>
 
-    <!-- Main Menu Tile -->
-    
-    <SolidColorBrush x:Key="MouseOverMainMenuTileBrush" Color="#FF000096" />
-    <SolidColorBrush x:Key="DefaultMainMenuTileBrush" Color="#55000096" />
-
-    <Style x:Key="MainMenuTile" TargetType="mah:Tile">
-        <Setter Property="Margin" Value="0,0,5,5"/>
+    <Style x:Key="BaseTile" TargetType="{x:Type mah:Tile}">
+        <Setter Property="Background" Value="{DynamicResource AccentColorBrush}" />
+        <!--<Setter Property="mah:ControlsHelper.MouseOverBorderBrush" Value="{x:Null}" /> // xaml serializer nie poradzi sobie z helperem -->
+        <Setter Property="CountFontSize" Value="28" />
+        <Setter Property="Foreground" Value="{DynamicResource IdealForegroundColorBrush}" />
+        <Setter Property="Margin" Value="0,0,5,5" />
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="TitleFontSize" Value="16" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Top"/>
         <Setter Property="Height" Value="50"/>
         <Setter Property="Width" Value="50" />
+        <Setter Property="Padding" Value="0"></Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="mah:Tile">
+                    <Grid>
+                        <Border x:Name="PART_Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                            <Grid>
+                                <StackPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            Orientation="Horizontal">
+                                    <ContentPresenter RecognizesAccessKey="True" />
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="{TemplateBinding CountFontSize}"
+                                               Text="{TemplateBinding Count}" />
+                                </StackPanel>
+                                <Label HorizontalAlignment="{TemplateBinding HorizontalTitleAlignment}"
+                                       VerticalAlignment="{TemplateBinding VerticalTitleAlignment}"
+                                       Foreground="{TemplateBinding Foreground}">
+                                    <AccessText Margin="3"
+                                                FontSize="{TemplateBinding TitleFontSize}"
+                                                Foreground="{TemplateBinding Foreground}"
+                                                Text="{TemplateBinding Title}"
+                                                TextWrapping="Wrap" />
+                                </Label>
+                            </Grid>
+                        </Border>
+                        <Border x:Name="PART_HoverBorder"
+                                BorderBrush="{TemplateBinding mah:ControlsHelper.MouseOverBorderBrush}"
+                                BorderThickness="2"
+                                Opacity="0"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <!--<Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=(mah:ControlsHelper.MouseOverBorderBrush), Mode=OneWay, Converter={x:Static converters:IsNullConverter.Instance}}" Value="False" />-->
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver, Mode=OneWay}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="PART_HoverBorder" Property="Opacity" Value="0.6" />
+                        </MultiDataTrigger>
+                        <Trigger Property="Button.IsPressed" Value="True">
+                            <Setter Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform CenterX="0.5"
+                                                    CenterY="0.5"
+                                                    ScaleX="0.98"
+                                                    ScaleY="0.98" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.3" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Main Menu Tile -->
+    
+    <SolidColorBrush x:Key="MouseOverMainMenuTileBrush" Color="#FF000096" />
+    <SolidColorBrush x:Key="DefaultMainMenuTileBrush" Color="#FF000040" />
+
+    <Style x:Key="MainMenuTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Background" Value="{StaticResource DefaultMainMenuTileBrush}" />
-        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
     <Style x:Key="MainMenuIcon" TargetType="iconPacks:PackIconModern">
@@ -124,15 +178,11 @@
     <SolidColorBrush x:Key="MouseOverMainMenuResizeTileBrush" Color="#FFDD0000" />
     <SolidColorBrush x:Key="DefaultMainMenuResizeTileBrush" Color="#00FF0000" />
 
-    <Style x:Key="MainMenuResizeTile" TargetType="mah:Tile">
+    <Style x:Key="MainMenuResizeTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Margin" Value="0,0,0,0"/>
-        <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="VerticalAlignment" Value="Top"/>
         <Setter Property="Height" Value="30"/>
-        <Setter Property="Width" Value="50" />
         <Setter Property="Background" Value="{StaticResource DefaultMainMenuResizeTileBrush}" />
         <Setter Property="VerticalContentAlignment" Value="Top"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
     <Style x:Key="MainMenuResizeIcon" TargetType="iconPacks:PackIconModern">
@@ -150,15 +200,11 @@
     <SolidColorBrush x:Key="DefaultFlyoutHeaderTileBrush" Color="Transparent" />
     <SolidColorBrush x:Key="DefaultFlyoutHeaderIconBrush" Color="#FF000000" />
 
-    <Style x:Key="FlyoutHeaderTile" TargetType="mah:Tile">
+    <Style x:Key="FlyoutHeaderTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Margin" Value="0,0,0,0"/>
         <Setter Property="HorizontalAlignment" Value="Right"/>
-        <Setter Property="VerticalAlignment" Value="Top"/>
-        <Setter Property="Height" Value="50"/>
         <Setter Property="Width" Value="260" />
         <Setter Property="Background" Value="{StaticResource DefaultFlyoutHeaderTileBrush}" />
-        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
     <Style x:Key="FlyoutHeaderArrow" TargetType="iconPacks:PackIconEntypo">
@@ -191,18 +237,11 @@
     <!-- Main Grid Tab Tile -->
 
     <SolidColorBrush x:Key="MouseOverMainGridTabTileBrush" Color="#FF888800" />
-    <SolidColorBrush x:Key="DefaultMainGridTabTileBrush" Color="#88888800" />
+    <SolidColorBrush x:Key="DefaultMainGridTabTileBrush" Color="#FF404000" />
 
-    <Style x:Key="MainGridTabTile" TargetType="mah:Tile">
-        <Setter Property="Margin" Value="0,0,5,5"/>
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="VerticalAlignment" Value="Top"/>
-        <Setter Property="Height" Value="50"/>
+    <Style x:Key="MainGridTabTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Width" Value="200" />
         <Setter Property="Background" Value="{StaticResource DefaultMainGridTabTileBrush}" />
-        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
     <Style x:Key="MainGridTabIcon" TargetType="iconPacks:PackIconModern">
@@ -224,18 +263,11 @@
     <!-- Database Tab Tile -->
 
     <SolidColorBrush x:Key="MouseOverDatabaseTabTileBrush" Color="#FF963E00" />
-    <SolidColorBrush x:Key="DefaultDatabaseTabTileBrush" Color="#AA963E00" />
+    <SolidColorBrush x:Key="DefaultDatabaseTabTileBrush" Color="#FF962D00" />
 
-    <Style x:Key="DatabaseTabTile" TargetType="mah:Tile">
-        <Setter Property="Margin" Value="0,0,5,5"/>
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="VerticalAlignment" Value="Top"/>
-        <Setter Property="Height" Value="50"/>
+    <Style x:Key="DatabaseTabTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Width" Value="200" />
         <Setter Property="Background" Value="{StaticResource DefaultDatabaseTabTileBrush}" />
-        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
     <Style x:Key="DatabaseTabIcon" TargetType="iconPacks:PackIconModern">
@@ -257,18 +289,11 @@
     <!-- Options Tab Tile -->
 
     <SolidColorBrush x:Key="MouseOverOptionsTabTileBrush" Color="#FF009600" />
-    <SolidColorBrush x:Key="DefaultOptionsTabTileBrush" Color="#55009600" />
+    <SolidColorBrush x:Key="DefaultOptionsTabTileBrush" Color="#FF003A00" />
 
-    <Style x:Key="OptionsTabTile" TargetType="mah:Tile">
-        <Setter Property="Margin" Value="0,0,5,5"/>
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="VerticalAlignment" Value="Top"/>
-        <Setter Property="Height" Value="50"/>
+    <Style x:Key="OptionsTabTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Width" Value="200" />
         <Setter Property="Background" Value="{StaticResource DefaultOptionsTabTileBrush}" />
-        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
 
     <Style x:Key="OptionsTabIcon" TargetType="iconPacks:PackIconModern">

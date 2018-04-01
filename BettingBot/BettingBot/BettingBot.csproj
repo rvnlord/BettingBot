@@ -67,21 +67,21 @@
       <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\EQATEC.Analytics.Monitor.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.7.1.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.7.1\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    <Reference Include="HtmlAgilityPack, Version=1.7.2.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.7.2\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="MahApps.Metro, Version=1.6.1.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.1.6.1\lib\net45\MahApps.Metro.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro.IconPacks, Version=2.1.0.15, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.2.1.0\lib\net46\MahApps.Metro.IconPacks.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks, Version=2.2.0.12, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.IconPacks.2.2.0\lib\net46\MahApps.Metro.IconPacks.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="MoreLinq, Version=2.10.21623.0, Culture=neutral, PublicKeyToken=384d532d7e88985d, processorArchitecture=MSIL">
       <HintPath>..\packages\morelinq.2.10.0\lib\net40\MoreLinq.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework.Aero" />
     <Reference Include="SharpDX">
@@ -421,17 +421,20 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\UtilityClasses\ActionStatus.cs" />
+    <Compile Include="Common\UtilityClasses\TilesMenu.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\AggregatedWinLoseStatistics.cs" />
+    <Compile Include="Models\ViewModels\Collections\AggregatedWinLoseStatisticsRgvVM.cs" />
     <Compile Include="Common\AutomapperConfiguration.cs" />
     <Compile Include="Models\Bet.cs" />
     <Compile Include="Models\BettingSystem.cs" />
-    <Compile Include="Models\BetToDisplayVM.cs" />
+    <Compile Include="Models\ViewModels\Abstracts\BaseVM.cs" />
+    <Compile Include="Models\ViewModels\AggregatedWinLoseStatisticRgvVM.cs" />
+    <Compile Include="Models\ViewModels\BetToDisplayRgvVM.cs" />
     <Compile Include="Common\UtilityClasses\BrowserSession.cs" />
     <Compile Include="Common\UtilityClasses\ClipboardWrapper.cs" />
-    <Compile Include="Models\BetToSendVM.cs" />
+    <Compile Include="Models\ViewModels\BetToSendVM.cs" />
     <Compile Include="Common\UtilityClasses\CustomList.cs" />
     <Compile Include="Common\UtilityClasses\CustomNameValueCollection.cs" />
     <Compile Include="Models\DataFilter.cs" />
@@ -440,7 +443,7 @@
     <Compile Include="Common\UtilityClasses\DdlItem.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Models\DataLoaders\HintwiseLoader.cs" />
-    <Compile Include="Models\GeneralStatistics.cs" />
+    <Compile Include="Models\ViewModels\Collections\GeneralStatisticsRgvVM.cs" />
     <Compile Include="Common\Helpers.cs" />
     <Compile Include="Models\Interfaces\IBet.cs" />
     <Compile Include="Models\Interfaces\ISeleniumConnectable.cs" />
@@ -448,19 +451,22 @@
     <Compile Include="Common\UtilityClasses\MenuItem.cs" />
     <Compile Include="Models\Option.cs" />
     <Compile Include="Models\Pick.cs" />
-    <Compile Include="Models\ProfitByPeriodStatistics.cs" />
+    <Compile Include="Models\ViewModels\GeneralStatisticRgvVM.cs" />
+    <Compile Include="Models\ViewModels\Interfaces\INotifyPropertyChangedUtils.cs" />
+    <Compile Include="Models\ViewModels\Collections\ProfitByPeriodStatisticsRgvVM.cs" />
     <Compile Include="Models\SearchEngine.cs" />
     <Compile Include="Models\SeleniumDriverManager.cs" />
     <Compile Include="Models\SiteManagers\AsianOddsManager.cs" />
     <Compile Include="Models\SiteManagers\CloudBetManager.cs" />
     <Compile Include="Models\SiteManagers\BettingSiteManager.cs" />
     <Compile Include="Models\Tipster.cs" />
-    <Compile Include="Models\TipsterForGvVM.cs" />
+    <Compile Include="Models\ViewModels\ProfitByPeriodStatisticRgvVM.cs" />
+    <Compile Include="Models\ViewModels\TipsterRgvVM.cs" />
     <Compile Include="Common\Utilities.cs" />
     <Compile Include="Common\UtilityClasses\RepCounter.cs" />
     <Compile Include="Models\Staking.cs" />
     <Compile Include="Models\User.cs" />
-    <Compile Include="Models\UserForGvVM.cs" />
+    <Compile Include="Models\ViewModels\UserRgvVM.cs" />
     <Compile Include="Common\UtilityClasses\ViewState.cs" />
     <Compile Include="Models\Website.cs" />
     <Compile Include="Properties\Annotations.cs" />

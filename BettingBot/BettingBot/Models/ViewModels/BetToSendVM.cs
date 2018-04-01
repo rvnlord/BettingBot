@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BettingBot.Models.SiteManagers;
 
-namespace BettingBot.Models
+namespace BettingBot.Models.ViewModels
 {
     public class BetToSendVM
     {

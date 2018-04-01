@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Models.SiteManagers
 {
     public class CloudBetManager : BettingSiteManager
     {
-        public override BetToSendVM FindBet(BetToDisplayVM betTdVM)
+        public override BetToSendVM FindBet(BetToDisplayRgvVM betTdVM)
         {
             //Sdm.OpenOrReuseDriver();
             //EnsureLogin();

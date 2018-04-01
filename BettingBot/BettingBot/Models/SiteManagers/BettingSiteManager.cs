@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BettingBot.Models.Interfaces;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Models.SiteManagers
 {
@@ -9,7 +10,7 @@ namespace BettingBot.Models.SiteManagers
         public SeleniumDriverManager Sdm { get; set; } = new SeleniumDriverManager();
         public List<BetToSendVM> FoundBets { get; set; } = new List<BetToSendVM>();
 
-        public abstract BetToSendVM FindBet(BetToDisplayVM BetTdVM);
+        public abstract BetToSendVM FindBet(BetToDisplayRgvVM BetTdVM);
         public abstract void Login();
         public abstract bool IsLogged();
 

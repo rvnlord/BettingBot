@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MoreLinq;
 using BettingBot.Common;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Models
 {
@@ -62,11 +63,11 @@ namespace BettingBot.Models
     public class SelectionFilter : DataFilter
     {
         public SelectionFilterChoice Choice { get; }
-        public List<BetToDisplayVM> SelectedBetsVM { get; }
-        public List<BetToDisplayVM> VisibleBetsVM { get; }
+        public List<BetToDisplayRgvVM> SelectedBetsVM { get; }
+        public List<BetToDisplayRgvVM> VisibleBetsVM { get; }
         public override FilterType FilterType => FilterType.Selection;
 
-        public SelectionFilter(SelectionFilterChoice choice, List<BetToDisplayVM> selectedBetsVM, List<BetToDisplayVM> visibleBetsVM)
+        public SelectionFilter(SelectionFilterChoice choice, List<BetToDisplayRgvVM> selectedBetsVM, List<BetToDisplayRgvVM> visibleBetsVM)
         {
             Choice = choice;
             SelectedBetsVM = selectedBetsVM;

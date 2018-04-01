@@ -71,12 +71,13 @@ namespace BettingBot.Models.DataLoaders
             }
             
             db.Entry(tipster).Reference(e => e.Website).Load();
+            OnInformationSending("Wczytano Tipstera");
             return tipster;
         }
 
         public abstract string DownloadTipsterName();
         public abstract string DownloadTipsterDomain();
-        public abstract List<Bet> DownloadTips(bool loadToDb = true);
+        public abstract List<Bet> DownloadTips();
         public abstract void EnsureLogin();
         public abstract bool IsLogged();
         public abstract void Login();

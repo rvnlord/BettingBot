@@ -46,14 +46,12 @@ namespace BettingBot.Models
                     {
                         requestedIds.Add(ws.Id);
                         ws.LoginId = loginId;
-                        foreach (var t in db.Tipsters.ButSelf().AsEnumerable().Where(t => t.Link.UrlToDomain().Contains(addr)))
+                        foreach (var t in db.Tipsters.ButSelf().AsEnumerable().Where(t => string.Equals(t.Link.UrlToDomain(), addr, StringComparison.CurrentCultureIgnoreCase)))
                             t.WebsiteId = ws.Id;
                     }
                 }
                 else
-                {
                     newAddresses.Add(addr);
-                }
             }
 
             var nextWId = db.Websites.Next(e => e.Id);
@@ -61,7 +59,7 @@ namespace BettingBot.Models
             {
                 requestedIds.Add(nextWId);
                 db.Websites.Add(new Website(nextWId, nAddr, loginId));
-                foreach (var t in db.Tipsters.ButSelf().AsEnumerable().Where(t => t.Link.UrlToDomain().Contains(nAddr)))
+                foreach (var t in db.Tipsters.ButSelf().AsEnumerable().Where(t => string.Equals(t.Link.UrlToDomain(), nAddr, StringComparison.CurrentCultureIgnoreCase)))
                     t.WebsiteId = nextWId;
                 nextWId++;
             }
@@ -69,6 +67,8 @@ namespace BettingBot.Models
             var oldIds = db.Websites.Where(ws => ws.LoginId == loginId).Select(ws => ws.Id);
             var idsToRemove = oldIds.Except(requestedIds).ToArray();
             db.Websites.RemoveByMany(ws => ws.Id, idsToRemove);
+
+            db.Websites.RemoveUnused(db.Tipsters.ButSelf());
         }
     }
 }

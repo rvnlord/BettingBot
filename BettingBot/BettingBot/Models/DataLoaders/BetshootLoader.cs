@@ -4,6 +4,7 @@ using System.Linq;
 using DomainParser.Library;
 using MoreLinq;
 using BettingBot.Common;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Models.DataLoaders
 {
@@ -18,11 +19,10 @@ namespace BettingBot.Models.DataLoaders
 
         public override string DownloadTipsterDomain()
         {
-            DomainName completeDomain;
-            return DomainName.TryParse(Url.Host, out completeDomain) ? completeDomain.SLD : "";
+            return DomainName.TryParse(Url.Host, out DomainName completeDomain) ? completeDomain.SLD : "";
         }
 
-        public override List<Bet> DownloadTips(bool loadToDb = true)
+        public override List<Bet> DownloadTips()
         {
             var db = new LocalDbContext();
             OnInformationSending("Określanie nazwy Tipstera...");
@@ -95,14 +95,15 @@ namespace BettingBot.Models.DataLoaders
             OnInformationSending("Zapisywanie zakładów...");
             if (newBets.Count > 0)
             {
-                var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystykie z tą datą
+                var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystkie z tą datą
                 db.Bets.RemoveBy(b => b.Date >= minDate && b.TipsterId == tipsterId);
-                db.Bets.AddRange(newBets); //b => new { b.TipsterId, b.Date, b.Match }
-                if (loadToDb) db.SaveChanges();
+                db.Bets.AddRange(newBets);
+                db.SaveChanges();
             }
 
             var bets = db.Bets.ToList();
             db.Dispose();
+            OnInformationSending("Zapisano zakłady");
             return bets;
         }
 

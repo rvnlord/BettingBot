@@ -14,6 +14,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using BettingBot.Common;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Models.DataLoaders
 {
@@ -43,7 +44,7 @@ namespace BettingBot.Models.DataLoaders
 
             db.SaveChanges();
             db.Dispose();
-
+            
             Sdm.OpenOrReuseDriver(true, headlessMode);
             Sdm.NavigateAndWaitForUrl(Url);
             ClosePopups();
@@ -99,7 +100,7 @@ namespace BettingBot.Models.DataLoaders
             return isLogged;
         }
 
-        public List<Bet> DownloadTips(DateTime? fromDate = null, bool loadToDb = true)
+        public List<Bet> DownloadTips(DateTime? fromDate)
         {
             var db = new LocalDbContext();
             OnInformationSending("Określanie nazwy Tipstera...");
@@ -108,7 +109,7 @@ namespace BettingBot.Models.DataLoaders
             var tipsterDomain = DownloadTipsterDomain();
             var tipsterId = db.Tipsters.Single(t => tipsterName == t.Name && tipsterDomain == t.Website.Address).Id;
 
-            OnInformationSending("Wczytywanie informacji o zakładach...");
+            OnInformationSending("Zbieranie dopdatkowych informacji...");
             var currPredTable = Sdm.Driver.FindElementByXPath(".//div[@id='predictions-grid']");
 
             Sdm.Driver.DisableImplicitWait();
@@ -136,7 +137,9 @@ namespace BettingBot.Models.DataLoaders
             var year = previousDate.Year;
             var newBets = new List<Bet>();
 
+            OnInformationSending("Logowanie...");
             EnsureLogin();
+            OnInformationSending("Wczytywanie informacji o zakładach...");
 
             // Obecne Zakłady
 
@@ -257,17 +260,17 @@ namespace BettingBot.Models.DataLoaders
                 var minDate = newBets.Select(b => b.Date).Min(); // min d z nowych, zawiera wszystkie z tą datą
                 db.Bets.RemoveBy(b => b.Date >= minDate && b.TipsterId == tipsterId);
                 db.Bets.AddRange(newBets.DistinctBy(b => new { b.TipsterId, b.Date, b.Match, b.PickId }));
-                if (loadToDb)
-                    db.SaveChanges();
+                db.SaveChanges();
             }
             var bets = db.Bets.ToList();
             db.Dispose();
+            OnInformationSending("Zapisano zakłady");
             return bets;
         }
 
-        public override List<Bet> DownloadTips(bool loadToDb = true)
+        public override List<Bet> DownloadTips()
         {
-            return DownloadTips(null, loadToDb);
+            return DownloadTips(null);
         }
     }
 }

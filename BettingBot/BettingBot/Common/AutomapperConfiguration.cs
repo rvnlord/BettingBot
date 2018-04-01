@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BettingBot.Models;
+using BettingBot.Models.ViewModels;
 
 namespace BettingBot.Common
 {
@@ -16,10 +17,10 @@ namespace BettingBot.Common
 
         private static void ConfigureUserMapping(IProfileExpression cfg)
         {
-            cfg.CreateMap<Bet, BetToDisplayVM>();
+            cfg.CreateMap<Bet, BetToDisplayRgvVM>();
             cfg.CreateMap<Bet, BetToSendVM>();
-            cfg.CreateMap<Tipster, TipsterForGvVM>();
-            cfg.CreateMap<User, UserForGvVM>();
+            cfg.CreateMap<Tipster, TipsterRgvVM>();
+            cfg.CreateMap<User, UserRgvVM>();
         }
     }
 }

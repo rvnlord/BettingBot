@@ -10,6 +10,8 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:pivot="http://schemas.telerik.com/2008/xaml/presentation/pivot"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:models="clr-namespace:BettingBot.Models"
+    xmlns:common="clr-namespace:BettingBot.Common"
     Icon="./Resources/Icons/Icon.png"
     x:Class="BettingBot.MainWindow"
     mc:Ignorable="d"
@@ -33,8 +35,8 @@
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
 
-    <Grid x:Name="gridMain" Background="Transparent" Margin="10" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-        <Grid x:Name="gridDataContainer" Background="Transparent" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <Grid x:Name="gridOuter" Background="Transparent" Margin="10" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+        <Grid x:Name="gridMain" Background="Transparent" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
 
             <StackPanel x:Name="spMenuWithContent" Orientation="Horizontal">
                 <StackPanel x:Name="spMenu" Orientation="Vertical">
@@ -112,7 +114,7 @@
 
                             <mah:MetroTabItem.Content>
                                 <Grid x:Name="gridData">
-                                    <telerik:RadGridView x:Name="rgvData" IsFilteringAllowed="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="1160" Height="702" MaxHeight="702" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Sorting="rgvData_Sorting" Copying="rgvData_Copying" SelectionChanged="rgvData_SelectionChanged">
+                                    <telerik:RadGridView x:Name="rgvData" ScrollMode="Deferred" IsFilteringAllowed="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="1160" Height="702" MaxHeight="702" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Sorting="rgvData_Sorting" Copying="rgvData_Copying" SelectionChanged="rgvData_SelectionChanged">
                                         <telerik:RadContextMenu.ContextMenu>
                                             <telerik:RadContextMenu telerik:StyleManager.Theme="Expression_Dark" x:Name="cmForRgvData" ItemContainerStyle="{StaticResource MenuItemContainerStyle}"></telerik:RadContextMenu>
                                         </telerik:RadContextMenu.ContextMenu>
@@ -185,7 +187,7 @@
                                 <Label x:Name="lblAdditionalField" Content="" HorizontalAlignment="Left" Margin="0,179,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <telerik:RadNumericUpDown x:Name="rnumCoeffOnLose" HorizontalAlignment="Left" Margin="333,105,0,0" VerticalAlignment="Top" Width="100" Height="30" NumberDecimalDigits="2" Minimum="0" Maximum="1000" NullValue="0" TabIndex="0" Value="0" CustomUnit="" IsEnabled="False" />
                                 <Label x:Name="lblFilters" Content="Filtry:" HorizontalAlignment="Left" Margin="443,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Foreground="Blue" FontWeight="Bold"/>
-                                <Button x:Name="btnGet" Style="{DynamicResource AccentedSquareButtonStyle}" FontSize="14" Content="Oblicz" HorizontalAlignment="Left" Margin="358,350,0,0" VerticalAlignment="Top" Height="30" Width="75" Click="btnEvaluate_Click" TabIndex="13" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
+                                <Button x:Name="btnGet" Style="{DynamicResource AccentedSquareButtonStyle}" FontSize="14" Content="Oblicz" HorizontalAlignment="Left" Margin="358,350,0,0" VerticalAlignment="Top" Height="30" Width="75" Click="btnCalculate_Click" TabIndex="13" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
                                 <Label x:Name="lblOnLose" Content="Przy porażce" HorizontalAlignment="Left" Margin="0,105,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <Label x:Name="lblIfBudget" Content="Przy budżecie &gt; o" HorizontalAlignment="Left" Margin="0,175,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <telerik:RadNumericUpDown x:Name="rnumBudgetIncrease" HorizontalAlignment="Left" Margin="147,175,0,0" VerticalAlignment="Top" Width="80" Height="30" NumberDecimalDigits="0" Minimum="0" Maximum="10000" NullValue="0" Value="100" CustomUnit="zł" />
@@ -271,7 +273,7 @@
                     </Grid>
 
                     <Grid x:Name="gridDatabaseFlyout" Width="453" Margin="-1916,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
-                        <Grid Margin="10">
+                        <Grid Margin="10"  x:Name="gridDatabaseContent">
 
                             <Grid>
                                 <mah:Tile x:Name="tlDatabaseFlyoutHeader" Style="{StaticResource FlyoutHeaderTile}">
@@ -311,7 +313,7 @@
                                                 <TextBox x:Name="txtLoadLogin" Tag="Login..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="141" FontSize="14.667" FontFamily="Segoe UI" Height="30" TabIndex="104" AcceptsReturn="True" Margin="146,375,0,0" />
                                                 <TextBox x:Name="txtLoadPassword" Tag="Hasło..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="141" FontSize="14.667" FontFamily="Segoe UI" Height="30" TabIndex="102" AcceptsReturn="True" Margin="292,375,0,0" />
                                                 <TextBox x:Name="txtLoadDomain" Tag="Strona..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="141" FontSize="14.667" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="True" Margin="0,375,0,0" />
-                                                <telerik:RadGridView x:Name="rgvTipsters" IsFilteringAllowed="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,35,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="433" Height="300" MaxHeight="300" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Deleted="rgvTipsters_Deleted">
+                                                <telerik:RadGridView x:Name="rgvTipsters" ScrollMode="Deferred" IsFilteringAllowed="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,35,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="433" Height="300" MaxHeight="300" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Deleted="rgvTipsters_Deleted">
                                                     <telerik:RadGridView.Resources>
                                                         <ResourceDictionary Source="Themes/DarkBlend/Styles.xaml"/>
                                                     </telerik:RadGridView.Resources>
@@ -330,7 +332,7 @@
                                                 </telerik:RadDatePicker>
                                                 <Button x:Name="btnSaveLogin" Content="Zapisz Zaznaczony" Style="{DynamicResource SquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="141" Click="btnSaveLogin_Click" TabIndex="1" Margin="0,410,0,0" mah:ControlsHelper.ContentCharacterCasing="Normal" FontSize="14"/>
                                                 <Button x:Name="btnAddNewLogin" Content="Dodaj Nowy Login" Style="{DynamicResource SquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="141" Click="btnAddNewLogin_Click" TabIndex="1" Margin="146,410,0,0" FontSize="14" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
-                                                <telerik:RadGridView x:Name="rgvLogins" IsFilteringAllowed="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,445,0,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14" AutoGenerateColumns="False" Width="433" Height="162" MaxHeight="300" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Deleted="rgvLogins_Deleted" SelectionChanged="rgvLogins_SelectionChanged">
+                                                <telerik:RadGridView x:Name="rgvLogins" ScrollMode="Deferred" IsFilteringAllowed="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,445,0,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14" AutoGenerateColumns="False" Width="433" Height="162" MaxHeight="300" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Deleted="rgvLogins_Deleted" SelectionChanged="rgvLogins_SelectionChanged">
                                                     <telerik:RadGridView.Resources>
                                                         <ResourceDictionary Source="Themes/DarkBlend/Styles.xaml"/>
                                                     </telerik:RadGridView.Resources>
@@ -372,7 +374,7 @@
                     </Grid>
 
                     <Grid x:Name="gridStatisticsFlyout" Width="453" Margin="-1458,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
-                        <Grid Margin="10">
+                        <Grid Margin="10"  x:Name="gridStatisticsContent">
 
                             <Grid>
                                 <mah:Tile x:Name="tlStatisticsFlyoutHeader" Style="{StaticResource FlyoutHeaderTile}">
@@ -390,7 +392,7 @@
 
                             <Grid Margin="0,60,0,0">
 
-                                <telerik:RadGridView x:Name="rgvAggregatedWinsLosesStatistics" IsFilteringAllowed="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="150" Height="185" MaxHeight="185" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False">
+                                <telerik:RadGridView x:Name="rgvAggregatedWinsLosesStatistics" ScrollMode="Deferred" IsFilteringAllowed="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="150" Height="185" MaxHeight="185" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False">
                                     <telerik:RadGridView.Resources>
                                         <ResourceDictionary Source="Themes/DarkBlend/Styles.xaml"/>
                                     </telerik:RadGridView.Resources>
@@ -403,7 +405,7 @@
 
                                 <telerik:RadComboBox x:Name="rddlProfitByPeriodStatistics" HorizontalAlignment="Left" Margin="155,0,-0.17,0" VerticalAlignment="Top" Width="278" Height="30" />
 
-                                <telerik:RadGridView x:Name="rgvProfitByPeriodStatistics" IsFilteringAllowed="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="155,35,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="278" Height="150" MaxHeight="150" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Sorting="rgvProfitByPeriodStatistics_Sorting">
+                                <telerik:RadGridView x:Name="rgvProfitByPeriodStatistics" ScrollMode="Deferred" IsFilteringAllowed="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="155,35,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="278" Height="150" MaxHeight="150" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" Sorting="rgvProfitByPeriodStatistics_Sorting">
                                     <telerik:RadGridView.Resources>
                                         <ResourceDictionary Source="Themes/DarkBlend/Styles.xaml"/>
                                     </telerik:RadGridView.Resources>
@@ -414,7 +416,7 @@
                                     </telerik:RadGridView.Columns>
                                 </telerik:RadGridView>
 
-                                <telerik:RadGridView x:Name="rgvGeneralStatistics" IsFilteringAllowed="False" CanUserSortColumns="False" CanUserSortGroups="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,190,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="433" Height="335" MaxHeight="335" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" SelectionChanged="rgvGeneralStatistics_SelectionChanged">
+                                <telerik:RadGridView x:Name="rgvGeneralStatistics" ScrollMode="Deferred" IsFilteringAllowed="False" CanUserSortColumns="False" CanUserSortGroups="False" CanUserDeleteRows="False" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,190,-0.17,0" VerticalAlignment="Top" EnableColumnGroupsVirtualization="False" ShowGroupPanel="False" FontSize="14.667" AutoGenerateColumns="False" Width="433" Height="335" MaxHeight="335" RowIndicatorVisibility="Collapsed" telerik:StyleManager.Theme="Expression_Dark" ValidatesOnDataErrors="None" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" EnableLostFocusSelectedState="False" SelectionChanged="rgvGeneralStatistics_SelectionChanged">
                                     <telerik:RadGridView.Resources>
                                         <ResourceDictionary Source="Themes/DarkBlend/Styles.xaml"/>
                                     </telerik:RadGridView.Resources>
@@ -438,7 +440,7 @@
                     </Grid>
 
                     <Grid x:Name="gridOptionsFlyout" Width="603" Margin="-1000,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
-                        <Grid Margin="10">
+                        <Grid Margin="10" x:Name="gridOptionsContent">
 
                             <Grid>
                                 <mah:Tile x:Name="tlOptionsFlyoutHeader" Style="{StaticResource FlyoutHeaderTile}">
@@ -525,7 +527,7 @@
                     </Grid>
 
                     <Grid x:Name="gridCalculatorFlyout" Width="453" Margin="-2374,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
-                        <Grid Margin="10">
+                        <Grid Margin="10" x:Name="gridCalculatorContent">
 
                             <Grid>
                                 <mah:Tile x:Name="tlCalculatorFlyoutHeader" Style="{StaticResource FlyoutHeaderTile}">
