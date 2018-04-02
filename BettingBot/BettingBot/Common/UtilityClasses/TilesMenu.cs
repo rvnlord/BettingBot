@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using MahApps.Metro.IconPacks;
+using Telerik.Windows.Diagrams.Core;
 using Tile = MahApps.Metro.Controls.Tile;
 
 namespace BettingBot.Common.UtilityClasses
@@ -48,9 +49,15 @@ namespace BettingBot.Common.UtilityClasses
             get => _selectedTile;
             set
             {
-                _selectedTile = value;
-                if (value != null)
-                    _selectedTile.Highlight(MouseOverColor);
+                var oldSelectedTile = _selectedTile;
+                var newSelectedTile = value;
+
+                if (Equals(oldSelectedTile, newSelectedTile))
+                    return;
+                MenuTiles.Except(newSelectedTile).Highlight(MouseOutColor);
+                newSelectedTile?.Highlight(MouseOverColor);
+
+                _selectedTile = newSelectedTile;
             }
         }
 
@@ -109,7 +116,9 @@ namespace BettingBot.Common.UtilityClasses
             if (!new[] { false, _menuMouseMove_BeforeAnimationFinished, _menuMouseMove_Finished, _menuMouseUp_BeforeAnimationFinished, _menuMouseUp_Finished }.AllEqual())
                 return;
 
-            OnMenuTIleClicking(new MenuTileClickedEventArgs((Tile) sender));
+            var clickedTile = (Tile)sender;
+            SelectedTile = Equals(SelectedTile, clickedTile) ? null : clickedTile; // do właściwości, nie do pola, żeby wyweołać animacje
+            OnMenuTIleClicking(new MenuTileClickedEventArgs(clickedTile));
         }
 
         private void tlTab_MouseEnter(object sender, MouseEventArgs e)
@@ -174,7 +183,14 @@ namespace BettingBot.Common.UtilityClasses
                         var i = 0;
                         foreach (var tl in TilesOrder.Select(o => MenuTiles.Single(tl => tl.Name == o)))
                         {
-                            var clonedTile = tl.CloneControl($"{tl.Name}_Clone");
+                            var clonedTile = new Tile // klonowanie poprzez serializację do xamla jest znacznie wolniejsze
+                            {
+                                Name = $"{tl.Name}_Clone",
+                                Style = tl.Style,
+                                ContentTemplate = tl.ContentTemplate,
+                                Width = tl.Width,
+                                Height = tl.Height
+                            };
                             _cvMovingTile.Children.Add(clonedTile);
                             clonedTile.PositionY(i++ * (clonedTile.Height + clonedTile.Margin.Top + clonedTile.Margin.Bottom));
                             if (Equals(tl, tile))
@@ -183,6 +199,8 @@ namespace BettingBot.Common.UtilityClasses
                                 _tlMoving = clonedTile;
                                 _emptyPosY = _tlMoving.PositionY();
                             }
+                            if (Equals(tl, SelectedTile))
+                                clonedTile.Background = new SolidColorBrush(MouseOverColor);
                         }
 
                         for (var j = 0; j < MenuTiles.Length; j++)

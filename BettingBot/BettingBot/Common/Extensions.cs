@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms.VisualStyles;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -48,6 +49,7 @@ using Size = System.Windows.Size;
 using DSize = System.Drawing.Size;
 using GridViewColumn = Telerik.Windows.Controls.GridViewColumn;
 using TelerikGridViewColumnCollection = Telerik.Windows.Controls.GridViewColumnCollection;
+using VerticalAlignment = System.Windows.VerticalAlignment;
 
 namespace BettingBot.Common
 {
@@ -552,6 +554,11 @@ namespace BettingBot.Common
             return new TilesMenu(spMenu, isFullSize, resizeValue, mouseOverColor, mouseOutColor, resizeMouseOverColor, resizeMouseOutColor);
         }
 
+        public static void Highlight<T>(this IEnumerable<T> controls, Color color) where T : Control
+        {
+            controls.ForEach(control => control.Highlight(color));
+        }
+
         #endregion
 
         #region - IQueryable Extensions
@@ -958,8 +965,8 @@ namespace BettingBot.Common
         {
             return RadContextMenu.GetContextMenu(el);
         }
-        
-        public static Task AnimateAsync(this FrameworkElement fwElement, DependencyProperty dp, AnimationTimeline animation)
+       
+        public static Task AnimateAsync(this FrameworkElement fwElement, PropertyPath propertyPath, AnimationTimeline animation)
         {
             lock (_lock)
             {
@@ -975,7 +982,7 @@ namespace BettingBot.Common
                     _storyBoards.Add(fwElement, storyBoard);
                 }
                 Storyboard.SetTarget(animation, fwElement);
-                Storyboard.SetTargetProperty(animation, new PropertyPath(dp));
+                Storyboard.SetTargetProperty(animation, propertyPath);
                 storyBoard.Children.Add(animation);
                 storyBoard.Completed += storyBoard_Completed;
 
@@ -984,7 +991,17 @@ namespace BettingBot.Common
             }
         }
 
-        public static void Animate(this FrameworkElement fwElement, DependencyProperty dp, AnimationTimeline animation, EventHandler callback = null)
+        public static Task AnimateAsync(this FrameworkElement fwElement, DependencyProperty dp, AnimationTimeline animation)
+        {
+            return AnimateAsync(fwElement, new PropertyPath(dp), animation);
+        }
+
+        public static Task AnimateAsync(this FrameworkElement fwElement, string propertyPath, AnimationTimeline animation)
+        {
+            return AnimateAsync(fwElement, new PropertyPath(propertyPath), animation);
+        }
+
+        public static void Animate(this FrameworkElement fwElement, PropertyPath propertyPath, AnimationTimeline animation, EventHandler callback = null)
         {
             lock (_lock)
             {
@@ -998,13 +1015,23 @@ namespace BettingBot.Common
                     _storyBoards.Add(fwElement, storyBoard);
                 }
                 Storyboard.SetTarget(animation, fwElement);
-                Storyboard.SetTargetProperty(animation, new PropertyPath(dp));
+                Storyboard.SetTargetProperty(animation, propertyPath);
                 storyBoard.Children.Add(animation);
                 if (callback != null)
                     storyBoard.Completed += callback;
 
                 storyBoard.Begin(fwElement, true);
             }
+        }
+
+        public static void Animate(this FrameworkElement fwElement, DependencyProperty dp, AnimationTimeline animation, EventHandler callback = null)
+        {
+            Animate(fwElement, new PropertyPath(dp), animation, callback);
+        }
+
+        public static void Animate(this FrameworkElement fwElement, string propertyPath, AnimationTimeline animation, EventHandler callback = null)
+        {
+            Animate(fwElement, new PropertyPath(propertyPath), animation, callback);
         }
 
         public static void SlideShow(this Panel c)
@@ -1433,16 +1460,20 @@ namespace BettingBot.Common
 
         #region Control Extensions
 
-        public static void Highlight(this Control tile, Color color)
+        public static void Highlight(this Control control, Color color)
         {
-            var colorAni = new ColorAnimation(color, new Duration(TimeSpan.FromMilliseconds(500)));
-            tile.Background.BeginAnimation(SolidColorBrush.ColorProperty, colorAni);
+            control.AnimateChangeColor(color);
         }
 
-        public static void Unhighlight(this Control tile, Color defaultColor)
+        public static void Unhighlight(this Control control, Color defaultColor)
         {
-            var colorAni = new ColorAnimation(defaultColor, new Duration(TimeSpan.FromMilliseconds(500)));
-            tile.Background.BeginAnimation(SolidColorBrush.ColorProperty, colorAni);
+            control.AnimateChangeColor(defaultColor);
+        }
+
+        private static async void AnimateChangeColor(this Control control, Color color)
+        {
+            var colorAni = new ColorAnimation(color, new Duration(TimeSpan.FromMilliseconds(500)));
+            await control.AnimateAsync("(Panel.Background).(SolidColorBrush.Color)", colorAni);
         }
 
         public static T CloneControl<T>(this T control, string newName) where T : Control
@@ -1509,9 +1540,7 @@ namespace BettingBot.Common
         {
             control.Dispatcher.Invoke(DispatcherPriority.Render, _emptyDelegate);
         }
-
-
-
+        
         #endregion
 
         #region Panel Extensions

@@ -97,8 +97,6 @@ namespace BettingBot
         private Color _defaultOptionsTabTileColor;
         private Color _mouseOverOptionsTabTileColor;
 
-
-
         private readonly ObservableCollection<UserRgvVM> _ocLogins = new ObservableCollection<UserRgvVM>();
         private readonly ObservableCollection<object> _ocSelectedLogins = new ObservableCollection<object>();
         private readonly ObservableCollection<TipsterRgvVM> _ocTipsters = new ObservableCollection<TipsterRgvVM>();
@@ -537,8 +535,9 @@ namespace BettingBot
 
         private void tlFlyoutHeader_Click(object sender, RoutedEventArgs e)
         {
-            var tile = (Tile) sender;
-            var flyout = tile.FindLogicalAncestor<Grid>(grid => grid.Name.EndsWith("Flyout"));
+            var headerTile = (Tile) sender;
+            var flyout = headerTile.FindLogicalAncestor<Grid>(grid => grid.Name.EndsWith("Flyout"));
+            _mainMenu.SelectedTile = null;
             flyout.SlideHide();
         }
 
@@ -879,6 +878,8 @@ namespace BettingBot
         private void rgvData_SelectionChanged(object sender, SelectionChangeEventArgs e)
         {
             this.FindLogicalDescendants<Grid>().Where(g => g.Name.EndsWith("Flyout")).ForEach(f => f.SlideHide());
+            _mainMenu.SelectedTile = null;
+
             var selBets = rgvData.SelectedItems.Cast<BetToDisplayRgvVM>().ToList();
             if (selBets.Count == 1)
             {
@@ -1279,20 +1280,7 @@ namespace BettingBot
 
         private void gridFlyout_VisibilityChanged(object sender, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
         {
-            var fo = sender as Grid;
-            if (fo == null) return;
 
-            var tile = spMenu.FindLogicalDescendants<Tile>().Single(tl => tl.Name.AfterFirst("tl") == fo.Name.Between("grid", "Flyout"));
-            if (!fo.IsVisible) // zamykanie flyouta
-            {
-                tile.Unhighlight(_defaultMainMenuTileColor);
-                _mainMenu.SelectedTile = null;
-            }
-            else // otwieranie flyouta
-            {
-                tile.Highlight(_mouseOverMainMenuTileColor);
-                _mainMenu.SelectedTile = tile;
-            }
         }
 
         #endregion
@@ -2100,6 +2088,7 @@ namespace BettingBot
                         foreach (var ofo in otherFlyouts)
                             ofo.SlideHide();
                         gridStatisticsFlyout.SlideShow();
+                        _mainMenu.SelectedTile = tlStatistics;
                     }
                         
                 });
