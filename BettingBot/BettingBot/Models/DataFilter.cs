@@ -63,11 +63,11 @@ namespace BettingBot.Models
     public class SelectionFilter : DataFilter
     {
         public SelectionFilterChoice Choice { get; }
-        public List<BetToDisplayRgvVM> SelectedBetsVM { get; }
-        public List<BetToDisplayRgvVM> VisibleBetsVM { get; }
+        public List<BetToDisplayGvVM> SelectedBetsVM { get; }
+        public List<BetToDisplayGvVM> VisibleBetsVM { get; }
         public override FilterType FilterType => FilterType.Selection;
 
-        public SelectionFilter(SelectionFilterChoice choice, List<BetToDisplayRgvVM> selectedBetsVM, List<BetToDisplayRgvVM> visibleBetsVM)
+        public SelectionFilter(SelectionFilterChoice choice, List<BetToDisplayGvVM> selectedBetsVM, List<BetToDisplayGvVM> visibleBetsVM)
         {
             Choice = choice;
             SelectedBetsVM = selectedBetsVM;

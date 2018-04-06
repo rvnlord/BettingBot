@@ -84,30 +84,6 @@
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework.Aero" />
-    <Reference Include="SharpDX">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\SharpDX\SharpDX.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpDX.D3DCompiler">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\SharpDX\SharpDX.D3DCompiler.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpDX.Direct2D1">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\SharpDX\SharpDX.Direct2D1.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpDX.Direct3D10">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\SharpDX\SharpDX.Direct3D10.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpDX.Direct3D9">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\SharpDX\SharpDX.Direct3D9.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpDX.DXGI">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\SharpDX\SharpDX.DXGI.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -159,246 +135,6 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="Telerik.Documents.SpreadsheetStreaming, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Documents.SpreadsheetStreaming.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Pivot.Core, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Pivot.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Pivot.DataProviders.Adomd, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Pivot.DataProviders.Adomd.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Pivot.DataProviders.Queryable, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Pivot.DataProviders.Queryable.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Pivot.DataProviders.Xmla, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Pivot.DataProviders.Xmla.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Analytics, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Analytics.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Cloud, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Cloud.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Cloud.Controls, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Cloud.Controls.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Chart, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Chart.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Chart.Direct2D, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Chart.Direct2D.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Data, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Data.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.DataServices, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.DataServices.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.DataServices50, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.DataServices50.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.DataServices60, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.DataServices60.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.DataVisualization, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.DataVisualization.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Diagrams, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Diagrams.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Diagrams.Extensions, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Diagrams.Extensions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Docking, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Docking.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.EntityFramework, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.EntityFramework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.EntityFramework60, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.EntityFramework60.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Expressions, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Expressions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.FixedDocumentViewers, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.FixedDocumentViewers.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.FixedDocumentViewersUI, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.FixedDocumentViewersUI.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.GanttView, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.GanttView.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.GridView, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.GridView.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.GridView.Export, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.GridView.Export.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.ImageEditor, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.ImageEditor.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Input, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Input.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Navigation, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Navigation.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Pivot, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Pivot.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.PivotFieldList, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.PivotFieldList.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.RibbonView, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.RibbonView.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.RichTextBoxUI, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.RichTextBoxUI.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.ScheduleView, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.ScheduleView.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.Spreadsheet, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.Spreadsheet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Controls.VirtualGrid, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Controls.VirtualGrid.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Data, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Data.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Diagrams.Core, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Diagrams.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Core, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Fixed, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Fixed.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Flow, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Flow.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Flow.FormatProviders.Pdf, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Flow.FormatProviders.Pdf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.FormatProviders.Html, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.FormatProviders.Html.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.FormatProviders.MsRichTextBoxXaml, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.FormatProviders.MsRichTextBoxXaml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.FormatProviders.OpenXml, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.FormatProviders.OpenXml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.FormatProviders.Pdf, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.FormatProviders.Pdf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.FormatProviders.Rtf, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.FormatProviders.Rtf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.FormatProviders.Xaml, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.FormatProviders.Xaml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Proofing, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Proofing.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Proofing.Dictionaries.En-US, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Proofing.Dictionaries.En-US.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Proofing.RadGridView, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Proofing.RadGridView.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Spreadsheet, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Spreadsheet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Documents.Spreadsheet.FormatProviders.Pdf, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Documents.Spreadsheet.FormatProviders.Pdf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.PersistenceFramework, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.PersistenceFramework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Scheduling.Core, Version=2017.2.503.45, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Scheduling.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Themes.Expression_Dark">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Themes.Expression_Dark.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Telerik.Windows.Zip, Version=2017.2.428.40, Culture=neutral, PublicKeyToken=5803cfa389c90ce7, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\Telerik.Windows.Zip.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WebDriver, Version=3.11.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -421,17 +157,20 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\UtilityClasses\ActionStatus.cs" />
+    <Compile Include="Common\UtilityClasses\ContextMenu.cs" />
+    <Compile Include="Common\UtilityClasses\ContextMenuItem.cs" />
+    <Compile Include="Common\UtilityClasses\ContextMenusManager.cs" />
     <Compile Include="Common\UtilityClasses\TilesMenu.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\ViewModels\Collections\AggregatedWinLoseStatisticsRgvVM.cs" />
+    <Compile Include="Models\ViewModels\Collections\AggregatedWinLoseStatisticsGvVM.cs" />
     <Compile Include="Common\AutomapperConfiguration.cs" />
     <Compile Include="Models\Bet.cs" />
     <Compile Include="Models\BettingSystem.cs" />
     <Compile Include="Models\ViewModels\Abstracts\BaseVM.cs" />
-    <Compile Include="Models\ViewModels\AggregatedWinLoseStatisticRgvVM.cs" />
-    <Compile Include="Models\ViewModels\BetToDisplayRgvVM.cs" />
+    <Compile Include="Models\ViewModels\AggregatedWinLoseStatisticGvVM.cs" />
+    <Compile Include="Models\ViewModels\BetToDisplayGvVM.cs" />
     <Compile Include="Common\UtilityClasses\BrowserSession.cs" />
     <Compile Include="Common\UtilityClasses\ClipboardWrapper.cs" />
     <Compile Include="Models\ViewModels\BetToSendVM.cs" />
@@ -443,30 +182,30 @@
     <Compile Include="Common\UtilityClasses\DdlItem.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Models\DataLoaders\HintwiseLoader.cs" />
-    <Compile Include="Models\ViewModels\Collections\GeneralStatisticsRgvVM.cs" />
+    <Compile Include="Models\ViewModels\Collections\GeneralStatisticsGvVM.cs" />
     <Compile Include="Common\Helpers.cs" />
     <Compile Include="Models\Interfaces\IBet.cs" />
     <Compile Include="Models\Interfaces\ISeleniumConnectable.cs" />
     <Compile Include="Models\LocalDbContext.cs" />
-    <Compile Include="Common\UtilityClasses\MenuItem.cs" />
+    <Compile Include="Common\UtilityClasses\CustomMenuItem.cs" />
     <Compile Include="Models\Option.cs" />
     <Compile Include="Models\Pick.cs" />
-    <Compile Include="Models\ViewModels\GeneralStatisticRgvVM.cs" />
+    <Compile Include="Models\ViewModels\GeneralStatisticGvVM.cs" />
     <Compile Include="Models\ViewModels\Interfaces\INotifyPropertyChangedUtils.cs" />
-    <Compile Include="Models\ViewModels\Collections\ProfitByPeriodStatisticsRgvVM.cs" />
+    <Compile Include="Models\ViewModels\Collections\ProfitByPeriodStatisticsGvVM.cs" />
     <Compile Include="Models\SearchEngine.cs" />
     <Compile Include="Models\SeleniumDriverManager.cs" />
     <Compile Include="Models\SiteManagers\AsianOddsManager.cs" />
     <Compile Include="Models\SiteManagers\CloudBetManager.cs" />
     <Compile Include="Models\SiteManagers\BettingSiteManager.cs" />
     <Compile Include="Models\Tipster.cs" />
-    <Compile Include="Models\ViewModels\ProfitByPeriodStatisticRgvVM.cs" />
-    <Compile Include="Models\ViewModels\TipsterRgvVM.cs" />
+    <Compile Include="Models\ViewModels\ProfitByPeriodStatisticGvVM.cs" />
+    <Compile Include="Models\ViewModels\TipsterGvVM.cs" />
     <Compile Include="Common\Utilities.cs" />
     <Compile Include="Common\UtilityClasses\RepCounter.cs" />
     <Compile Include="Models\Staking.cs" />
     <Compile Include="Models\User.cs" />
-    <Compile Include="Models\ViewModels\UserRgvVM.cs" />
+    <Compile Include="Models\ViewModels\UserGvVM.cs" />
     <Compile Include="Common\UtilityClasses\ViewState.cs" />
     <Compile Include="Models\Website.cs" />
     <Compile Include="Properties\Annotations.cs" />
@@ -504,7 +243,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="Resources\NotifyIcon.png" />
-    <EmbeddedResource Include="Properties\Licenses.licx" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

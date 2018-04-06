@@ -2,12 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using BettingBot.Common.UtilityClasses;
-using Telerik.Windows.Controls;
 using Point = System.Windows.Point;
 using DPoint = System.Drawing.Point;
 using Size = System.Windows.Size;
@@ -79,7 +78,7 @@ namespace BettingBot.Common
     public static class GridViewSelectionUtilities
     {
         private static bool _isSyncingSelection;
-        private static readonly List<Tuple<WeakReference, List<RadGridView>>> _collectionToGridViews = new List<Tuple<WeakReference, List<RadGridView>>>();
+        private static readonly List<Tuple<WeakReference, List<DataGrid>>> _collectionToGridViews = new List<Tuple<WeakReference, List<DataGrid>>>();
 
         public static readonly DependencyProperty SelectedItemsProperty = DependencyProperty.RegisterAttached(
             "SelectedItems",
@@ -99,18 +98,18 @@ namespace BettingBot.Common
 
         private static void OnSelectedItemsChanged(DependencyObject target, DependencyPropertyChangedEventArgs args)
         {
-            var gridView = (RadGridView)target;
+            var gridView = (DataGrid)target;
 
             if (args.OldValue is INotifyCollectionChanged oldCollection)
             {
-                gridView.SelectionChanging -= GridView_SelectionChanging;
+                gridView.SelectionChanged -= GridView_SelectionChanged;
                 oldCollection.CollectionChanged -= SelectedItems_CollectionChanged;
                 RemoveAssociation(oldCollection, gridView);
             }
 
             if (args.NewValue is INotifyCollectionChanged newCollection)
             {
-                gridView.SelectionChanging += GridView_SelectionChanging;
+                gridView.SelectionChanged += GridView_SelectionChanged;
                 newCollection.CollectionChanged += SelectedItems_CollectionChanged;
                 //gridView.UnshiftEvent("SelectionChanged", new EventHandler<SelectionChangeEventArgs>(GridView_SelectionChanged));
                 //newCollection.UnshiftEvent("CollectionChanged", new NotifyCollectionChangedEventHandler(SelectedItems_CollectionChanged));
@@ -126,16 +125,21 @@ namespace BettingBot.Common
             OnSelectedItemsChanged(collection, args.OldItems, args.NewItems);
         }
 
-        private static void GridView_SelectionChanging(object sender, SelectionChangingEventArgs args)
+        private static void GridView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isSyncingSelection)
                 return;
 
-            var collection = (IList)GetSelectedItems((RadGridView)sender);
-            foreach (var item in args.RemovedItems)
+            var gridView = (DataGrid) sender;
+            var collection = (IList)GetSelectedItems(gridView);
+            foreach (var item in e.RemovedItems)
                 collection.Remove(item);
-            foreach (var item in args.AddedItems)
+            foreach (var item in e.AddedItems)
                 collection.Add(item);
+
+            var wnd = gridView.FindLogicalAncestor<Window>();
+            var handler = wnd.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == $"{gridView.Name}_SelectionChanged");
+            handler?.Invoke(wnd, new object[] { gridView, e });
         }
 
         private static void OnSelectedItemsChanged(INotifyCollectionChanged collection, IList oldItems, IList newItems)
@@ -146,10 +150,11 @@ namespace BettingBot.Common
             foreach (var gridView in gridViews)
                 SyncSelection(gridView, oldItems, newItems);
 
+
             _isSyncingSelection = false;
         }
 
-        private static void SyncSelection(DataControl gridView, IEnumerable oldItems, IEnumerable newItems)
+        private static void SyncSelection(DataGrid gridView, IEnumerable oldItems, IEnumerable newItems)
         {
             if (oldItems != null)
                 SetItemsSelection(gridView, oldItems, false);
@@ -157,7 +162,7 @@ namespace BettingBot.Common
                 SetItemsSelection(gridView, newItems, true);
         }
 
-        private static void SetItemsSelection(DataControl gridView, IEnumerable items, bool shouldSelect)
+        private static void SetItemsSelection(DataGrid gridView, IEnumerable items, bool shouldSelect)
         {
             foreach (var item in items)
             {
@@ -169,13 +174,13 @@ namespace BettingBot.Common
             }
         }
 
-        private static void AddAssociation(INotifyCollectionChanged collection, RadGridView gridView)
+        private static void AddAssociation(INotifyCollectionChanged collection, DataGrid gridView)
         {
             var gridViews = GetOrCreateGridViews(collection);
             gridViews.Add(gridView);
         }
 
-        private static void RemoveAssociation(INotifyCollectionChanged collection, RadGridView gridView)
+        private static void RemoveAssociation(INotifyCollectionChanged collection, DataGrid gridView)
         {
             var gridViews = GetOrCreateGridViews(collection);
             gridViews.Remove(gridView);
@@ -184,7 +189,7 @@ namespace BettingBot.Common
                 CleanUp();
         }
 
-        private static List<RadGridView> GetOrCreateGridViews(INotifyCollectionChanged collection)
+        private static List<DataGrid> GetOrCreateGridViews(INotifyCollectionChanged collection)
         {
             foreach (var t in _collectionToGridViews)
             {
@@ -193,7 +198,7 @@ namespace BettingBot.Common
                     return t.Item2;
             }
 
-            _collectionToGridViews.Add(new Tuple<WeakReference, List<RadGridView>>(new WeakReference(collection), new List<RadGridView>()));
+            _collectionToGridViews.Add(new Tuple<WeakReference, List<DataGrid>>(new WeakReference(collection), new List<DataGrid>()));
             return _collectionToGridViews[_collectionToGridViews.Count - 1].Item2;
         }
 

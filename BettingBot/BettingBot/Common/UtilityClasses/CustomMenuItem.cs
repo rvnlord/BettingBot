@@ -3,14 +3,14 @@ using System.ComponentModel;
 
 namespace BettingBot.Common.UtilityClasses
 {
-    public class MenuItem : INotifyPropertyChanged
+    public class CustomMenuItem : INotifyPropertyChanged
     {
         private bool isEnabled = true;
         private string _text;
-        private ObservableCollection<MenuItem> _subItems;
+        private ObservableCollection<CustomMenuItem> _subItems;
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public MenuItem(string text)
+        public CustomMenuItem(string text)
         {
             Text = text;
         }
@@ -37,9 +37,9 @@ namespace BettingBot.Common.UtilityClasses
             }
         }
 
-        public ObservableCollection<MenuItem> SubItems
+        public ObservableCollection<CustomMenuItem> SubItems
         {
-            get => _subItems ?? (_subItems = new ObservableCollection<MenuItem>());
+            get => _subItems ?? (_subItems = new ObservableCollection<CustomMenuItem>());
             set
             {
                 if (_subItems == value) return;

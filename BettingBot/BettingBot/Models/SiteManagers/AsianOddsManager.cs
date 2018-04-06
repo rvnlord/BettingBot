@@ -9,7 +9,7 @@ namespace BettingBot.Models.SiteManagers
 {
     public class AsianOddsManager : BettingSiteManager
     {
-        public override BetToSendVM FindBet(BetToDisplayRgvVM betTdVM)
+        public override BetToSendVM FindBet(BetToDisplayGvVM betTdVM)
         {
             Sdm.OpenOrReuseDriver();
             EnsureLogin();

@@ -3,7 +3,7 @@ using BettingBot.Models.ViewModels.Abstracts;
 
 namespace BettingBot.Models.ViewModels
 {
-    public class ProfitByPeriodStatisticRgvVM : BaseVM
+    public class ProfitByPeriodStatisticGvVM : BaseVM
     {
         private string _period;
         private double _profit;
@@ -26,7 +26,7 @@ namespace BettingBot.Models.ViewModels
             }
         }
 
-        public ProfitByPeriodStatisticRgvVM(int periodId, string period, double profit, int count)
+        public ProfitByPeriodStatisticGvVM(int periodId, string period, double profit, int count)
         {
             PeriodId = periodId;
             Period = period;

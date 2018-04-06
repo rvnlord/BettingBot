@@ -23,7 +23,7 @@ namespace BettingBot.Models
         public List<DataFilter> Filters { get; set; }
         public List<Bet> InitialBets { get; }
         public List<Bet> FilteredBets { get; private set; }
-        public List<BetToDisplayRgvVM> Bets { get; set; }
+        public List<BetToDisplayGvVM> Bets { get; set; }
         public double BudgetIncreaseReference { get; set; }
         public double StakeIncrease { get; set; }
         public double BudgetDecreaseReference { get; set; }
@@ -114,17 +114,17 @@ namespace BettingBot.Models
 
         private void ApplyStakingForIndividual()
         {
-            var betsVM = new List<BetToDisplayRgvVM>();
+            var betsVM = new List<BetToDisplayGvVM>();
             var currNr = 1;
             var currentBudget = Budget;
             var previousBudget = Budget;
             var maxBudget = Budget;
             var areLost = new List<bool>();
-            BetToDisplayRgvVM previousBet = null;
+            BetToDisplayGvVM previousBet = null;
 
             foreach (var bet in FilteredBets)
             {
-                var betVM = new BetToDisplayRgvVM();
+                var betVM = new BetToDisplayGvVM();
                 Mapper.Map(bet, betVM);
                 var currStake = CalculateStakeChangedWithBudget(currentBudget, previousBudget, maxBudget);
 
@@ -156,7 +156,7 @@ namespace BettingBot.Models
         
         private void ApplyStakingForAggregation()
         {
-            var betsVM = new List<BetToDisplayRgvVM>();
+            var betsVM = new List<BetToDisplayGvVM>();
             var currNr = 1;
             var currentBudget = Budget;
             var previousBudget = Budget;
@@ -191,7 +191,7 @@ namespace BettingBot.Models
 
                 foreach (var bet in g)
                 {
-                    var betVM = new BetToDisplayRgvVM();
+                    var betVM = new BetToDisplayGvVM();
                     Mapper.Map(bet, betVM);
                     
                     betVM.Stake = currStake;
@@ -208,7 +208,7 @@ namespace BettingBot.Models
             Bets = betsVM;
         }
 
-        private double CalculateStake(double currStake, bool isLost, BetToDisplayRgvVM previousBet, int lostInARow, int wonInARow, double lostMoney, double totalOdds, int groupSize, double budget)
+        private double CalculateStake(double currStake, bool isLost, BetToDisplayGvVM previousBet, int lostInARow, int wonInARow, double lostMoney, double totalOdds, int groupSize, double budget)
         {
             if (previousBet == null)
                 return currStake;

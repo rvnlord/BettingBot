@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("BettingBot")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Acer")]
+[assembly: AssemblyCompany("rvnlord")]
 [assembly: AssemblyProduct("BettingBot")]
-[assembly: AssemblyCopyright("Copyright © Acer 2015")]
+[assembly: AssemblyCopyright("Copyright © rvnlord 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

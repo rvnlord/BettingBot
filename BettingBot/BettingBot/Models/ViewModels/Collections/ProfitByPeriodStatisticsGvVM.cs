@@ -6,19 +6,19 @@ using BettingBot.Common.UtilityClasses;
 
 namespace BettingBot.Models.ViewModels.Collections
 {
-    public class ProfitByPeriodStatisticsRgvVM : CustomList<ProfitByPeriodStatisticRgvVM>
+    public class ProfitByPeriodStatisticsGvVM : CustomList<ProfitByPeriodStatisticGvVM>
     {
-        public ProfitByPeriodStatisticsRgvVM(IEnumerable<BetToDisplayRgvVM> bets, Period period, bool isReadOnly = false) : base(isReadOnly)
+        public ProfitByPeriodStatisticsGvVM(IEnumerable<BetToDisplayGvVM> bets, Period period, bool isReadOnly = false) : base(isReadOnly)
         {
             var listBets = bets.ToList();
             if (!listBets.Any())
             {
-                _customList = new List<ProfitByPeriodStatisticRgvVM>();
+                _customList = new List<ProfitByPeriodStatisticGvVM>();
                 return;
             }
                
 
-            Func<BetToDisplayRgvVM, string> groupBySt;
+            Func<BetToDisplayGvVM, string> groupBySt;
             if (period == Period.Month)
                 groupBySt = b => $"{b.Date.MonthName()} {b.Date.Year}";
             else if (period == Period.Week)
@@ -33,20 +33,20 @@ namespace BettingBot.Models.ViewModels.Collections
             else throw new Exception("Niepoprawne grupowanie");
 
             _customList = listBets.GroupBy(groupBySt)
-                .Select((g, i) => new ProfitByPeriodStatisticRgvVM(
+                .Select((g, i) => new ProfitByPeriodStatisticGvVM(
                     i,
                     g.Key,
                     g.Last().Budget - g.First().Budget + g.First().Profit,
                     g.Count()))
                 .ToList();
-            _customList.Add(new ProfitByPeriodStatisticRgvVM(
+            _customList.Add(new ProfitByPeriodStatisticGvVM(
                 _customList.Select(pbp => pbp.PeriodId).Max() + 1, 
                 "Razem:", 
                 _customList.Select(pbp => pbp.Profit).Sum(),
                 _customList.Select(pbp => pbp.Count).Sum()));
         }
 
-        public ProfitByPeriodStatisticsRgvVM(IEnumerable<ProfitByPeriodStatisticRgvVM> statistics, bool isReadOnly = false) : base(isReadOnly)
+        public ProfitByPeriodStatisticsGvVM(IEnumerable<ProfitByPeriodStatisticGvVM> statistics, bool isReadOnly = false) : base(isReadOnly)
         {
             _customList = statistics.ToList();
         }

@@ -3,7 +3,7 @@ using BettingBot.Models.ViewModels.Abstracts;
 
 namespace BettingBot.Models.ViewModels
 {
-    public class TipsterRgvVM : BaseVM, IComparable<TipsterRgvVM>
+    public class TipsterGvVM : BaseVM, IComparable<TipsterGvVM>
     {
         private int _id;
         private string _name;
@@ -26,7 +26,7 @@ namespace BettingBot.Models.ViewModels
 
         public virtual Website Website { get; set; }
 
-        public int CompareTo(TipsterRgvVM other)
+        public int CompareTo(TipsterGvVM other)
         {
             var compareWebsites = string.Compare(Domain, other.Domain, StringComparison.Ordinal);
             var compareNames = string.Compare(_name, other.Name, StringComparison.Ordinal);
@@ -35,8 +35,8 @@ namespace BettingBot.Models.ViewModels
 
         public override bool Equals(object obj)
         {
-            if (!(obj is TipsterRgvVM)) return false;
-            var oTipster = (TipsterRgvVM) obj;
+            if (!(obj is TipsterGvVM)) return false;
+            var oTipster = (TipsterGvVM) obj;
             return _name == oTipster.Name && _websiteId == oTipster.WebsiteId;
         }
 

@@ -5,7 +5,7 @@ using BettingBot.Models.ViewModels.Abstracts;
 
 namespace BettingBot.Models.ViewModels
 {
-    public class UserRgvVM : BaseVM
+    public class UserGvVM : BaseVM
     {
         private int _id;
         private string _name;

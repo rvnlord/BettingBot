@@ -17,10 +17,10 @@ namespace BettingBot.Common
 
         private static void ConfigureUserMapping(IProfileExpression cfg)
         {
-            cfg.CreateMap<Bet, BetToDisplayRgvVM>();
+            cfg.CreateMap<Bet, BetToDisplayGvVM>();
             cfg.CreateMap<Bet, BetToSendVM>();
-            cfg.CreateMap<Tipster, TipsterRgvVM>();
-            cfg.CreateMap<User, UserRgvVM>();
+            cfg.CreateMap<Tipster, TipsterGvVM>();
+            cfg.CreateMap<User, UserGvVM>();
         }
     }
 }

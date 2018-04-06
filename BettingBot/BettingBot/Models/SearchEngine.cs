@@ -23,7 +23,7 @@ namespace BettingBot.Models
             };
         }
 
-        public List<BetToSendVM> FindBet(BetToDisplayRgvVM betTdVM)
+        public List<BetToSendVM> FindBet(BetToDisplayGvVM betTdVM)
         {
             var newBets = SiteManagers.Select(sm => sm.FindBet(betTdVM)).ToList();
             FoundBets.AddRange(newBets);

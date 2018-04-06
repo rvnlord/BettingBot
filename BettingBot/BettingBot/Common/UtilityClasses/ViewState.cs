@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using Telerik.Windows.Controls;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
+using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
 using Tile = MahApps.Metro.Controls.Tile;
 
@@ -86,34 +86,33 @@ namespace BettingBot.Models
         }
     }
 
-    public class RnumState : ControlState
+    public class NumState : ControlState
     {
-        public RadRangeBase Rnum { get; set; }
+        public NumericUpDown Num { get; set; }
 
-        public RnumState(string key, RadRangeBase rnum) : base(key)
+        public NumState(string key, NumericUpDown num) : base(key)
         {
-            Rnum = rnum;
+            Num = num;
         }
 
         public override void Load(DbSet<Option> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
-                Rnum.Value = dbOptions.Single(o => o.Key == Key).Value.ToDouble();
+                Num.Value = dbOptions.Single(o => o.Key == Key).Value.ToDouble();
         }
 
         public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
         {
-            const int defaultValue = 0;
-            dbOptions.AddOrUpdate(new Option(Key, Rnum.Value?.ToString() ?? defaultValue.ToString()));
+            dbOptions.AddOrUpdate(new Option(Key, Num.Value.ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }
 
-    public class RddlState : ControlState
+    public class DdlState : ControlState
     {
         public Selector Rddl { get; set; }
 
-        public RddlState(string key, Selector rddl) : base(key)
+        public DdlState(string key, Selector rddl) : base(key)
         {
             Rddl = rddl;
         }
@@ -134,9 +133,9 @@ namespace BettingBot.Models
 
     public class MddlState : ControlState
     {
-        public RadListBox Mddl { get; set; }
+        public ListBox Mddl { get; set; }
 
-        public MddlState(string key, RadListBox mddl) : base(key)
+        public MddlState(string key, ListBox mddl) : base(key)
         {
             Mddl = mddl;
         }
@@ -211,9 +210,9 @@ namespace BettingBot.Models
 
     public class DpState : ControlState
     {
-        public RadDatePicker Dp { get; set; }
+        public DatePicker Dp { get; set; }
 
-        public DpState(string key, RadDatePicker dp) : base(key)
+        public DpState(string key, DatePicker dp) : base(key)
         {
             Dp = dp;
         }
@@ -234,14 +233,14 @@ namespace BettingBot.Models
         }
     }
 
-    public class RgvSelectionState : ControlState
+    public class GvSelectionState : ControlState
     {
-        public RadGridView Rgv { get; set; }
+        public DataGrid Gv { get; set; }
         public string ByProperty { get; set; }
 
-        public RgvSelectionState(string key, RadGridView rgv, string byProperty = "Id") : base(key)
+        public GvSelectionState(string key, DataGrid gv, string byProperty = "Id") : base(key)
         {
-            Rgv = rgv;
+            Gv = gv;
             ByProperty = byProperty;
         }
 
@@ -251,18 +250,18 @@ namespace BettingBot.Models
             {
                 var val = dbOptions.Single(o => o.Key == Key).Value;
                 var ids = val.Split(",").Select(v => v.ToInt()).ToArray();
-                foreach (var item in Rgv.Items)
+                foreach (var item in Gv.Items)
                 {
                     var itemId = item.GetType().GetProperty(ByProperty)?.GetValue(item, null);
                     if (itemId.ToInt().EqualsAny(ids))
-                        Rgv.SelectedItems.Add(item);
+                        Gv.SelectedItems.Add(item);
                 }
             }
         }
 
         public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, string.Join(",", Rgv.SelectedItems.Select(i => i.GetType().GetProperty(ByProperty).GetValue(i, null)).OrderBy(id => id))));
+            dbOptions.AddOrUpdate(new Option(Key, string.Join(",", Gv.SelectedItems.ToArray().Select(i => i.GetType().GetProperty(ByProperty)?.GetValue(i, null)).OrderBy(id => id))));
             if (saveInstantly) db.SaveChanges();
         }
     }

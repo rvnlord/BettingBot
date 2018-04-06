@@ -6,14 +6,14 @@ using MoreLinq;
 
 namespace BettingBot.Models.ViewModels.Collections
 {
-    public class AggregatedWinLoseStatisticsRgvVM : CustomList<AggregatedWinLoseStatisticRgvVM>
+    public class AggregatedWinLoseStatisticsGvVM : CustomList<AggregatedWinLoseStatisticGvVM>
     {
-        public AggregatedWinLoseStatisticsRgvVM(IReadOnlyCollection<RepCounter<int>> losesCounter, IReadOnlyCollection<RepCounter<int>> winsCounter, bool isReadOnly = false)
+        public AggregatedWinLoseStatisticsGvVM(IReadOnlyCollection<RepCounter<int>> losesCounter, IReadOnlyCollection<RepCounter<int>> winsCounter, bool isReadOnly = false)
             : base(isReadOnly)
         {
             if (losesCounter.Count == 0 && winsCounter.Count == 0)
             {
-                _customList = new List<AggregatedWinLoseStatisticRgvVM>();
+                _customList = new List<AggregatedWinLoseStatisticGvVM>();
                 return;
             }
             
@@ -22,7 +22,7 @@ namespace BettingBot.Models.ViewModels.Collections
             var maxCounter = Math.Max(maxLosesCounter, maxWinsCounter);
             for (var i = maxCounter - 1; i >= 0; i--)
             {
-                _customList.Add(new AggregatedWinLoseStatisticRgvVM(
+                _customList.Add(new AggregatedWinLoseStatisticGvVM(
                     i + 1,
                     losesCounter.Any(lc => lc.Value == i + 1) ? losesCounter.Single(lc => lc.Value == i + 1).Counter : 0,
                     winsCounter.Any(lc => lc.Value == i + 1) ? winsCounter.Single(lc => lc.Value == i + 1).Counter : 0));

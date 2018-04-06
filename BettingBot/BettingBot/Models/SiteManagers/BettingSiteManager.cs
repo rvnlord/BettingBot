@@ -10,7 +10,7 @@ namespace BettingBot.Models.SiteManagers
         public SeleniumDriverManager Sdm { get; set; } = new SeleniumDriverManager();
         public List<BetToSendVM> FoundBets { get; set; } = new List<BetToSendVM>();
 
-        public abstract BetToSendVM FindBet(BetToDisplayRgvVM BetTdVM);
+        public abstract BetToSendVM FindBet(BetToDisplayGvVM BetTdVM);
         public abstract void Login();
         public abstract bool IsLogged();
 

@@ -8,7 +8,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using MahApps.Metro.IconPacks;
-using Telerik.Windows.Diagrams.Core;
 using Tile = MahApps.Metro.Controls.Tile;
 
 namespace BettingBot.Common.UtilityClasses

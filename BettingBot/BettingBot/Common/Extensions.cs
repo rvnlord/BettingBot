@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Forms.VisualStyles;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -32,23 +33,18 @@ using DomainParser.Library;
 using MoreLinq;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Remote;
-using Telerik.Windows.Controls;
-using Telerik.Windows.Controls.GridView;
 using Expression = System.Linq.Expressions.Expression;
 using BettingBot.Models;
 using BettingBot.Common.UtilityClasses;
+using BettingBot.Properties;
 using Convert = System.Convert;
-using MenuItem = BettingBot.Common.UtilityClasses.MenuItem;
-using BettingBot.Annotations;
+using CustomMenuItem = BettingBot.Common.UtilityClasses.CustomMenuItem;
 using MahApps.Metro.Controls;
-using Telerik.Windows.Data;
-using Telerik.Windows.Documents.Primitives;
+using ContextMenu = BettingBot.Common.UtilityClasses.ContextMenu;
 using Point = System.Windows.Point;
 using DPoint = System.Drawing.Point;
 using Size = System.Windows.Size;
 using DSize = System.Drawing.Size;
-using GridViewColumn = Telerik.Windows.Controls.GridViewColumn;
-using TelerikGridViewColumnCollection = Telerik.Windows.Controls.GridViewColumnCollection;
 using VerticalAlignment = System.Windows.VerticalAlignment;
 
 namespace BettingBot.Common
@@ -68,8 +64,12 @@ namespace BettingBot.Common
         private static readonly object _lock = new object();
         private static readonly Action _emptyDelegate = delegate { };
 
-        public static CultureInfo Culture = new CultureInfo("") { NumberFormat = { NumberDecimalSeparator = "." } };
-        
+        public static CultureInfo Culture = new CultureInfo("pl-PL")
+        {
+            NumberFormat = new NumberFormatInfo { NumberDecimalSeparator = "." },
+            DateTimeFormat = { ShortDatePattern = "dd-MM-yyyy" } // nie tworzyć nowego obiektu DateTimeFormat tutaj tylko przypisać jego interesujące nas właściwości, bo nowy obiekt nieokreślone właściwości zainicjalizuje wartościami dla InvariantCulture, czyli angielskie nazwy dni, miesięcy itd.
+        };
+
         #endregion
 
         #region T Extensions
@@ -447,8 +447,9 @@ namespace BettingBot.Common
             return array;
         }
 
-        public static List<T> ReplaceAll<T>(this List<T> list, IEnumerable<T> newList)
+        public static List<T> ReplaceAll<T>(this List<T> list, IEnumerable<T> en)
         {
+            var newList = en.ToList();
             list.RemoveAll();
             list.AddRange(newList);
             return list;
@@ -525,16 +526,40 @@ namespace BettingBot.Common
             return enumerable.Except(new[] { el });
         }
 
-        public static void DisableControls(this IEnumerable<object> controls)
+        public static List<object> DisableControls(this IEnumerable<object> controls)
         {
+            var disabledControls = new List<object>();
             foreach (var c in controls)
-                c.SetProperty("IsEnabled", false);
+            {
+                var piIsEnabled = c.GetType().GetProperty("IsEnabled");
+                var isEnabled = (bool?) piIsEnabled?.GetValue(c);
+                if (isEnabled == true)
+                {
+                    piIsEnabled.SetValue(c, false);
+                    disabledControls.Add(c);
+                }
+            }
+            return disabledControls;
         }
 
         public static void EnableControls(this IEnumerable<object> controls)
         {
             foreach (var c in controls)
-                c.SetProperty("IsEnabled", true);
+            {
+                var piIsEnabled = c.GetType().GetProperty("IsEnabled");
+                piIsEnabled?.SetValue(c, true);
+
+                if (c.GetType() == typeof(ContextMenu))
+                {
+                    var cm = (ContextMenu) c;
+                    if (cm.IsOpen())
+                    {
+                        var wnd = cm.Control.FindLogicalAncestor<Window>();
+                        var handler = wnd.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == $"cm{cm.Control.Name.Take(1).ToUpper()}{cm.Control.Name.Skip(1)}_Open");
+                        handler?.Invoke(wnd, new object[] { cm, new ContextMenuOpenEventArgs(cm) });
+                    }
+                }
+            }
         }
 
         public static void ToggleControls(this IEnumerable<object> controls)
@@ -557,6 +582,11 @@ namespace BettingBot.Common
         public static void Highlight<T>(this IEnumerable<T> controls, Color color) where T : Control
         {
             controls.ForEach(control => control.Highlight(color));
+        }
+
+        public static DataGridTextColumn ByDataMemberName(this IEnumerable<DataGridTextColumn> columns, string dataMemberName)
+        {
+            return columns.Single(c => string.Equals(c.DataMemberName(), dataMemberName, StringComparison.Ordinal));
         }
 
         #endregion
@@ -686,11 +716,7 @@ namespace BettingBot.Common
                 list.Add(current);
         }
 
-        #endregion
-
-        #region - DataItemCollection Extensions
-
-        public static object Last(this DataItemCollection col)
+        public static object Last(this ItemCollection col)
         {
             return col[col.Count - 1];
         }
@@ -699,7 +725,7 @@ namespace BettingBot.Common
 
         #region - TelerikGridViewColumnCollection Extensions
 
-        public static GridViewColumn Last(this TelerikGridViewColumnCollection col)
+        public static GridViewColumn Last(this GridViewColumnCollection col)
         {
             return col[col.Count - 1];
         }
@@ -708,16 +734,12 @@ namespace BettingBot.Common
 
         #region - UIElementCollection Extensions
 
-        public static void ReplaceAll<T>(this UIElementCollection col, List<T> children) where T : UIElement
+        public static UIElementCollection ReplaceAll<T>(this UIElementCollection col, IEnumerable<T> en) where T : UIElement
         {
+            var list = en.ToList();
             col.RemoveAll();
-            col.AddRange(children);
-        }
-
-        public static void ReplaceAll<T>(this UIElementCollection col, IEnumerable<T> children) where T : UIElement
-        {
-            col.RemoveAll();
-            col.AddRange(children);
+            col.AddRange(list);
+            return col;
         }
 
         public static void RemoveAll(this UIElementCollection collection)
@@ -826,8 +848,9 @@ namespace BettingBot.Common
 
         public static ObservableCollection<T> ReplaceAll<T>(this ObservableCollection<T> obsCol, IEnumerable<T> newEnumerable)
         {
+            var list = newEnumerable.ToList();
             obsCol.RemoveAll();
-            obsCol.AddRange(newEnumerable);
+            obsCol.AddRange(list);
             return obsCol;
         }
 
@@ -951,19 +974,19 @@ namespace BettingBot.Common
             if (!element.IsVisible)
                 return false;
 
-            Rect bounds = element.TransformToAncestor(container).TransformBounds(new Rect(0.0, 0.0, element.ActualWidth, element.ActualHeight));
-            Rect rect = new Rect(0.0, 0.0, container.ActualWidth, container.ActualHeight);
+            var bounds = element.TransformToAncestor(container).TransformBounds(new Rect(0.0, 0.0, element.ActualWidth, element.ActualHeight));
+            var rect = new Rect(0.0, 0.0, container.ActualWidth, container.ActualHeight);
             return rect.IntersectsWith(bounds);
         }
 
         public static bool HasContextMenu(this FrameworkElement el)
         {
-            return RadContextMenu.GetContextMenu(el) != null;
+            return ContextMenusManager.ContextMenus.VorN(el)?.IsCreated == true;
         }
 
-        public static RadContextMenu ContextMenu(this FrameworkElement el)
+        public static ContextMenu ContextMenu(this FrameworkElement el)
         {
-            return RadContextMenu.GetContextMenu(el);
+            return ContextMenusManager.ContextMenu(el);
         }
        
         public static Task AnimateAsync(this FrameworkElement fwElement, PropertyPath propertyPath, AnimationTimeline animation)
@@ -1069,7 +1092,7 @@ namespace BettingBot.Common
             lock (_lock)
             {
                 var parentGrid = c.FindLogicalAncestor<Grid>();
-                return parentGrid.ChildrenOfType<Grid>().Any(grid => grid.Name == "gridSlide" + c.Name);
+                return parentGrid.Children.OfType<Grid>().Any(grid => grid.Name == "gridSlide" + c.Name);
             }
         }
 
@@ -1078,7 +1101,7 @@ namespace BettingBot.Common
             lock (_lock)
             {
                 var parentGrid = c.FindLogicalAncestor<Grid>();
-                return parentGrid.ChildrenOfType<Grid>().Single(grid => grid.Name == "gridSlide" + c.Name);
+                return parentGrid.Children.OfType<Grid>().Single(grid => grid.Name == "gridSlide" + c.Name);
             }
         }
 
@@ -1122,7 +1145,7 @@ namespace BettingBot.Common
             lock (_lock)
             {
                 var parentGrid = c.FindLogicalAncestor<Grid>();
-                var slideGrid = parentGrid.ChildrenOfType<Grid>().SingleOrDefault(grid => grid.Name == "gridSlide" + c.Name);
+                var slideGrid = parentGrid.Children.OfType<Grid>().SingleOrDefault(grid => grid.Name == "gridSlide" + c.Name);
                 if (slideGrid != null)
                     parentGrid.Children.Remove(slideGrid);
             }
@@ -1137,7 +1160,86 @@ namespace BettingBot.Common
         {
             Panel.SetZIndex(fe, zINdex);
         }
-        
+
+        public static void Position(this FrameworkElement control, Point pos)
+        {
+            Canvas.SetLeft(control, pos.X);
+            Canvas.SetTop(control, pos.Y);
+        }
+
+        public static void PositionX(this FrameworkElement control, double posX)
+        {
+            Canvas.SetLeft(control, posX);
+        }
+
+        public static void PositionY(this FrameworkElement control, double posY)
+        {
+            Canvas.SetTop(control, posY);
+        }
+
+        public static Point Position(this FrameworkElement control)
+        {
+            control.Refresh();
+            return new Point(Canvas.GetLeft(control), Canvas.GetTop(control));
+        }
+
+        public static double PositionX(this FrameworkElement control)
+        {
+            control.Refresh();
+            return Canvas.GetLeft(control);
+        }
+
+        public static double PositionY(this FrameworkElement control)
+        {
+            control.Refresh();
+            return Canvas.GetTop(control);
+        }
+
+        public static void Margin(this FrameworkElement control, Point pos)
+        {
+            var initOpacity = control.Opacity;
+            var initVisibility = control.Visibility;
+            control.Opacity = 0;
+            control.Visibility = Visibility.Visible;
+            control.Margin = new Thickness(pos.X, pos.Y, control.Margin.Right, control.Margin.Bottom);
+            control.Visibility = initVisibility;
+            control.Opacity = initOpacity;
+        }
+
+        public static void MarginX(this FrameworkElement control, double posX)
+        {
+            control.Margin = new Thickness(posX, control.Margin.Top, control.Margin.Right, control.Margin.Bottom);
+        }
+
+        public static void MarginY(this FrameworkElement control, double posY)
+        {
+            control.Margin = new Thickness(control.Margin.Left, posY, control.Margin.Right, control.Margin.Bottom);
+        }
+
+        public static Point MarginPosition(this FrameworkElement control)
+        {
+            control.Refresh();
+            return new Point(control.Margin.Left, control.Margin.Top);
+        }
+
+        public static double MarginX(this FrameworkElement control)
+        {
+            control.Refresh();
+            return control.Margin.Left;
+        }
+
+        public static double MarginY(this FrameworkElement control)
+        {
+            control.Refresh();
+            return control.Margin.Top;
+        }
+
+
+        public static void Refresh(this FrameworkElement control)
+        {
+            control.Dispatcher.Invoke(DispatcherPriority.Render, _emptyDelegate);
+        }
+
         #endregion
 
         #region Textbox Extensions
@@ -1187,14 +1289,14 @@ namespace BettingBot.Common
 
         #endregion
 
-        #region RadComboBox Extensions
+        #region ComboBox Extensions
 
-        public static void SelectByCustomId(this RadComboBox rddl, int id)
+        public static void SelectByCustomId(this ComboBox rddl, int id)
         {
             rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Index == id);
         }
 
-        public static T SelectedEnumValue<T>(this RadComboBox rddl)
+        public static T SelectedEnumValue<T>(this ComboBox rddl)
         {
             var selectedItem = (DdlItem)rddl.SelectedItem;
             var enumType = typeof(T);
@@ -1208,15 +1310,15 @@ namespace BettingBot.Common
 
         #endregion
 
-        #region RadListBox Extensions
+        #region ListBox Extensions
 
-        public static void SelectByCustomId(this RadListBox mddl, int id)
+        public static void SelectByCustomId(this ListBox mddl, int id)
         {
             var item = mddl.ItemsSource.Cast<DdlItem>().Single(i => i.Index == id);
             mddl.SelectedItems.Add(item);
         }
 
-        public static void SelectAll(this RadListBox mddl)
+        public static void SelectAll(this ListBox mddl)
         {
             mddl.UnselectAll();
             var items = mddl.Items.ToArray();
@@ -1224,148 +1326,68 @@ namespace BettingBot.Common
                 mddl.SelectedItems.Add(item);
         }
 
-        public static void UnselectAll(this RadListBox mddl)
+        public static void UnselectAll(this ListBox mddl)
         {
             var selectedItems = mddl.SelectedItems.ToArray();
             foreach (var item in selectedItems)
                 mddl.SelectedItems.Remove(item);
         }
 
-        public static void SelectByCustomIds(this RadListBox mddl, IEnumerable<int> ids)
+        public static void SelectByCustomIds(this ListBox mddl, IEnumerable<int> ids)
         {
             var ddlItems = mddl.ItemsSource.Cast<DdlItem>().Where(i => ids.Any(id => i.Index == id)).ToList();
             foreach (var item in ddlItems)
                 mddl.SelectedItems.Add(item);
         }
 
-        public static int[] SelectedCustomIds(this RadListBox mddl)
+        public static int[] SelectedCustomIds(this ListBox mddl)
         {
             return mddl.SelectedItems.Cast<DdlItem>().Select(i => i.Index).ToArray();
         }
 
-
-        #endregion
-
-        #region RadGridView Extensions
-
-        public static void ScrollToEnd(this RadGridView rgv)
-        {
-            if (rgv.Items.Count > 0)
-                rgv.ScrollIntoView(rgv.Items.Last());
-        }
-
-        public static void ScrollToStart(this RadGridView rgv)
-        {
-            if (rgv.Items.Count > 0)
-                rgv.ScrollIntoView(rgv.Items[0]);
-        }
-
-        public static void ScrollTo<T>(this RadGridView rgv, T item)
-        {
-            if (rgv.Items.Count > 0)
-            {
-                rgv.ScrollIntoView(rgv.Items.Last());
-                rgv.ScrollIntoView(rgv.Items.Cast<T>().Single(i => Equals(i, item)));
-            }
-        }
-
-        public static void ScrollToAsync<T>(this RadGridView rgv, T item, Action before = null, Action after = null)
-        {
-            if (rgv.Items.Count > 0)
-            {
-                before?.Invoke();
-                void scrollToItem() => rgv.ScrollIntoViewAsync(rgv.Items.Cast<T>()
-                    .Single(i => Equals(i, item)), rgv.Columns.Last(), fe => after?.Invoke());
-                rgv.ScrollIntoViewAsync(rgv.Items.Last(), rgv.Columns.Last(), 
-                    fe => scrollToItem(), scrollToItem);
-            }
-        }
-
-        public static void ScrollToStart(this RadListBox lv, bool selectLast = false)
+        public static void ScrollToStart(this ListBox lv, bool selectLast = false)
         {
             if (lv.Items.Count > 0)
                 lv.GetScrollViewer().ScrollToTop();
         }
 
-        public static void ScrollToEnd(this RadListBox lv, bool selectLast = false)
+        public static void ScrollToEnd(this ListBox lv, bool selectLast = false)
         {
             if (lv.Items.Count > 0)
                 lv.GetScrollViewer().ScrollToBottom();
         }
 
-        public static void SetSelecteditemsSource<T>(this RadGridView rgv, ObservableCollection<T> items)
-        {
-            GridViewSelectionUtilities.SetSelectedItems(rgv, items);
-        }
 
         #endregion
 
-        #region RadContextMenu Extensions
-
-        public static IEnumerable<MenuItem> ContextItems(this RadContextMenu cm)
+        #region DataGrid Extensions
+        
+        public static void ScrollToEnd(this DataGrid gv)
         {
-            return cm?.Items.ToArray<MenuItem>();
+            if (gv.Items.Count > 0)
+                gv.ScrollIntoView(gv.Items.Last());
         }
 
-        public static void EnableAll(this RadContextMenu cm)
+        public static void ScrollToStart(this DataGrid gv)
         {
-            var items = cm.ContextItems();
-            foreach (var item in items)
-                item.IsEnabled = true;
+            if (gv.Items.Count > 0)
+                gv.ScrollIntoView(gv.Items[0]);
         }
 
-        public static void DisableAll(this RadContextMenu cm)
+        public static void ScrollTo<T>(this DataGrid gv, T item)
         {
-            var items = cm.ContextItems();
-            foreach (var item in items)
-                item.IsEnabled = false;
-        }
-
-        public static void Enable(this RadContextMenu cm, string optionName)
-        {
-            var items = cm.ContextItems();
-            foreach (var item in items)
+            if (gv.Items.Count > 0)
             {
-                if (item.Text != optionName) continue;
-                item.IsEnabled = true;
-                return;
+                var sv = gv.GetScrollViewer();
+                var items = gv.Items.Cast<T>().ToArray();
+                var itemToScrollTo = items.Single(i => Equals(i, item));
+                sv.ScrollToVerticalOffset(items.Index(itemToScrollTo));
             }
         }
 
-        public static void Enable(this RadContextMenu cm, params string[] optionNames)
+        public static void SetSelecteditemsSource<T>(this DataGrid gv, ObservableCollection<T> items)
         {
-            var items = cm.ContextItems();
-            foreach (var item in items)
-                if (optionNames.Any(o => o == item.Text))
-                    item.IsEnabled = true;
-        }
-
-        public static void Disable(this RadContextMenu cm, string optionName)
-        {
-            var items = cm.ContextItems();
-            foreach (var item in items)
-            {
-                if (item.Text != optionName) continue;
-                item.IsEnabled = false;
-                return;
-            }
-        }
-
-        public static void Disable(this RadContextMenu cm, params string[] optionNames)
-        {
-            var items = cm.ContextItems();
-            foreach (var item in items)
-                if (optionNames.Any(o => o == item.Text))
-                    item.IsEnabled = false;
-        }
-
-        #endregion
-
-        #region RadMenuItem Extensions
-
-        public static MenuItem ContextItem(this RadMenuItem menuItem)
-        {
-            return menuItem?.DataContext as MenuItem;
+            GridViewSelectionUtilities.SetSelectedItems(gv, items);
         }
 
         #endregion
@@ -1496,49 +1518,10 @@ namespace BettingBot.Common
             return clonedControl;
         }
 
-        public static void Position(this Control control, Point pos)
-        {
-            Canvas.SetLeft(control, pos.X);
-            Canvas.SetTop(control, pos.Y);
-        }
-
-        public static void PositionX(this Control control, double posX)
-        {
-            Canvas.SetLeft(control, posX);
-        }
-
-        public static void PositionY(this Control control, double posY)
-        {
-            Canvas.SetTop(control, posY);
-        }
-
-        public static Point Position(this Control control)
-        {
-            control.Refresh();
-            return new Point(Canvas.GetLeft(control), Canvas.GetTop(control));
-        }
-
-        public static double PositionX(this Control control)
-        {
-            control.Refresh();
-            return Canvas.GetLeft(control);
-        }
-
-        public static double PositionY(this Control control)
-        {
-            control.Refresh();
-            return Canvas.GetTop(control);
-        }
-
         public static Size Size(this Control control)
         {
             control.Refresh();
             return new Size(control.Width, control.Height);
-        }
-
-        public static void Refresh(this Control control)
-        {
-            control.Dispatcher.Invoke(DispatcherPriority.Render, _emptyDelegate);
         }
         
         #endregion
@@ -1601,7 +1584,16 @@ namespace BettingBot.Common
 
         #endregion
 
-        #region - WIndow Extensions
+        #region DataGridTextColumn Extesnions
+
+        public static string DataMemberName(this DataGridTextColumn column)
+        {
+            return ((Binding) column.Binding).Path.Path;
+        }
+
+        #endregion
+
+        #region WIndow Extensions
 
         public static void CenterOnScreen(this Window wnd)
         {

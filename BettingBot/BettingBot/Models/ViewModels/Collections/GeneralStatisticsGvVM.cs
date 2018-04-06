@@ -3,29 +3,29 @@ using BettingBot.Common.UtilityClasses;
 
 namespace BettingBot.Models.ViewModels.Collections
 {
-    public class GeneralStatisticsRgvVM : CustomNameValueCollection
+    public class GeneralStatisticsGvVM : CustomNameValueCollection
     {
-        public GeneralStatisticsRgvVM(bool isReadOnly = false)
+        public GeneralStatisticsGvVM(bool isReadOnly = false)
             : base(isReadOnly)
         {
 
         }
 
-        public void Add(GeneralStatisticRgvVM gs)
+        public void Add(GeneralStatisticGvVM gs)
         {
             _customNVC.Add(gs.Name, gs.Value);
         }
 
-        public void Set(GeneralStatisticRgvVM gs)
+        public void Set(GeneralStatisticGvVM gs)
         {
             _customNVC.Set(gs.Name, gs.Value);
         }
 
-        public List<GeneralStatisticRgvVM> ToList()
+        public List<GeneralStatisticGvVM> ToList()
         {
-            var tmpList = new List<GeneralStatisticRgvVM>();
+            var tmpList = new List<GeneralStatisticGvVM>();
             for (var i = 0; i < _customNVC.Count; i++)
-                tmpList.Add(new GeneralStatisticRgvVM(_customNVC.GetKey(i), _customNVC[i]));
+                tmpList.Add(new GeneralStatisticGvVM(_customNVC.GetKey(i), _customNVC[i]));
 
             return tmpList;
         }
