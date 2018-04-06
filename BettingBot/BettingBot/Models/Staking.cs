@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BettingBot.Common;
 
 namespace BettingBot.Models
 {
@@ -45,6 +46,8 @@ namespace BettingBot.Models
 
         protected double CoverPercentage()
         {
+            if (TotalOdds.Eq(1)) // jeśli z jakiegoś powodu mecz ma kurs 1.000 to żadna stawka nie pokryje strat
+                return BaseStake;
             var stake = LostMoney / (TotalOdds - GroupSize);
             return Math.Max(stake * Value / 100, BaseStake); // groupOdds * stake = stake * groupSize + lostMoney
         }

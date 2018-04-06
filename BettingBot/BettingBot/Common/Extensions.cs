@@ -486,6 +486,17 @@ namespace BettingBot.Common
 
         #region - IEnumerable Extensions
 
+        public static int Index<T>(this IEnumerable<T> en, T el)
+        {
+            var i = 0;
+            foreach (var item in en)
+            {
+                if (Equals(item, el)) return i;
+                i++;
+            }
+            return -1;
+        }
+
         public static T LastOrNull<T>(this IEnumerable<T> enumerable)
         {
             var en = enumerable as T[] ?? enumerable.ToArray();
@@ -1365,7 +1376,7 @@ namespace BettingBot.Common
         public static void ScrollToEnd(this DataGrid gv)
         {
             if (gv.Items.Count > 0)
-                gv.ScrollIntoView(gv.Items.Last());
+                gv.GetScrollViewer().ScrollToEnd();
         }
 
         public static void ScrollToStart(this DataGrid gv)

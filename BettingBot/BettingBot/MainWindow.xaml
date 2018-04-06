@@ -201,7 +201,7 @@
                                 <Label x:Name="lblStakeSubtract" Content="zmniejsz stawkę o" HorizontalAlignment="Left" Margin="232,211,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <mah:NumericUpDown x:Name="numStakeDecrease" HorizontalAlignment="Left" Margin="353,211,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="10" />
 
-                                <CheckBox x:Name="cbLHOddsByPeriodFilter" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,35,0,0" VerticalAlignment="Top" Checked="cbLHOddsByPeriodFilter_Checked" Unchecked="cbLHOddsByPeriodFilter_Unchecked"/>
+                                <CheckBox x:Name="cbLHOddsByPeriodFilter" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,35,0,0" VerticalAlignment="Top" Checked="cbLHOddsByPeriodFilter_Checked" Unchecked="cbLHOddsByPeriodFilter_Unchecked"/>
                                 <RadioButton x:Name="rbHighestOddsByPeriod" Height="30" GroupName="LHS" Content="Najwyższy" HorizontalAlignment="Left" Margin="466,35,0,0" VerticalAlignment="Top" IsEnabled="False" IsChecked="True" />
                                 <RadioButton x:Name="rbLowestOddsByPeriod" GroupName="LHS" Height="30" Content="Najniższy" HorizontalAlignment="Left" Margin="562,35,0,0" VerticalAlignment="Top" IsEnabled="False"/>
                                 <RadioButton x:Name="rbSumOddsByPeriod" GroupName="LHS" Height="30" Content="Sumuj" HorizontalAlignment="Left" Margin="652,35,0,0" VerticalAlignment="Top" IsEnabled="False"/>
@@ -209,35 +209,35 @@
                                 <mah:NumericUpDown x:Name="numLHOddsPeriodInDays" IsEnabled="False" HorizontalAlignment="Left" Margin="773,35,0,0" VerticalAlignment="Top" Height="30" NumericInputMode="Numbers" Minimum="1" Maximum="30" Value="1" Width="60" />
                                 <Label x:Name="lblLHOddsPeriodInDays" Content="dni" HorizontalAlignment="Left" Margin="838,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
 
-                                <CheckBox x:Name="cbOddsLesserGreaterThan" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,70,0,0" VerticalAlignment="Top" Checked="cbOddsLesserGreaterThan_Checked" Unchecked="cbOddsLesserGreaterThan_Unchecked"/>
+                                <CheckBox x:Name="cbOddsLesserGreaterThan" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,70,0,0" VerticalAlignment="Top" Checked="cbOddsLesserGreaterThan_Checked" Unchecked="cbOddsLesserGreaterThan_Unchecked"/>
                                 <Label x:Name="lblOddsLesserGreaterThan" Content="kurs" HorizontalAlignment="Left" Margin="466,70,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <ComboBox x:Name="rddlOddsLesserGreaterThan" HorizontalAlignment="Left" Margin="498,70,0,0" VerticalAlignment="Top" Width="60" Height="30" IsEnabled="False" />
                                 <mah:NumericUpDown x:Name="rnumOddsLesserGreaterThan" HorizontalAlignment="Left" Margin="563,70,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2}" Minimum="0" Maximum="1000" TabIndex="0" Value="0" IsEnabled="False" />
 
-                                <CheckBox x:Name="cbSelection" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,105,0,0" VerticalAlignment="Top" Checked="cbSelection_Checked" Unchecked="cbSelection_Unchecked"/>
+                                <CheckBox x:Name="cbSelection" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,105,0,0" VerticalAlignment="Top" Checked="cbSelection_Checked" Unchecked="cbSelection_Unchecked"/>
                                 <Label x:Name="lblSelection" Content="Tylko" HorizontalAlignment="Left" Margin="466,105,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <RadioButton x:Name="rbSelected" GroupName="Selection" Height="30" Content="wybrane" HorizontalAlignment="Left" Margin="505,105,0,0" VerticalAlignment="Top" IsEnabled="False" IsChecked="True" />
                                 <RadioButton x:Name="rbUnselected" GroupName="Selection" Height="30" Content="niewybrane" HorizontalAlignment="Left" Margin="590,105,0,0" VerticalAlignment="Top" IsEnabled="False"/>
                                 <RadioButton x:Name="rbVisible" GroupName="Selection" Height="30" Content="widoczne" HorizontalAlignment="Left" Margin="694,105,0,0" VerticalAlignment="Top" IsEnabled="False"/>
                                 <Label x:Name="lblSelectedBets" Content="zakłady" HorizontalAlignment="Left" Margin="784,105,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
 
-                                <CheckBox x:Name="cbSinceDate" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,139,0,0" VerticalAlignment="Top" Checked="cbSinceDate_Checked" Unchecked="cbSinceDate_Unchecked"/>
+                                <CheckBox x:Name="cbSinceDate" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,139,0,0" VerticalAlignment="Top" Checked="cbSinceDate_Checked" Unchecked="cbSinceDate_Unchecked"/>
                                 <Label x:Name="lblDate" Content="Od daty" HorizontalAlignment="Left" Margin="466,139,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <DatePicker x:Name="dpSinceDate" mah:TextBoxHelper.Watermark="od daty..." SelectedDateFormat="Short" HorizontalAlignment="Left" Margin="523,139,0,0" VerticalAlignment="Top" Height="30" Width="150" IsEnabled="False">
                                 </DatePicker>
 
-                                <CheckBox x:Name="cbToDate" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="677,139,0,0" VerticalAlignment="Top" Checked="cbToDate_Checked" Unchecked="cbToDate_Unchecked"/>
+                                <CheckBox x:Name="cbToDate" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="677,139,0,0" VerticalAlignment="Top" Checked="cbToDate_Checked" Unchecked="cbToDate_Unchecked"/>
                                 <Label x:Name="lblToDate" Content="do daty" HorizontalAlignment="Left" Margin="700,139,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <DatePicker x:Name="dpToDate" mah:TextBoxHelper.Watermark="do daty..." SelectedDateFormat="Short" HorizontalAlignment="Left" Margin="755,139,0,0" VerticalAlignment="Top" Height="30" Width="150" IsEnabled="False">
                                 </DatePicker>
 
                                 <Label x:Name="lblTipster" Content="Tipster:" HorizontalAlignment="Left" Margin="466,174,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
-                                <CheckBox x:Name="cbTipster" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,174,0,0" VerticalAlignment="Top" Checked="cbTipster_Checked" Unchecked="cbTipster_Unchecked"/>
+                                <CheckBox x:Name="cbTipster" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,174,0,0" VerticalAlignment="Top" Checked="cbTipster_Checked" Unchecked="cbTipster_Unchecked"/>
                                 <ListBox x:Name="mddlTipsters" Margin="518,174,0,0" SelectionMode="Multiple" VerticalAlignment="Top" HorizontalAlignment="Left" Width="250" Height="100" IsEnabled="False">
                                 </ListBox>
 
                                 <Label x:Name="lblPick" Content="Typ:" HorizontalAlignment="Left" Margin="466,280,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
-                                <CheckBox x:Name="cbPick" Width="18" Height="30" Content="" HorizontalAlignment="Left" Margin="443,280,0,0" VerticalAlignment="Top" Checked="cbPick_Checked" Unchecked="cbPick_Unchecked"/>
+                                <CheckBox x:Name="cbPick" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,280,0,0" VerticalAlignment="Top" Checked="cbPick_Checked" Unchecked="cbPick_Unchecked"/>
                                 <ListBox x:Name="mddlPickTypes" Margin="497,280,0,0" SelectionMode="Multiple" VerticalAlignment="Top" HorizontalAlignment="Left" Width="234" Height="100" IsEnabled="False">
                                 </ListBox>
 
