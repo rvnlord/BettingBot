@@ -44,6 +44,11 @@ namespace BettingBot.Common
                         customNamesConverter((T)Enum.ToObject(typeof(T), item.Index))))
                 .ToList();
         }
+
+        public static IEnumerable<T> GetValues<T>()
+        {
+            return Enum.GetValues(typeof(T)).Cast<T>();
+        }
     }
 
     public static class EnumerableUtils

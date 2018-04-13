@@ -50,7 +50,7 @@
         <Setter Property="RowBackground" Value="{StaticResource RowBrush}" />
     </Style>
 
-    <Style BasedOn="{StaticResource MetroDataGridCell}" 
+    <Style x:Key="CenterAlignedCellStyle" BasedOn="{StaticResource MetroDataGridCell}" 
            TargetType="{x:Type DataGridCell}">
         <Style.Setters>
             <Setter Property="Background" Value="Transparent" />
@@ -58,6 +58,27 @@
             <Setter Property="BorderThickness" Value="0,0,1,0" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="Padding" Value="0,0,0,0" />
+            <Setter Property="Margin" Value="0,0,0,0" />
+        </Style.Setters>
+    </Style>
+
+    <Style BasedOn="{StaticResource CenterAlignedCellStyle}" 
+           TargetType="{x:Type DataGridCell}">
+    </Style>
+
+    <Style x:Key="LeftAlignedCellStyle" BasedOn="{StaticResource CenterAlignedCellStyle}" 
+           TargetType="{x:Type DataGridCell}">
+        <Style.Setters>
+            <Setter Property="TextBlock.TextAlignment" Value="Left" />
+            <Setter Property="Padding" Value="5,0,0,0" />
+        </Style.Setters>
+    </Style>
+
+    <Style x:Key="RightAlignedCellStyle" BasedOn="{StaticResource CenterAlignedCellStyle}" 
+           TargetType="{x:Type DataGridCell}">
+        <Style.Setters>
+            <Setter Property="TextBlock.TextAlignment" Value="Right" />
+            <Setter Property="Padding" Value="0,0,5,0" />
         </Style.Setters>
     </Style>
 

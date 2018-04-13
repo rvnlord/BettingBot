@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 using BettingBot.Common;
-using BettingBot.Models;
 
 namespace BettingBot
 {

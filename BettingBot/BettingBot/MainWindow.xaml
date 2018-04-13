@@ -8,7 +8,6 @@
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-    xmlns:models="clr-namespace:BettingBot.Models"
     xmlns:common="clr-namespace:BettingBot.Common"
     Icon="./Resources/Icons/Icon.png"
     x:Class="BettingBot.MainWindow"
@@ -111,15 +110,17 @@
 
                             <mah:MetroTabItem.Content>
                                 <Grid x:Name="gridData">
-                                    <DataGrid x:Name="gvData" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="1160" Height="700" MaxHeight="700" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvData_Sorting" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" PreviewKeyDown="gvData_PreviewKeyDown">
+                                    <DataGrid x:Name="gvData" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="1335" Height="700" MaxHeight="700" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvData_Sorting" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" PreviewKeyDown="gvData_PreviewKeyDown" HorizontalScrollBarVisibility="Disabled">
                                         <DataGrid.Columns>
+                                            <DataGridTextColumn IsReadOnly="True" Header="" Binding="{Binding IsAssociatedString}" Width="25" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Nr" Binding="{Binding Nr}" Width="50" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Tipster" Binding="{Binding Tipster.Name}" Width="120" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Tipster" Binding="{Binding TipsterString}" Width="150" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Data" Binding="{Binding DateString}" Width="120" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Spotkanie" Binding="{Binding Match}" Width="180" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="U siebie" Binding="{Binding MatchHomeName}" Width="150" CellStyle="{StaticResource RightAlignedCellStyle}" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="150" CellStyle="{StaticResource LeftAlignedCellStyle}" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Typ" Binding="{Binding PickString}" Width="150" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Zakład" Binding="{Binding BetResultString}" Width="80" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Wynik" Binding="{Binding MatchResult}" Width="80" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Wynik" Binding="{Binding MatchResultString}" Width="80" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Kurs" Binding="{Binding OddsString}" Width="60" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Stawka" Binding="{Binding StakeString}" Width="100" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Profit" Binding="{Binding ProfitString}" Width="100" />
@@ -211,7 +212,7 @@
 
                                 <CheckBox x:Name="cbOddsLesserGreaterThan" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,70,0,0" VerticalAlignment="Top" Checked="cbOddsLesserGreaterThan_Checked" Unchecked="cbOddsLesserGreaterThan_Unchecked"/>
                                 <Label x:Name="lblOddsLesserGreaterThan" Content="kurs" HorizontalAlignment="Left" Margin="466,70,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <ComboBox x:Name="rddlOddsLesserGreaterThan" HorizontalAlignment="Left" Margin="498,70,0,0" VerticalAlignment="Top" Width="60" Height="30" IsEnabled="False" />
+                                <ComboBox x:Name="ddlOddsLesserGreaterThan" HorizontalAlignment="Left" Margin="498,70,0,0" VerticalAlignment="Top" Width="60" Height="30" IsEnabled="False" />
                                 <mah:NumericUpDown x:Name="rnumOddsLesserGreaterThan" HorizontalAlignment="Left" Margin="563,70,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2}" Minimum="0" Maximum="1000" TabIndex="0" Value="0" IsEnabled="False" />
 
                                 <CheckBox x:Name="cbSelection" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,105,0,0" VerticalAlignment="Top" Checked="cbSelection_Checked" Unchecked="cbSelection_Unchecked"/>
@@ -248,7 +249,7 @@
                         </Grid>
                     </Grid>
 
-                    <Grid x:Name="gridDatabaseFlyout" Width="453" Margin="-1916,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
+                    <Grid x:Name="gridDatabaseFlyout" Width="653" Margin="-1916,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
                         <Grid Margin="10"  x:Name="gridDatabaseContent">
 
                             <Grid>
@@ -284,32 +285,33 @@
 
                                         <mah:MetroTabItem.Content>
                                             <Grid x:Name="gridTipsters">
-                                                <Button x:Name="btnAddTipster" Content="Dodaj" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="60" Click="btnAddTipster_Click" TabIndex="1" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
-                                                <TextBox x:Name="txtLoad" Tag="Link..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="368" FontFamily="Segoe UI" Height="30" TabIndex="101" AcceptsReturn="True" Margin="65,0,0,0" />
-                                                <TextBox x:Name="txtLoadLogin" Tag="Login..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="141" FontFamily="Segoe UI" Height="30" TabIndex="104" AcceptsReturn="True" Margin="146,375,0,0" />
-                                                <TextBox x:Name="txtLoadPassword" Tag="Hasło..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="141" FontFamily="Segoe UI" Height="30" TabIndex="102" AcceptsReturn="True" Margin="292,375,0,0" />
-                                                <TextBox x:Name="txtLoadDomain" Tag="Strona..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="141" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="True" Margin="0,375,0,0" />
-                                                <DataGrid x:Name="gvTipsters" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="433" Height="300" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvTipsters_PreviewKeyDown" CanUserDeleteRows="true" CanUserAddRows="false" CanUserSortColumns="true">
+                                                <Button x:Name="btnAddTipster" Content="Dodaj" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="100" Click="btnAddTipster_Click" TabIndex="1" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
+                                                <TextBox x:Name="txtTipsterName" Tag="Nazwa..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="200" FontFamily="Segoe UI" Height="30" AcceptsReturn="True" Margin="105,0,0,0" />
+                                                <ComboBox x:Name="ddlTipsterDomain" HorizontalAlignment="Left" Margin="310,0,0,0" VerticalAlignment="Top" Width="323" Height="30" />
+                                                <TextBox x:Name="txtLoadDomain" Tag="Strona..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="207" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="0,375,0,0" />
+                                                <TextBox x:Name="txtLoadLogin" Tag="Login..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="207" FontFamily="Segoe UI" Height="30" TabIndex="104" AcceptsReturn="False" Margin="212,375,0,0" />
+                                                <TextBox x:Name="txtLoadPassword" Tag="Hasło..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="209" FontFamily="Segoe UI" Height="30" TabIndex="102" AcceptsReturn="False" Margin="424,375,0,0" />
+                                                <DataGrid x:Name="gvTipsters" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="633" Height="300" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvTipsters_PreviewKeyDown" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvTipsters_Sorting">
                                                     <DataGrid.Columns>
-                                                        <DataGridTextColumn IsReadOnly="True" Header="Imię" Binding="{Binding Name}" Width="100" />
-                                                        <DataGridTextColumn IsReadOnly="True" Header="Strona" Binding="{Binding Domain}" Width="100" />
-                                                        <DataGridTextColumn IsReadOnly="True" Header="Link" Binding="{Binding Link}" Width="*" />
+                                                        <DataGridTextColumn IsReadOnly="True" Header="Imię" Binding="{Binding Name}" Width="120" />
+                                                        <DataGridTextColumn IsReadOnly="True" Header="Strona" Binding="{Binding DomainWithOp}" Width="120" />
+                                                        <DataGridTextColumn IsReadOnly="True" Header="Link" Binding="{Binding Link}" Width="*" CellStyle="{StaticResource LeftAlignedCellStyle}" />
                                                     </DataGrid.Columns>
                                                 </DataGrid>
-                                                <Button x:Name="btnDownloadTips" Content="Wczytaj" Style="{DynamicResource MyAccentedSquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="108" Click="btnDownloadTips_Click" TabIndex="1" Margin="0,340,0,0" />
-                                                <CheckBox x:Name="cbLoadTipsFromDate" Height="30" Content="tylko" HorizontalAlignment="Left" Margin="113,340,0,0" VerticalAlignment="Top" Checked="cbLoadTipsFromDate_Checked" Unchecked="cbLoadTipsFromDate_Unchecked" />
-                                                <DatePicker x:Name="dpLoadTipsFromDate" mah:TextBoxHelper.Watermark="do daty..." SelectedDateFormat="Short" HorizontalAlignment="Left" Margin="174,339,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False">
+                                                <Button x:Name="btnDownloadTips" Content="Wczytaj porady" Style="{DynamicResource MyAccentedSquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="150" Click="btnDownloadTips_Click" TabIndex="1" Margin="0,340,0,0" />
+                                                <CheckBox x:Name="cbLoadTipsFromDate" Height="30" Width="110" Content="tylko od daty:" HorizontalAlignment="Left" Margin="155,340,0,0" VerticalAlignment="Top" Checked="cbLoadTipsFromDate_Checked" Unchecked="cbLoadTipsFromDate_Unchecked" />
+                                                <DatePicker x:Name="dpLoadTipsFromDate" mah:TextBoxHelper.Watermark="do daty..." SelectedDateFormat="Short" HorizontalAlignment="Left" Margin="270,339,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False">
                                                 </DatePicker>
-                                                <Button x:Name="btnSaveLogin" Content="Zapisz Zaznaczony" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="141" Click="btnSaveLogin_Click" TabIndex="1" Margin="0,410,0,0" />
-                                                <Button x:Name="btnAddNewLogin" Content="Dodaj Nowy Login" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="141" Click="btnAddNewLogin_Click" TabIndex="1" Margin="146,410,0,0" />
-                                                <DataGrid x:Name="gvLogins" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,445,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="433" Height="162" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvLogins_PreviewKeyDown" CanUserDeleteRows="true" CanUserAddRows="false" CanUserSortColumns="true">
+                                                <Button x:Name="btnSaveLogin" Content="Zapisz Zaznaczony" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="207" Click="btnSaveLogin_Click" TabIndex="1" Margin="0,410,0,0" />
+                                                <Button x:Name="btnAddNewLogin" Content="Dodaj Nowy Login" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="207" Click="btnAddNewLogin_Click" TabIndex="1" Margin="212,410,0,0" />
+                                                <DataGrid x:Name="gvLogins" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,445,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="633" Height="162" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvLogins_PreviewKeyDown" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvLogins_Sorting">
                                                     <DataGrid.Columns>
-                                                        <DataGridTextColumn IsReadOnly="True" Header="Strony" Binding="{Binding Addresses}" Width="*" />
+                                                        <DataGridTextColumn IsReadOnly="True" Header="Strony" Binding="{Binding AddressesString}" Width="*" />
                                                         <DataGridTextColumn IsReadOnly="True" Header="Login" Binding="{Binding Name}" Width="*" />
                                                         <DataGridTextColumn IsReadOnly="True" Header="Hasło" Binding="{Binding Password}" Width="*"  />
                                                     </DataGrid.Columns>
                                                 </DataGrid>
-                                                <CheckBox x:Name="cbLoadTipsOnlySelected" Height="30" Content="tylko zaznaczone" HorizontalAlignment="Left" Margin="299,339,0,0" VerticalAlignment="Top" />
+                                                <CheckBox x:Name="cbLoadTipsOnlySelected" Height="30" Content="tylko zaznaczone" HorizontalAlignment="Left" Margin="395,339,0,0" VerticalAlignment="Top" />
                                             </Grid>
                                         </mah:MetroTabItem.Content>
                                     </mah:MetroTabItem>
@@ -340,7 +342,7 @@
                         </Grid>
                     </Grid>
 
-                    <Grid x:Name="gridStatisticsFlyout" Width="453" Margin="-1458,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
+                    <Grid x:Name="gridStatisticsFlyout" Width="453" Margin="-1258,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
                         <Grid Margin="10"  x:Name="gridStatisticsContent">
 
                             <Grid>
@@ -397,7 +399,7 @@
                         </Grid>
                     </Grid>
 
-                    <Grid x:Name="gridOptionsFlyout" Width="603" Margin="-1000,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
+                    <Grid x:Name="gridOptionsFlyout" Width="603" Margin="-800,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#000030">
                         <Grid Margin="10" x:Name="gridOptionsContent">
 
                             <Grid>

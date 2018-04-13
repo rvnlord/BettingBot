@@ -2,20 +2,13 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.DbContext.Models;
 using MahApps.Metro.Controls;
-using MahApps.Metro.IconPacks;
-using Tile = MahApps.Metro.Controls.Tile;
 
-namespace BettingBot.Models
+namespace BettingBot.Common.UtilityClasses
 {
     public class ViewState
     {
@@ -26,13 +19,13 @@ namespace BettingBot.Models
             ControlStates = controlStates;
         }
 
-        public void Load(DbContext db, DbSet<Option> dbOptions)
+        public void Load(DbContext db, DbSet<DbOption> dbOptions)
         {
             foreach (var cs in ControlStates)
                 cs.Load(dbOptions);
         }
 
-        public void Save(DbContext db, DbSet<Option> dbOptions, bool saveEachControlInstantly = false)
+        public void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveEachControlInstantly = false)
         {
             foreach (var cs in ControlStates)
                 cs.Save(db, dbOptions, saveEachControlInstantly);
@@ -49,8 +42,8 @@ namespace BettingBot.Models
             Key = key;
         }
 
-        public abstract void Load(DbSet<Option> dbOptions);
-        public abstract void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false);
+        public abstract void Load(DbSet<DbOption> dbOptions);
+        public abstract void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false);
     }
 
     public class TextBoxState : ControlState
@@ -62,7 +55,7 @@ namespace BettingBot.Models
             TxtB = textBox;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
             {
@@ -75,13 +68,13 @@ namespace BettingBot.Models
             }
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             const string defaultValue = "";
             if (TxtB.Tag != null && TxtB.Tag.ToString() == TxtB.Text)
-                dbOptions.AddOrUpdate(new Option(Key, defaultValue));
+                dbOptions.AddOrUpdate(new DbOption(Key, defaultValue));
             else
-                dbOptions.AddOrUpdate(new Option(Key, TxtB.Text ?? defaultValue));
+                dbOptions.AddOrUpdate(new DbOption(Key, TxtB.Text ?? defaultValue));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -95,15 +88,15 @@ namespace BettingBot.Models
             Num = num;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
                 Num.Value = dbOptions.Single(o => o.Key == Key).Value.ToDouble();
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, Num.Value.ToString()));
+            dbOptions.AddOrUpdate(new DbOption(Key, Num.Value.ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -117,16 +110,16 @@ namespace BettingBot.Models
             Rddl = rddl;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
                 Rddl.SelectedItem = Rddl.Items.SourceCollection.Cast<DdlItem>().Single(i => i.Index == dbOptions.Single(o => o.Key == Key).Value.ToInt());
 
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, ((DdlItem)Rddl.SelectedItem).Index.ToString()));
+            dbOptions.AddOrUpdate(new DbOption(Key, ((DdlItem)Rddl.SelectedItem).Index.ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -140,7 +133,7 @@ namespace BettingBot.Models
             Mddl = mddl;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
             {
@@ -152,9 +145,9 @@ namespace BettingBot.Models
             }
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, string.Join(",", Mddl.SelectedItems.Cast<DdlItem>().Select(item => item.Index))));
+            dbOptions.AddOrUpdate(new DbOption(Key, string.Join(",", Mddl.SelectedItems.Cast<DdlItem>().Select(item => item.Index))));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -168,15 +161,15 @@ namespace BettingBot.Models
             Cb = cb;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
                 Cb.IsChecked = dbOptions.Single(o => o.Key == Key).Value.ToBool();
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, (Cb.IsChecked == true).ToInt().ToString()));
+            dbOptions.AddOrUpdate(new DbOption(Key, (Cb.IsChecked == true).ToInt().ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -190,15 +183,15 @@ namespace BettingBot.Models
             Rbs = rbs;
         }
        
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
                 Rbs[dbOptions.Single(o => o.Key == Key).Value.ToInt()].IsChecked = true;
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, Rbs.Select((rb, i) =>
+            dbOptions.AddOrUpdate(new DbOption(Key, Rbs.Select((rb, i) =>
                 new
                 {
                     i,
@@ -217,7 +210,7 @@ namespace BettingBot.Models
             Dp = dp;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
             {
@@ -226,9 +219,9 @@ namespace BettingBot.Models
             }
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, Dp.SelectedDate != null ? Dp.SelectedDate.ToString() : null));
+            dbOptions.AddOrUpdate(new DbOption(Key, Dp.SelectedDate != null ? Dp.SelectedDate.ToString() : null));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -244,7 +237,7 @@ namespace BettingBot.Models
             ByProperty = byProperty;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
             {
@@ -259,9 +252,9 @@ namespace BettingBot.Models
             }
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, string.Join(",", Gv.SelectedItems.ToArray().Select(i => i.GetType().GetProperty(ByProperty)?.GetValue(i, null)).OrderBy(id => id))));
+            dbOptions.AddOrUpdate(new DbOption(Key, string.Join(",", Gv.SelectedItems.ToArray().Select(i => i.GetType().GetProperty(ByProperty)?.GetValue(i, null)).OrderBy(id => id))));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -277,7 +270,7 @@ namespace BettingBot.Models
             TabOrder = tabOrder;
         }
 
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (!dbOptions.Any(o => o.Key == Key)) return;
             var val = dbOptions.Single(o => o.Key == Key).Value;
@@ -287,9 +280,9 @@ namespace BettingBot.Models
             TilesMenu.Reorder(valSplit);
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new Option(Key, TabOrder.JoinAsString(",")));
+            dbOptions.AddOrUpdate(new DbOption(Key, TabOrder.JoinAsString(",")));
             if (saveInstantly) db.SaveChanges();
         }
     }
@@ -303,7 +296,7 @@ namespace BettingBot.Models
             TilesMenu = tilesMenu;
         }
         
-        public override void Load(DbSet<Option> dbOptions)
+        public override void Load(DbSet<DbOption> dbOptions)
         {
             if (!dbOptions.Any(o => o.Key == Key)) return;
 
@@ -318,10 +311,10 @@ namespace BettingBot.Models
                 TilesMenu.Shrink();
         }
 
-        public override void Save(DbContext db, DbSet<Option> dbOptions, bool saveInstantly = false)
+        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             var isExtended = TilesMenu.IsFullSize;
-            dbOptions.AddOrUpdate(new Option(Key, isExtended.ToString()));
+            dbOptions.AddOrUpdate(new DbOption(Key, isExtended.ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }

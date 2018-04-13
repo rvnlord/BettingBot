@@ -102,8 +102,8 @@ namespace BettingBot.Common.UtilityClasses
         /// </summary>
         private void AddPostDataTo(HttpWebRequest request)
         {
-            string payload = FormElements.AssemblePostPayload();
-            byte[] buff = Encoding.UTF8.GetBytes(payload.ToCharArray());
+            var payload = FormElements.AssemblePostPayload();
+            var buff = Encoding.UTF8.GetBytes(payload.ToCharArray());
             request.ContentLength = buff.Length;
             request.ContentType = "application/x-www-form-urlencoded";
             System.IO.Stream reqStream = request.GetRequestStream();
@@ -162,10 +162,10 @@ namespace BettingBot.Common.UtilityClasses
             var inputs = htmlDoc.DocumentNode.Descendants("input");
             foreach (var element in inputs)
             {
-                string name = element.GetAttributeValue("name", "undefined");
-                string value = element.GetAttributeValue("value", "");
+                var name = element.GetAttributeValue("name", "undefined");
+                var value = element.GetAttributeValue("value", "");
 
-                if (!this.ContainsKey(name))
+                if (!ContainsKey(name))
                 {
                     if (!name.Equals("undefined"))
                     {
@@ -180,10 +180,10 @@ namespace BettingBot.Common.UtilityClasses
         /// </summary>
         public string AssemblePostPayload()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var element in this)
             {
-                string value = System.Web.HttpUtility.UrlEncode(element.Value);
+                var value = System.Web.HttpUtility.UrlEncode(element.Value);
                 sb.Append("&" + element.Key + "=" + value);
             }
             return sb.ToString().Substring(1);

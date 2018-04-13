@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
@@ -18,6 +19,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -28,15 +30,16 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml;
-using AutoMapper;
 using DomainParser.Library;
 using MoreLinq;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Remote;
 using Expression = System.Linq.Expressions.Expression;
-using BettingBot.Models;
 using BettingBot.Common.UtilityClasses;
 using BettingBot.Properties;
+using BettingBot.Source.DbContext.Models;
+using BettingBot.Source.ViewModels;
+using HtmlAgilityPack;
 using Convert = System.Convert;
 using CustomMenuItem = BettingBot.Common.UtilityClasses.CustomMenuItem;
 using MahApps.Metro.Controls;
@@ -250,13 +253,12 @@ namespace BettingBot.Common
 
         public static string UrlToDomain(this string str)
         {
-            DomainName completeDomain;
-            return DomainName.TryParse(new Uri(str).Host, out completeDomain) ? completeDomain.SLD : "";
+            return DomainName.TryParse(new Uri(str).Host, out DomainName completeDomain) ? completeDomain.SLD : "";
         }
 
         public static string AfterFirst(this string str, string substring)
         {
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
                 if (str.StartsWith(substring))
@@ -268,21 +270,21 @@ namespace BettingBot.Common
 
         public static string BeforeFirst(this string str, string substring)
         {
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).First();
             return str;
         }
 
         public static string AfterLast(this string str, string substring)
         {
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).Last();
             return str;
         }
 
         public static string BeforeLast(this string str, string substring)
         {
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
                 if (str.EndsWith(substring))
@@ -319,6 +321,24 @@ namespace BettingBot.Common
             return new string(str.AsEnumerable().Skip(n).ToArray());
         }
 
+        public static HtmlNode HtmlRoot(this string html)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            return doc.DocumentNode;
+        }
+
+        public static Dictionary<string, string> QueryStringToDictionary(this string queryString)
+        {
+            var nvc = HttpUtility.ParseQueryString(queryString);
+            return nvc.AsEnumerable().ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
+
+        public static bool EqIgnoreCase(this string str, string ostr)
+        {
+            return string.Equals(str, ostr, StringComparison.OrdinalIgnoreCase);
+        }
+
         #endregion
 
         #region Double Extensions
@@ -353,13 +373,28 @@ namespace BettingBot.Common
             return Math.Round(number, digits);
         }
 
+        public static UnixTimestamp ToUnixTimestamp(this double d) => new UnixTimestamp(d);
+
+        public static ExtendedTime ToExtendedTime(this double unixTimestamp, TimeZoneKind timeZone = TimeZoneKind.UTC)
+        {
+            return new ExtendedTime(unixTimestamp, timeZone);
+        }
+
+        #endregion
+
+        #region Long Extensions 
+
+        public static ExtendedTime ToExtendedTime(this long l) => new ExtendedTime(l);
+
+        public static UnixTimestamp ToUnixTimestamp(this long l) => new UnixTimestamp(l);
+
         #endregion
 
         #region DateTime Extensions
 
         public static string MonthName(this DateTime date)
         {
-            return CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(date.Month);
+            return Culture.DateTimeFormat.GetMonthName(date.Month);
         }
 
         public static DateTime Period(this DateTime date, int periodInDays)
@@ -386,9 +421,23 @@ namespace BettingBot.Common
             return date;
         }
 
+        public static DateTime As(this DateTime dateTime, DateTimeKind kind)
+        {
+            return DateTime.SpecifyKind(dateTime, kind);
+        }
+
+        public static ExtendedTime ToExtendedTime(this DateTime dt, TimeZoneKind tz = TimeZoneKind.UTC)
+        {
+            return new ExtendedTime(dt, tz);
+        }
+
+        public static UnixTimestamp ToUnixTimestamp(this DateTime dateTime)
+        {
+            return new UnixTimestamp(dateTime.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
+        }
 
         #endregion
-
+        
         #region Collections Extensions
 
         #region - Array Extensions
@@ -409,11 +458,6 @@ namespace BettingBot.Common
         public static IList<T> Clone<T>(this IList<T> listToClone) where T : ICloneable
         {
             return listToClone.Select(item => (T)item.Clone()).ToList();
-        }
-
-        public static List<Bet> DeepClone(this IList<Bet> betsToClone)
-        {
-            return betsToClone.Select(b => (Bet)b.DeepClone()).ToList();
         }
 
         public static void RemoveBy<TSource>(this List<TSource> source, Func<TSource, bool> selector) where TSource : class
@@ -481,7 +525,7 @@ namespace BettingBot.Common
             foreach (var current in items)
                 list.Add(current);
         }
-
+        
         #endregion
 
         #region - IEnumerable Extensions
@@ -501,18 +545,6 @@ namespace BettingBot.Common
         {
             var en = enumerable as T[] ?? enumerable.ToArray();
             return en.Any() ? en.Last() : (T)Convert.ChangeType(null, typeof(T));
-        }
-
-        public static List<T> MapTo<T>(this IEnumerable source)
-        {
-            var dest = new List<T>();
-            foreach (var srcEl in source)
-            {
-                var destEl = (T)Activator.CreateInstance(typeof(T), new object[] { });
-                Mapper.Map(srcEl, destEl);
-                dest.Add(destEl);
-            }
-            return dest;
         }
 
         public static IEnumerable<T> ConcatMany<T>(this IEnumerable<T> enumerable, params IEnumerable<T>[] enums)
@@ -600,6 +632,40 @@ namespace BettingBot.Common
             return columns.Single(c => string.Equals(c.DataMemberName(), dataMemberName, StringComparison.Ordinal));
         }
 
+        public static NameValueCollection ToNameValueCollection(this IEnumerable<KeyValuePair<string, string>> en)
+        {
+            var nvc = new NameValueCollection();
+            foreach (var q in en)
+                nvc.Add(q.Key, q.Value);
+            return nvc;
+        }
+
+        public static IEnumerable<T> Duplicates<T>(this IEnumerable<T> en, bool distinct = true)
+        {
+            var duplicates = en.GroupBy(s => s).SelectMany(grp => grp.Skip(1));
+            return distinct ? duplicates.Distinct() : duplicates;
+        }
+
+        public static List<LoginGvVM> ToLoginsGvVM(this IEnumerable<DbLogin> dbLogins)
+        {
+            return dbLogins.Select(l => l.ToLoginGvVM()).ToList();
+        }
+
+        public static List<WebsiteGvVM> ToWebsitesGvVM(this IEnumerable<DbWebsite> dbWebsites)
+        {
+            return dbWebsites.Select(l => l.ToWebsiteGvVM()).ToList();
+        }
+
+        public static List<TipsterGvVM> ToTipstersGvVM(this IEnumerable<DbTipster> dbTipsters)
+        {
+            return dbTipsters.Select(t => t.ToTipsterGvVM()).ToList();
+        }
+
+        public static List<BetToDisplayGvVM> ToBetsToDisplayGvVM(this IEnumerable<DbBet> dbBets)
+        {
+            return dbBets.Select(b => b.ToBetToDisplayGvVM()).ToList();
+        }
+
         #endregion
 
         #region - IQueryable Extensions
@@ -620,9 +686,9 @@ namespace BettingBot.Common
             return query.Single(Expression.Lambda<Func<TEntity, bool>>(equalsOne, p));
         }
 
-        public static IQueryable<Tipster> ButSelf(this IQueryable<Tipster> tipsters)
+        public static IQueryable<DbTipster> ButSelf(this IQueryable<DbTipster> tipsters)
         {
-            var self = Tipster.Me();
+            var self = DbTipster.Me();
             return tipsters.Where(t => t.Name != self.Name);
         }
 
@@ -630,15 +696,19 @@ namespace BettingBot.Common
 
         #region - DbSet Extensions
 
-        public static void RemoveBy<TSource>(this DbSet<TSource> dbSet, Expression<Func<TSource, bool>> selector) where TSource : class
+        public static void RemoveBy<TSource>(this DbSet<TSource> dbSet, Expression<Func<TSource, bool>> predicate) where TSource : class
         {
-            dbSet.RemoveRange(dbSet.Where(selector));
+            dbSet.RemoveRange(dbSet.Where(predicate));
         }
 
-        public static void RemoveByMany<TSource, TKey>(this DbSet<TSource> dbSet, Func<TSource, TKey> selector, IEnumerable<TKey> matches) where TSource : class
+        public static void RemoveByMany<TSource, TKey>(this DbSet<TSource> dbSet, Func<TSource, TKey> selector, IEnumerable<TKey> matches) 
+            where TSource : class
         {
             foreach (var match in matches)
-                dbSet.RemoveBy(e => Equals(selector(e), match));
+            {
+                var toDel = dbSet.AsEnumerable().Where(e => selector(e).Equals(match));
+                dbSet.RemoveRange(toDel);
+            }
         }
 
         public static void RemoveDuplicatesBy<TSource, TKey>(this DbSet<TSource> dbSet, Func<TSource, TKey> selector) where TSource : class
@@ -649,12 +719,20 @@ namespace BettingBot.Common
                     dbSet.Remove(entity);
         }
 
+        public static int FirstFree<T>(this DbSet<T> dbSet, Func<T, int> selector) where T : class
+        {
+            var col = dbSet.Select(selector).ToArray();
+            var maxId = dbSet.Any() ? col.Max() : 0;
+            var range = Enumerable.Range(0, maxId + 2);
+            return range.Except(col).Min(); // nie zawsze można przewidzieć ile elementów dodamy przed zapisaniem do bazy (potrzebujemy x wolnych id)
+        }
+
         public static int Next<T>(this DbSet<T> dbSet, Func<T, int> selector) where T : class
         {
             return dbSet.Any() ? dbSet.Select(selector).Max() + 1 : 0;
         }
-        
-        public static void RemoveUnused(this DbSet<Website> dbWebsites, IQueryable<Tipster> dbTipsters)
+
+        public static void RemoveUnused(this DbSet<DbWebsite> dbWebsites, IQueryable<DbTipster> dbTipsters)
         {
             var websiteIdsWoLogin = dbWebsites.Where(w => w.LoginId == null).Select(w => w.Id).ToArray();
             var usedWebsiteIds = dbTipsters.ButSelf().Select(t => t.WebsiteId).Where(wid => wid != null).Cast<int>().Distinct().ToArray();
@@ -868,6 +946,20 @@ namespace BettingBot.Common
         public static ObservableCollection<T> ReplaceAll<T>(this ObservableCollection<T> obsCol, T newEl)
         {
             return obsCol.ReplaceAll(newEl.ToEnumerable());
+        }
+
+        #endregion
+
+        #region - NameValueCollection Extensions
+
+        public static IEnumerable<KeyValuePair<string, string>> AsEnumerable(this NameValueCollection nvc)
+        {
+            return nvc.AllKeys.SelectMany(nvc.GetValues, (k, v) => new KeyValuePair<string, string>(k, v));
+        }
+
+        public static Dictionary<string, string> ToDictionary(this NameValueCollection nvc)
+        {
+            return nvc.AsEnumerable().ToDictionary();
         }
 
         #endregion
@@ -1302,9 +1394,19 @@ namespace BettingBot.Common
 
         #region ComboBox Extensions
 
-        public static void SelectByCustomId(this ComboBox rddl, int id)
+        public static void SelectByIndex(this ComboBox rddl, int id)
         {
             rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Index == id);
+        }
+
+        public static void SelectByText(this ComboBox rddl, string text)
+        {
+            rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Text == text);
+        }
+
+        public static void Select(this ComboBox rddl, DdlItem item)
+        {
+            rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Equals(item));
         }
 
         public static T SelectedEnumValue<T>(this ComboBox rddl)
@@ -1404,16 +1506,6 @@ namespace BettingBot.Common
         #endregion
 
         #region RemoteWebDriver Extensions
-
-        public static void EnableImplicitWait(this RemoteWebDriver driver)
-        {
-            driver.Manage().Timeouts().ImplicitWait = new TimeSpan(0, 0, 30);
-        }
-
-        public static void DisableImplicitWait(this RemoteWebDriver driver)
-        {
-            driver.Manage().Timeouts().ImplicitWait = new TimeSpan(0, 0, 0);
-        }
 
         public static bool IsClosed(this RemoteWebDriver driver)
         {
@@ -1622,6 +1714,41 @@ namespace BettingBot.Common
 
         #endregion
 
+        #region Enum Extensions
+
+        public static string ConvertToString(this Enum en, bool toLower = false, string betweenWords = "")
+        {
+            var name = Enum.GetName(en.GetType(), en);
+            if (!string.IsNullOrEmpty(betweenWords))
+                name = Regex.Replace(name ?? "", @"((?<=\p{Ll})\p{Lu})|((?!\A)\p{Lu}(?>\p{Ll}))", $"{betweenWords}$0");
+            if (toLower)
+                name = name?.ToLower();
+            return name;
+        }
+
+        public static string GetDescription(this Enum value)
+        {
+            var type = value.GetType();
+            var name = Enum.GetName(type, value);
+            if (name == null) return null;
+            var field = type.GetField(name);
+            if (field == null) return null;
+            var attr = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) as DescriptionAttribute;
+            return attr?.Description;
+        }
+
+        public static T DescriptionToEnum<T>([NotNull] this string descr) where T : struct
+        {
+            if (!typeof(T).IsEnum) throw new ArgumentException("T musi być typu Enum");
+            var enumVals = EnumUtils.GetValues<T>();
+            foreach (var ev in enumVals)
+                if ((ev as Enum).GetDescription() == descr)
+                    return ev;
+            throw new NullReferenceException("Nie istnieje wartość enuma odpowiadająca opisowi");
+        }
+
+        #endregion
+
         #region Object Extensions
 
         public static T ToEnum<T>(this object value) where T : struct
@@ -1635,7 +1762,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToInt32(obj);
             if (obj.GetType().IsEnum) return (int) obj;
-            return Int32.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out int val) ? val : (int?) null;
+            return int.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out int val) ? val : (int?) null;
         }
 
         public static int ToInt(this object obj)
@@ -1733,6 +1860,11 @@ namespace BettingBot.Common
             var boolN = obj.ToBoolN();
             if (boolN != null) return (bool)boolN;
             throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static ExtendedTime ToExtendedTime(this object o)
+        {
+            return DateTime.Parse(o.ToString()).ToExtendedTime();
         }
 
         public static T GetProperty<T>(this object src, string propName)

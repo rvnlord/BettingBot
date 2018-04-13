@@ -40,9 +40,6 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AutoMapper, Version=6.2.2.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
-    </Reference>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
       <Private>True</Private>
@@ -84,6 +81,9 @@
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework.Aero" />
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -160,59 +160,90 @@
     <Compile Include="Common\UtilityClasses\ContextMenu.cs" />
     <Compile Include="Common\UtilityClasses\ContextMenuItem.cs" />
     <Compile Include="Common\UtilityClasses\ContextMenusManager.cs" />
+    <Compile Include="Common\UtilityClasses\ExtendedTime.cs" />
     <Compile Include="Common\UtilityClasses\TilesMenu.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\ViewModels\Collections\AggregatedWinLoseStatisticsGvVM.cs" />
-    <Compile Include="Common\AutomapperConfiguration.cs" />
-    <Compile Include="Models\Bet.cs" />
-    <Compile Include="Models\BettingSystem.cs" />
-    <Compile Include="Models\ViewModels\Abstracts\BaseVM.cs" />
-    <Compile Include="Models\ViewModels\AggregatedWinLoseStatisticGvVM.cs" />
-    <Compile Include="Models\ViewModels\BetToDisplayGvVM.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\BetshootException.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\Responses\BetResponse.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\Responses\BetshootResponse.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\Responses\BetsResponse.cs" />
+    <Compile Include="Source\Clients\Responses\PickResponse.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\Responses\TipsterAddressResponse.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\Responses\TipsterResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseException.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseSeleniumDriverManager.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\Responses\BetResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\Responses\BetsResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\Responses\HintwiseResponse.cs" />
+    <Compile Include="Source\Models\MatchResult.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\Responses\TipsterAddressResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\Responses\TipsterResponse.cs" />
+    <Compile Include="Source\Converters\BetConverter.cs" />
+    <Compile Include="Source\Clients\Client.cs" />
+    <Compile Include="Source\Clients\Agility\AgilityClient.cs" />
+    <Compile Include="Source\Clients\ClientException.cs" />
+    <Compile Include="Source\Clients\Selenium\IAuthenticable.cs" />
+    <Compile Include="Source\Clients\ResponseBase.cs" />
+    <Compile Include="Source\Converters\LoginConverter.cs" />
+    <Compile Include="Source\Converters\TipsterConverter.cs" />
+    <Compile Include="Source\Converters\WebsiteConverter.cs" />
+    <Compile Include="Source\DataManager.cs" />
+    <Compile Include="Source\DbContext\Models\DbDiscipline.cs" />
+    <Compile Include="Source\DbContext\Models\DbLeague.cs" />
+    <Compile Include="Source\DbContext\Models\DbMatch.cs" />
+    <Compile Include="Source\DbContext\Models\DbTeam.cs" />
+    <Compile Include="Source\DbContext\Models\DbTeamAlternateName.cs" />
+    <Compile Include="Source\InformationSender.cs" />
+    <Compile Include="Source\Converters\MatchResultConverter.cs" />
+    <Compile Include="Source\Converters\PickConverter.cs" />
+    <Compile Include="Source\ViewModels\Collections\AggregatedWinLoseStatisticsGvVM.cs" />
+    <Compile Include="Source\DbContext\Models\DbBet.cs" />
+    <Compile Include="Source\BettingSystem.cs" />
+    <Compile Include="Source\ViewModels\BaseVM.cs" />
+    <Compile Include="Source\ViewModels\AggregatedWinLoseStatisticGvVM.cs" />
+    <Compile Include="Source\ViewModels\BetToDisplayGvVM.cs" />
     <Compile Include="Common\UtilityClasses\BrowserSession.cs" />
     <Compile Include="Common\UtilityClasses\ClipboardWrapper.cs" />
-    <Compile Include="Models\ViewModels\BetToSendVM.cs" />
+    <Compile Include="Source\ViewModels\BetToSendVM.cs" />
     <Compile Include="Common\UtilityClasses\CustomList.cs" />
     <Compile Include="Common\UtilityClasses\CustomNameValueCollection.cs" />
-    <Compile Include="Models\DataFilter.cs" />
-    <Compile Include="Models\DataLoaders\BetshootLoader.cs" />
-    <Compile Include="Models\DataLoaders\DataLoader.cs" />
+    <Compile Include="Source\DataFilter.cs" />
+    <Compile Include="Source\Clients\Agility\Betshoot\BetshootClient.cs" />
     <Compile Include="Common\UtilityClasses\DdlItem.cs" />
     <Compile Include="Common\Extensions.cs" />
-    <Compile Include="Models\DataLoaders\HintwiseLoader.cs" />
-    <Compile Include="Models\ViewModels\Collections\GeneralStatisticsGvVM.cs" />
+    <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseClient.cs" />
+    <Compile Include="Source\ViewModels\Collections\GeneralStatisticsGvVM.cs" />
     <Compile Include="Common\Helpers.cs" />
-    <Compile Include="Models\Interfaces\IBet.cs" />
-    <Compile Include="Models\Interfaces\ISeleniumConnectable.cs" />
-    <Compile Include="Models\LocalDbContext.cs" />
+    <Compile Include="Source\Clients\Selenium\SeleniumClient.cs" />
+    <Compile Include="Source\DbContext\LocalDbContext.cs" />
     <Compile Include="Common\UtilityClasses\CustomMenuItem.cs" />
-    <Compile Include="Models\Option.cs" />
-    <Compile Include="Models\Pick.cs" />
-    <Compile Include="Models\ViewModels\GeneralStatisticGvVM.cs" />
-    <Compile Include="Models\ViewModels\Interfaces\INotifyPropertyChangedUtils.cs" />
-    <Compile Include="Models\ViewModels\Collections\ProfitByPeriodStatisticsGvVM.cs" />
-    <Compile Include="Models\SearchEngine.cs" />
-    <Compile Include="Models\SeleniumDriverManager.cs" />
-    <Compile Include="Models\SiteManagers\AsianOddsManager.cs" />
-    <Compile Include="Models\SiteManagers\CloudBetManager.cs" />
-    <Compile Include="Models\SiteManagers\BettingSiteManager.cs" />
-    <Compile Include="Models\Tipster.cs" />
-    <Compile Include="Models\ViewModels\ProfitByPeriodStatisticGvVM.cs" />
-    <Compile Include="Models\ViewModels\TipsterGvVM.cs" />
+    <Compile Include="Source\DbContext\Models\DbOption.cs" />
+    <Compile Include="Source\DbContext\Models\DbPick.cs" />
+    <Compile Include="Source\ViewModels\GeneralStatisticGvVM.cs" />
+    <Compile Include="Common\UtilityClasses\INotifyPropertyChangedUtils.cs" />
+    <Compile Include="Source\ViewModels\Collections\ProfitByPeriodStatisticsGvVM.cs" />
+    <Compile Include="Source\SearchEngine.cs" />
+    <Compile Include="Source\SeleniumDriverManager.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\AsianOddsClient.cs" />
+    <Compile Include="Source\Clients\Selenium\Cloudbet\CloudBetClient.cs" />
+    <Compile Include="Source\DbContext\Models\DbTipster.cs" />
+    <Compile Include="Source\ViewModels\ProfitByPeriodStatisticGvVM.cs" />
+    <Compile Include="Source\ViewModels\TipsterGvVM.cs" />
     <Compile Include="Common\Utilities.cs" />
     <Compile Include="Common\UtilityClasses\RepCounter.cs" />
-    <Compile Include="Models\Staking.cs" />
-    <Compile Include="Models\User.cs" />
-    <Compile Include="Models\ViewModels\UserGvVM.cs" />
+    <Compile Include="Source\StakingManager.cs" />
+    <Compile Include="Source\DbContext\Models\DbLogin.cs" />
+    <Compile Include="Source\ViewModels\LoginGvVM.cs" />
     <Compile Include="Common\UtilityClasses\ViewState.cs" />
-    <Compile Include="Models\Website.cs" />
+    <Compile Include="Source\DbContext\Models\DbWebsite.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Source\ViewModels\WebsiteGvVM.cs" />
     <Compile Include="Themes\DarkBlend\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\DarkBlend\TreeViewItemExtensions.cs" />
     <Page Include="MainWindow.xaml">

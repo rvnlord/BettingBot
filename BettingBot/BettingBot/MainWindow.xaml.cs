@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using BettingBot.Models;
 using System.Data.Entity;
 using System.Data.Entity.Core;
 using System.Data.Entity.Infrastructure;
@@ -30,9 +30,16 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
-using BettingBot.Models.DataLoaders;
-using BettingBot.Models.ViewModels;
-using BettingBot.Models.ViewModels.Collections;
+using BettingBot.Source;
+using BettingBot.Source.Clients;
+using BettingBot.Source.Clients.Agility;
+using BettingBot.Source.Clients.Agility.Betshoot;
+using BettingBot.Source.Clients.Selenium.Hintwise;
+using BettingBot.Source.Converters;
+using BettingBot.Source.DbContext;
+using BettingBot.Source.DbContext.Models;
+using BettingBot.Source.ViewModels;
+using BettingBot.Source.ViewModels.Collections;
 using MahApps.Metro.IconPacks;
 using static BettingBot.Common.StringUtils;
 using Button = System.Windows.Controls.Button;
@@ -57,6 +64,7 @@ using DataGrid = System.Windows.Controls.DataGrid;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MenuItem = System.Windows.Controls.MenuItem;
 using NumericUpDown = MahApps.Metro.Controls.NumericUpDown;
+using ListBox = System.Windows.Controls.ListBox;
 
 namespace BettingBot
 {
@@ -64,8 +72,8 @@ namespace BettingBot
     {
         #region Constants
 
-        private const string betshoot = "betshoot";
-        private const string hintwise = "hintwise";
+        private const string strBetshoot = "betshoot";
+        private const string strHintwise = "hintwise";
 
         #endregion
 
@@ -101,7 +109,7 @@ namespace BettingBot
         private Color _defaultOptionsTabTileColor;
         private Color _mouseOverOptionsTabTileColor;
 
-        private readonly ObservableCollection<UserGvVM> _ocLogins = new ObservableCollection<UserGvVM>();
+        private readonly ObservableCollection<LoginGvVM> _ocLogins = new ObservableCollection<LoginGvVM>();
         private readonly ObservableCollection<object> _ocSelectedLogins = new ObservableCollection<object>();
         private readonly ObservableCollection<TipsterGvVM> _ocTipsters = new ObservableCollection<TipsterGvVM>();
         private readonly ObservableCollection<object> _ocSelectedTipsters = new ObservableCollection<object>();
@@ -116,6 +124,7 @@ namespace BettingBot
 
         private BettingSystem _bs;
         private TilesMenu _mainMenu;
+        private bool _raisingEventImplicitlyFromCode;
 
         #endregion
 
@@ -151,7 +160,6 @@ namespace BettingBot
                 {
                     SQLiteConnection.ClearAllPools();
                     GC.Collect();
-                    AutoMapperConfiguration.Configure();
                     AppDirPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                     ErrorLogPath = $@"{AppDirPath}\ErrorLog.log";
 
@@ -275,12 +283,10 @@ namespace BettingBot
 
             try
             {
-                if (!txtLoad.Text.IsUrl()) throw new Exception("To nie jest poprawny adres");
-
                 var newTipstersCount = 0;
+                var selectedTipsterIdsDdl = mddlTipsters.SelectedCustomIds();
                 await Task.Run(() =>
                 {
-                    var selectedTipsterIdsDdl = mddlTipsters.SelectedCustomIds();
                     DownloadTipsterToDb();
                     newTipstersCount = UpdateGuiWithNewTipsters();
                     Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(selectedTipsterIdsDdl));
@@ -382,35 +388,41 @@ namespace BettingBot
 
                 await Task.Run(() =>
                 {
-                    var selLogins = _ocSelectedLogins.Cast<UserGvVM>().ToList();
+                    var dm = new DataManager();
+                    var selLogins = _ocSelectedLogins.Cast<LoginGvVM>().ToList();
                     if (selLogins.Count != 1) return;
-                    var selLogin = selLogins.Single();
-                    var db = new LocalDbContext();
-                    var dbLogin = db.Logins.Single(l => l.Id == selLogin.Id);
-                    Dispatcher.Invoke(() =>
+
+                    var loadDomain = Dispatcher.Invoke(() => txtLoadDomain.Text);
+                    var loadLogin = Dispatcher.Invoke(() => txtLoadLogin.Text);
+                    var loadPassword = Dispatcher.Invoke(() => txtLoadPassword.Text);
+
+                    var updatedDbLogin = dm.UpdateLogin(new DbLogin
                     {
-                        dbLogin.Name = txtLoadLogin.Text;
-                        dbLogin.Password = txtLoadPassword.Text;
-                        Website.AddNewByAddress(db, txtLoadDomain.Text.Split(", "), selLogin.Id);
+                        Id = selLogins.Single().Id,
+                        Name = loadLogin,
+                        Password = loadPassword,
+                        Websites = loadDomain.Split(", ").Select(s => new DbWebsite
+                        {
+                            Address = s
+                        }).ToList()
                     });
-                    db.SaveChanges();
 
                     Dispatcher.Invoke(() =>
                     {
-                        _ocLogins.ReplaceAll(db.Logins.MapTo<UserGvVM>());
+                        _raisingEventImplicitlyFromCode = true;
+
+                        _ocLogins.ReplaceAll(dm.GetLogins().ToLoginsGvVM());
                         gvLogins.ScrollToEnd();
-                        var userToSelect = _ocLogins.Single(l => l.Id == selLogin.Id);
-                        _ocSelectedLogins.ReplaceAll(userToSelect);
-                    });
+                        var loginToSelect = _ocLogins.Single(l => l.Id == updatedDbLogin.Id);
+                        _ocSelectedLogins.ReplaceAll(loginToSelect);
 
-                    var me = Tipster.Me();
-                    var tipstersButSelf = db.Tipsters.Include(t => t.Website).Where(t => t.Name != me.Name).DistinctBy(t => t.Id).ToList();
-                    var tipstersVM = tipstersButSelf.MapTo<TipsterGvVM>();
-
-                    Dispatcher.Invoke(() =>
-                    {
+                        var tipstersVM = dm.GetTipstersExceptDefault().ToTipstersGvVM();
                         _ocTipsters.ReplaceAll(tipstersVM);
+
                         gvTipsters.ScrollToEnd();
+                        FillLoginTextboxes();
+
+                        _raisingEventImplicitlyFromCode = false;
                     });
                 });
             }
@@ -445,29 +457,33 @@ namespace BettingBot
 
                 await Task.Run(() =>
                 {
-                    var db = new LocalDbContext();
+                    var dm = new DataManager();
+                    var loadDomain = Dispatcher.Invoke(() => txtLoadDomain.Text);
+                    var loadLogin = Dispatcher.Invoke(() => txtLoadLogin.Text);
+                    var loadPassword = Dispatcher.Invoke(() => txtLoadPassword.Text);
 
-                    var nextLId = db.Logins.Next(ent => ent.Id);
-
-                    db.Logins.Add(new User(nextLId, Dispatcher.Invoke(() => txtLoadLogin.Text), Dispatcher.Invoke(() => txtLoadPassword.Text)));
-                    Website.AddNewByAddress(db, Dispatcher.Invoke(() => txtLoadDomain.Text).Split(", "), nextLId);
-                    db.SaveChanges();
-
-                    Dispatcher.Invoke(() =>
+                    var addedDbLogin = dm.AddLogin(new DbLogin
                     {
-                        _ocLogins.ReplaceAll(db.Logins.MapTo<UserGvVM>());
-                        var userToSelect = _ocLogins.Single(l => l.Id == nextLId);
-                        _ocSelectedLogins.ReplaceAll(userToSelect);
+                        Name = loadLogin,
+                        Password = loadPassword,
+                        Websites = loadDomain.Split(", ").Select(s => new DbWebsite() { Address = s }).ToList()
                     });
 
-                    var me = Tipster.Me();
-                    var tipstersButSelf = db.Tipsters.Include(t => t.Website).Where(t => t.Name != me.Name).DistinctBy(t => t.Id).ToList();
-                    var tipstersVM = tipstersButSelf.MapTo<TipsterGvVM>();
-
                     Dispatcher.Invoke(() =>
                     {
+                        _raisingEventImplicitlyFromCode = true;
+
+                        _ocLogins.ReplaceAll(dm.GetLogins().ToLoginsGvVM());
+                        var userToSelect = _ocLogins.Single(l => l.Id == addedDbLogin.Id);
+                        _ocSelectedLogins.ReplaceAll(userToSelect);
+
+                        var tipstersVM = dm.GetTipstersExceptDefault().ToTipstersGvVM();
                         _ocTipsters.ReplaceAll(tipstersVM);
+
                         gvTipsters.ScrollToEnd();
+                        FillLoginTextboxes();
+
+                        _raisingEventImplicitlyFromCode = false;
                     });
                 });
             }
@@ -739,35 +755,42 @@ namespace BettingBot
             BetToDisplayGvVM firstBet;
             var column = (DataGridTextColumn)e.Column;
             var columnName = column.DataMemberName();
-
+            
             // WŁASNE SORTOWANIE
+            var tipsterName = $"{nameof(firstBet.TipsterString)}";
             var dateName = nameof(firstBet.DateString);
+            var matchHomeName = nameof(firstBet.MatchHomeName);
+            var matchAwayName = nameof(firstBet.MatchAwayName);
+            var pickName = nameof(firstBet.PickString);
             var betResultName = nameof(firstBet.BetResultString);
-            var matchResultName = nameof(firstBet.MatchResult);
+            var matchResultName = nameof(firstBet.MatchResultString);
+
             var oddsName = nameof(firstBet.OddsString);
             var stakeName = nameof(firstBet.StakeString);
             var profitName = nameof(firstBet.ProfitString);
             var budgetName = nameof(firstBet.BudgetString);
-            var tipsterName = $"{nameof(firstBet.Tipster)}.{nameof(firstBet.Tipster.Name)}";
-            var pickName = nameof(firstBet.PickString);
-
+            
             // DOMYŚLNE SORTOWANIE
             var nrName = nameof(firstBet.Nr);
-            var matchName = nameof(firstBet.Match);
-
-            // WYŁĄCZONE SORTOWANIE
-
-
+            
             if (column.SortDirection == null) // sortuj rosnąco
             {
                 column.SortDirection = ListSortDirection.Ascending;
-
-                if (columnName == dateName) // Data
-                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.Date).ToList());
+                
+                if (columnName == tipsterName) // Tipster
+                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.TipsterName).ThenBy(bet => bet.TipsterWebsite).ToList());
+                else if (columnName == dateName) // Data
+                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.LocalTimestamp).ToList());
+                else if (columnName == matchHomeName) // U Siebie
+                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.MatchHomeName).ToList());
+                else if (columnName == matchAwayName) // Na Wyjeździe
+                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.MatchAwayName).ToList());
+                else if (columnName == pickName) // Typ
+                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.PickChoice).ThenBy(bet => bet.PickValue).ToList());
                 else if (columnName == betResultName) // Zakład
                     betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.BetResult).ToList());
                 else if (columnName == matchResultName) // Wynik
-                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.MatchResult).ToList());
+                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.MatchHomeScore).ThenBy(bet => bet.MatchAwayScore).ToList());
                 else if (columnName == oddsName) // Kurs
                     betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.Odds).ToList());
                 else if (columnName == stakeName) // Stawka
@@ -776,25 +799,30 @@ namespace BettingBot
                     betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.Profit).ToList());
                 else if (columnName == budgetName) // Budżet
                     betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.Budget).ToList());
-                else if (columnName == tipsterName) // Tipster
-                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.Tipster.Name).ToList());
-                else if (columnName == pickName) // Pick
-                    betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.Pick.Choice).ThenBy(bet => bet.Pick.Value).ToList());
-                else if (columnName == nrName || columnName == matchName) // Domyślnie sortowane
+
+                else if (columnName == nrName) // Domyślnie sortowane: Nr
                     betsVM.ReplaceAll(betsVM.OrderBy(bet => bet.GetType()
                         .GetProperty(columnName)?
                         .GetValue(bet, null)).ToList());
             }
-            else if (column.SortDirection == ListSortDirection.Ascending) // soprtuj malejąco
+            else if (column.SortDirection == ListSortDirection.Ascending) // sortuj malejąco
             {
                 column.SortDirection = ListSortDirection.Descending;
 
-                if (columnName == dateName) // Data
-                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.Date).ToList());
+                if (columnName == tipsterName) // Tipster
+                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.TipsterName).ThenByDescending(bet => bet.TipsterWebsite).ToList());
+                else if (columnName == dateName) // Data
+                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.LocalTimestamp).ToList());
+                else if (columnName == matchHomeName) // U Siebie
+                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.MatchHomeName).ToList());
+                else if (columnName == matchAwayName) // Na Wyjeździe
+                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.MatchAwayName).ToList());
+                else if (columnName == pickName) // Typ
+                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.PickChoice).ThenByDescending(bet => bet.PickValue).ToList());
                 else if (columnName == betResultName) // Zakład
                     betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.BetResult).ToList());
                 else if (columnName == matchResultName) // Wynik
-                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.MatchResult).ToList());
+                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.MatchHomeScore).ThenByDescending(bet => bet.MatchAwayScore).ToList());
                 else if (columnName == oddsName) // Kurs
                     betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.Odds).ToList());
                 else if (columnName == stakeName) // Stawka
@@ -803,11 +831,8 @@ namespace BettingBot
                     betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.Profit).ToList());
                 else if (columnName == budgetName) // Budżet
                     betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.Budget).ToList());
-                else if (columnName == tipsterName) // Tipster
-                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.Tipster.Name).ToList());
-                else if (columnName == pickName) // Pick
-                    betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.Pick.Choice).ThenByDescending(bet => bet.Pick.Value).ToList());
-                else if (columnName == nrName || columnName == matchName) // Domyślnie sortowane
+
+                else if (columnName == nrName) // Domyślnie sortowane: Nr
                     betsVM.ReplaceAll(betsVM.OrderByDescending(bet => bet.GetType()
                         .GetProperty(columnName)?
                         .GetValue(bet, null)).ToList());
@@ -913,6 +938,114 @@ namespace BettingBot
             e.Handled = true;
         }
 
+        private void gvTipsters_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            var tipstersVM = _ocTipsters;
+
+            if (tipstersVM == null || !tipstersVM.Any())
+            {
+                e.Handled = true;
+                return;
+            }
+
+            TipsterGvVM tipster;
+            var column = (DataGridTextColumn)e.Column;
+            var columnName = column.DataMemberName();
+
+            // WŁASNE SORTOWANIE
+            var domainWithOpName = nameof(tipster.DomainWithOp);
+
+            // DOMYŚLNE SORTOWANIE
+            var tipsterName = $"{nameof(tipster.Name)}";
+            var linkName = $"{nameof(tipster.Link)}";
+
+            if (column.SortDirection == null) // sortuj rosnąco
+            {
+                column.SortDirection = ListSortDirection.Ascending;
+
+                if (columnName == domainWithOpName) // Domain
+                    tipstersVM.ReplaceAll(tipstersVM.OrderBy(t => t.WebsiteAddress).ToList());
+
+                else if (columnName.EqualsAny(tipsterName, linkName)) // Domyślnie sortowane: Name, Link
+                    tipstersVM.ReplaceAll(tipstersVM.OrderBy(t => t.GetType()
+                        .GetProperty(columnName)?
+                        .GetValue(t, null)).ToList());
+            }
+            else if (column.SortDirection == ListSortDirection.Ascending) // sortuj malejąco
+            {
+                column.SortDirection = ListSortDirection.Descending;
+
+                if (columnName == domainWithOpName) // Domain
+                    tipstersVM.ReplaceAll(tipstersVM.OrderByDescending(t => t.WebsiteAddress).ToList());
+
+                else if (columnName.EqualsAny(tipsterName, linkName)) // Domyślnie sortowane: Name, Link
+                    tipstersVM.ReplaceAll(tipstersVM.OrderByDescending(t => t.GetType()
+                        .GetProperty(columnName)?
+                        .GetValue(t, null)).ToList());
+            }
+            else // resetuj sortowanie
+            {
+                column.SortDirection = null;
+                tipstersVM.ReplaceAll(tipstersVM.OrderBy(t => t.Name).ToList());
+            }
+
+            e.Handled = true;
+        }
+
+        private void gvLogins_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            var loginsVM = _ocLogins;
+
+            if (loginsVM == null || !loginsVM.Any())
+            {
+                e.Handled = true;
+                return;
+            }
+
+            LoginGvVM login;
+            var column = (DataGridTextColumn)e.Column;
+            var columnName = column.DataMemberName();
+
+            // WŁASNE SORTOWANIE
+            var addressesStringName = nameof(login.AddressesString);
+
+            // DOMYŚLNE SORTOWANIE
+            var loginNameName = $"{nameof(login.Name)}";
+            var loginPasswordName = $"{nameof(login.Password)}";
+
+            if (column.SortDirection == null) // sortuj rosnąco
+            {
+                column.SortDirection = ListSortDirection.Ascending;
+
+                if (columnName == addressesStringName) // Addresses
+                    loginsVM.ReplaceAll(loginsVM.OrderBy(t => t.WebsiteAddresses.OrderBy(a => a).JoinAsString()).ToList());
+
+                else if (columnName.EqualsAny(loginNameName, loginPasswordName)) // Domyślnie sortowane: LoginName, LoginPassword
+                    loginsVM.ReplaceAll(loginsVM.OrderBy(t => t.GetType()
+                        .GetProperty(columnName)?
+                        .GetValue(t, null)).ToList());
+            }
+            else if (column.SortDirection == ListSortDirection.Ascending) // sortuj malejąco
+            {
+                column.SortDirection = ListSortDirection.Descending;
+
+                if (columnName == addressesStringName) // Addresses
+                    loginsVM.ReplaceAll(loginsVM.OrderByDescending(t => t.WebsiteAddresses.OrderBy(a => a).JoinAsString()).ToList());
+
+                else if (columnName.EqualsAny(loginNameName, loginPasswordName)) // Domyślnie sortowane: LoginName, LoginPassword
+                    loginsVM.ReplaceAll(loginsVM.OrderByDescending(t => t.GetType()
+                        .GetProperty(columnName)?
+                        .GetValue(t, null)).ToList());
+            }
+            else // resetuj sortowanie
+            {
+                column.SortDirection = null;
+                loginsVM.ReplaceAll(loginsVM.OrderBy(l => l.Name).ToList());
+            }
+
+            e.Handled = true;
+        }
+
         #endregion
 
         #region - - PreviewKeyDown
@@ -924,7 +1057,7 @@ namespace BettingBot
                 var selectedBets = _ocSelectedBetsToDisplayGvVM.Cast<BetToDisplayGvVM>().ToArray();
                 if (selectedBets.Length == 1)
                 {
-                    var searchTerm = selectedBets.Single().Match.Split(' ').FirstOrDefault(w => w.Length > 3) ?? "";
+                    var searchTerm = selectedBets.Single().MatchHomeName.Split(' ').FirstOrDefault(w => w.Length > 3) ?? "";
                     var copyToCB = ClipboardWrapper.TrySetText(searchTerm);
                     if (copyToCB.IsFailure)
                         await this.ShowMessageAsync("Wystąpił Błąd", copyToCB.Message);
@@ -944,18 +1077,20 @@ namespace BettingBot
                     await Task.Run(() =>
                     {
                         var deletedTipsters = _ocSelectedTipsters.Cast<TipsterGvVM>().ToArray();
-                        var db = new LocalDbContext();
+                        var dm = new DataManager();
                         if (deletedTipsters.Any())
                         {
-                            var selectedTipsterIdsDdl = mddlTipsters.SelectedCustomIds();
-                            var ids = deletedTipsters.Select(t => t.Id).ToArray();
-                            var newIds = selectedTipsterIdsDdl.Except(ids);
-                            db.Bets.RemoveByMany(b => b.TipsterId, ids);
-                            db.Tipsters.RemoveByMany(t => t.Id, ids);
-                            db.SaveChanges();
+                            var selectedTipsterIdsDdl = Dispatcher.Invoke(() => mddlTipsters.SelectedCustomIds());
+                            var idsToDelete = deletedTipsters.Select(t => t.Id).ToArray();
+                            var newSelectedIds = selectedTipsterIdsDdl.Except(idsToDelete);
+
+                            dm.RemoveTipstersById(idsToDelete);
+
                             UpdateGuiWithNewTipsters();
-                            Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(newIds));
-                            if (db.Bets.Any())
+
+                            Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(newSelectedIds));
+                            
+                            if (_ocBetsToDisplayGvVM.Any(bet => deletedTipsters.Any(dt => dt.Name.EqIgnoreCase(bet.TipsterName) && dt.Link.UrlToDomain().EqIgnoreCase(bet.TipsterWebsite))))
                                 CalculateBets();
                         }
                     });
@@ -981,26 +1116,24 @@ namespace BettingBot
             {
                 await Task.Run(() =>
                 {
-                    var deletedLogins = _ocSelectedLogins.Cast<UserGvVM>().ToArray();
-                    var db = new LocalDbContext();
+                    var dm = new DataManager();
+                    var deletedLogins = _ocSelectedLogins.Cast<LoginGvVM>().ToArray();
                     if (deletedLogins.Any())
                     {
-                        var ids = deletedLogins.Select(l => (int?) l.Id).ToArray();
-                        foreach (var w in db.Websites)
-                            if (ids.Any(id => id == w.LoginId))
-                                w.LoginId = null;
-                        db.Logins.RemoveByMany(b => b.Id, ids);
-                        db.SaveChanges();
-                        db.Websites.RemoveUnused(db.Tipsters.ButSelf());
-                        db.SaveChanges();
+                        var ids = deletedLogins.Select(l => l.Id).ToArray();
 
-                        var tipstersButSelf = db.Tipsters.ButSelf().Include(t => t.Website).DistinctBy(t => t.Id).ToList();
-                        var tipstersVM = tipstersButSelf.MapTo<TipsterGvVM>();
-
+                        dm.RemoveLoginsById(ids);
+                        
                         Dispatcher.Invoke(() =>
                         {
-                            _ocTipsters.ReplaceAll(tipstersVM);
+                            _raisingEventImplicitlyFromCode = true;
+
+                            _ocLogins.ReplaceAll(dm.GetLogins().ToLoginsGvVM());
+
+                            _ocTipsters.ReplaceAll(dm.GetTipstersExceptDefault().ToTipstersGvVM());
                             gvTipsters.ScrollToEnd();
+
+                            _raisingEventImplicitlyFromCode = false;
                         });
                     }
                 });
@@ -1022,6 +1155,9 @@ namespace BettingBot
 
         private void gvData_SelectionChanged(object sender, SelectionChangedEventArgs e) // wywoływane przez reflection, bo musi zostać uruchomione dopiero po zaaktualizowaniu kolekcji zaznaczonych elementów gridview
         {
+            if (_raisingEventImplicitlyFromCode)
+                return;
+
             this.FindLogicalDescendants<Grid>().Where(g => g.Name.EndsWith("Flyout")).ForEach(f => f.SlideHide());
             _mainMenu.SelectedTile = null;
 
@@ -1030,8 +1166,8 @@ namespace BettingBot
             {
                 var selBet = selBets.Single();
                 var additionalInfo =
-                    $"Oryginalny Mecz: {selBet.Match}\n" +
-                    $"Oryginalny Zakład: {selBet.PickOriginalString}\n";
+                    $"Oryginalny Mecz: {selBet.GetUnparsedMatchString()}\n" +
+                    $"Oryginalny Zakład: {selBet.GetUnparsedPickString()}\n";
                 lblAdditionalInfo.Content = new TextBlock { Text = additionalInfo };
             }
             else
@@ -1045,6 +1181,9 @@ namespace BettingBot
 
         private void gvGeneralStatistics_SelectionChanged(object sender, SelectionChangedEventArgs e) // wywoływane przez reflection, bo musi zostać uruchomione dopiero po zaaktualizowaniu kolekcji zaznaczonych elementów gridview
         {
+            if (_raisingEventImplicitlyFromCode)
+                return;
+
             gvData.SelectionChanged -= gvData_SelectionChanged;
 
             if (_ocSelectedGeneralStatistics.Count != 1)
@@ -1079,23 +1218,10 @@ namespace BettingBot
         
         private void gvLogins_SelectionChanged(object sender, SelectionChangedEventArgs e) // wywoływane przez reflection, bo musi zostać uruchomione dopiero po zaaktualizowaniu kolekcji zaznaczonych elementów gridview
         {
-            var selLogins = gvLogins.SelectedItems.Cast<UserGvVM>().ToList();
-            if (selLogins.Count == 1)
-            {
-                txtLoadLogin.ClearValue(true);
-                txtLoadPassword.ClearValue(true);
-                txtLoadDomain.ClearValue(true);
-                var selLogin = selLogins.Single();
-                txtLoadLogin.Text = selLogin.Name;
-                txtLoadPassword.Text = selLogin.Password;
-                txtLoadDomain.Text = selLogin.Addresses;
-            }
-            else
-            {
-                txtLoadLogin.ResetValue(true);
-                txtLoadPassword.ResetValue(true);
-                txtLoadDomain.ResetValue(true);
-            }
+            if (_raisingEventImplicitlyFromCode)
+                return;
+
+            FillLoginTextboxes();
         }
 
         #endregion
@@ -1225,8 +1351,8 @@ namespace BettingBot
             gridData.ShowLoader();
 
             var selectedBets = _ocSelectedBetsToDisplayGvVM.Cast<BetToDisplayGvVM>().ToArray();
-            var matchesStr = string.Join("\n", selectedBets.Select(b => $"{b.Match} - {b.PickString}"));
-            var searchTerm = selectedBets.FirstOrDefault()?.Match.Split(' ').FirstOrDefault(w => w.Length > 3) ?? "";
+            var matchesStr = string.Join("\n", selectedBets.Select(b => $"{b.MatchHomeName} - {b.MatchAwayName}: {b.PickString}"));
+            var searchTerm = selectedBets.FirstOrDefault()?.MatchHomeName.Split(' ').FirstOrDefault(w => w.Length > 3) ?? "";
             
             await Task.Run(async () =>
             {
@@ -1234,12 +1360,12 @@ namespace BettingBot
                 {
                     case "Znajdź":
                     {
-                        var se = new SearchEngine();
-                        se.FindBet(selectedBets.Single());
-                        var odds = string.Join("\n", se.FoundBets.Select(b => b.ToString()));
-                        var result = await Dispatcher.Invoke(async () => await this.ShowMessageAsync("Znalezione zakłady", odds, MessageDialogStyle.AffirmativeAndNegative));
-                        if (result == MessageDialogResult.Affirmative)
-                            SeleniumDriverManager.CloseAllDrivers();
+                        //var se = new SearchEngine();
+                        //se.FindBet(selectedBets.Single());
+                        //var odds = string.Join("\n", se.FoundBets.Select(b => b.ToString()));
+                        //var result = await Dispatcher.Invoke(async () => await this.ShowMessageAsync("Znalezione zakłady", odds, MessageDialogStyle.AffirmativeAndNegative));
+                        //if (result == MessageDialogResult.Affirmative)
+                        //    SeleniumDriverManager.CloseAllDrivers();
 
                         break;
                     }
@@ -1360,6 +1486,12 @@ namespace BettingBot
 
         private void SetupDropdowns()
         {
+            foreach (var ddl in this.FindLogicalDescendants<ComboBox, ListBox>().Cast<Selector>())
+            {
+                ddl.DisplayMemberPath = "Text";
+                ddl.SelectedValuePath = "Index";
+            }
+
             ddlStakingTypeOnLose.ItemsSource = new List<DdlItem>
             {
                 new DdlItem((int) StakingTypeOnLose.Flat, "płaska stawka"),
@@ -1370,10 +1502,8 @@ namespace BettingBot
                 new DdlItem((int) StakingTypeOnLose.CoverPercentOfLoses, "pokryj % strat"),
                 new DdlItem((int) StakingTypeOnLose.UsePercentOfBudget, "użyj % budżetu")
             };
-
-            ddlStakingTypeOnLose.DisplayMemberPath = "Text";
-            ddlStakingTypeOnLose.SelectedValuePath = "Index";
-            ddlStakingTypeOnLose.SelectByCustomId(-1);
+            
+            ddlStakingTypeOnLose.SelectByIndex(-1);
             ddlStakingTypeOnLose.SelectionChanged += ddlStakingTypeOnLose_SelectionChanged;
 
             ddlStakingTypeOnWin.ItemsSource = new List<DdlItem>
@@ -1385,41 +1515,33 @@ namespace BettingBot
                 new DdlItem((int) StakingTypeOnWin.Divide, "dziel przez"),
                 new DdlItem((int) StakingTypeOnWin.UsePercentOfBudget, "użyj % budżetu")
             };
-
-            ddlStakingTypeOnWin.DisplayMemberPath = "Text";
-            ddlStakingTypeOnWin.SelectedValuePath = "Index";
-            ddlStakingTypeOnWin.SelectByCustomId(-1);
+            
+            ddlStakingTypeOnWin.SelectByIndex(-1);
             ddlStakingTypeOnWin.SelectionChanged += ddlStakingTypeOnWin_SelectionChanged;
 
-            rddlOddsLesserGreaterThan.ItemsSource = new List<DdlItem>
+            ddlOddsLesserGreaterThan.ItemsSource = new List<DdlItem>
             {
                 new DdlItem((int) OddsLesserGreaterThanFilterChoice.GreaterThan, ">="),
                 new DdlItem((int) OddsLesserGreaterThanFilterChoice.LesserThan, "<="),
             };
-
-            rddlOddsLesserGreaterThan.DisplayMemberPath = "Text";
-            rddlOddsLesserGreaterThan.SelectedValuePath = "Index";
-            rddlOddsLesserGreaterThan.SelectByCustomId(-1);
+            
+            ddlOddsLesserGreaterThan.SelectByIndex(-1);
 
             ddlLoseCondition.ItemsSource = new List<DdlItem>
             {
                 new DdlItem((int) LoseCondition.PreviousPeriodLost, "Przegrany poprzedni okres"),
                 new DdlItem((int) LoseCondition.BudgetLowerThanMax, "Budżet niższy od największego"),
             };
-
-            ddlLoseCondition.DisplayMemberPath = "Text";
-            ddlLoseCondition.SelectedValuePath = "Index";
-            ddlLoseCondition.SelectByCustomId(-1);
+            
+            ddlLoseCondition.SelectByIndex(-1);
 
             ddlBasicStake.ItemsSource = new List<DdlItem>
             {
                 new DdlItem((int) BasicStake.Base, "bazowa"),
                 new DdlItem((int) BasicStake.Previous, "poprzednia"),
             };
-
-            ddlBasicStake.DisplayMemberPath = "Text";
-            ddlBasicStake.SelectedValuePath = "Index";
-            ddlBasicStake.SelectByCustomId(-1);
+            
+            ddlBasicStake.SelectByIndex(-1);
 
             ddlProfitByPeriodStatistics.ItemsSource = new List<DdlItem>
             {
@@ -1427,17 +1549,17 @@ namespace BettingBot
                 new DdlItem((int) Period.Week, "Zysk tygodniowy"),
                 new DdlItem((int) Period.Day, "Zysk dzienny"),
             };
-
-            ddlProfitByPeriodStatistics.DisplayMemberPath = "Text";
-            ddlProfitByPeriodStatistics.SelectedValuePath = "Index";
-            ddlProfitByPeriodStatistics.SelectByCustomId(-1);
+            
+            ddlProfitByPeriodStatistics.SelectByIndex(-1);
             ddlProfitByPeriodStatistics.SelectionChanged += ddlProfitByPeriodStatistics_SelectionChanged;
 
-            var ddlitems = EnumUtils.EnumToDdlItems<PickChoice>(Pick.ConvertChoiceToString);
-            mddlPickTypes.ItemsSource = ddlitems;
-            mddlPickTypes.DisplayMemberPath = "Text";
-            mddlPickTypes.SelectedValuePath = "Index";
+            var ddlPickTypes = EnumUtils.EnumToDdlItems<PickChoice>(PickConverter.PickChoiceToString);
+            mddlPickTypes.ItemsSource = ddlPickTypes;
             mddlPickTypes.SelectAll();
+
+            var ddlTipsterDomains = EnumUtils.EnumToDdlItems<DomainType>(TipsterConverter.TipsterDomainTypeToString);
+            ddlTipsterDomain.ItemsSource = ddlTipsterDomains;
+            ddlTipsterDomain.Select(ddlTipsterDomains.First());
         }
 
         private void SetupGrids()
@@ -1483,18 +1605,23 @@ namespace BettingBot
         {
             gvLogins.ItemsSource = _ocLogins;
             gvLogins.SetSelecteditemsSource(_ocSelectedLogins);
+
             gvTipsters.ItemsSource = _ocTipsters;
             gvTipsters.SetSelecteditemsSource(_ocSelectedTipsters);
+
             gvData.ItemsSource = _ocBetsToDisplayGvVM;
             gvData.SetSelecteditemsSource(_ocSelectedBetsToDisplayGvVM);
+
             gvAggregatedWinsLosesStatistics.ItemsSource = _ocAggregatedWinLoseStatisticsGvVM;
             gvAggregatedWinsLosesStatistics.SetSelecteditemsSource(_ocSelectedAggregatedWinLoseStatisticsGvVM);
+
             gvProfitByPeriodStatistics.ItemsSource = _ocProfitByPeriodStatistics;
             gvProfitByPeriodStatistics.SetSelecteditemsSource(_ocSelectedProfitByPeriodStatistics);
+
             gvGeneralStatistics.ItemsSource = _ocGeneralStatistics;
             gvGeneralStatistics.SetSelecteditemsSource(_ocSelectedGeneralStatistics);
 
-            var loginsVM = new LocalDbContext().Logins.Include(l => l.Websites).MapTo<UserGvVM>();
+            var loginsVM = new LocalDbContext().Logins.Include(l => l.Websites).ToLoginsGvVM();
             _ocLogins.ReplaceAll(loginsVM);
             gvLogins.ScrollToEnd();
         }
@@ -1593,6 +1720,8 @@ namespace BettingBot
         {
             if (_mainMenu.IsFullSize)
                 this.CenterOnScreen();
+            if (_ocSelectedTipsters.Any())
+                gvTipsters.ScrollTo(_ocSelectedTipsters.First());
         }
 
         private void InitializeControlGroups()
@@ -1608,7 +1737,7 @@ namespace BettingBot
             _odssLesserGreaterThanFilterControls = new List<UIElement>
             {
                 rnumOddsLesserGreaterThan,
-                rddlOddsLesserGreaterThan
+                ddlOddsLesserGreaterThan
             };
 
             _selectionFilterControls = new List<UIElement>
@@ -1732,25 +1861,39 @@ namespace BettingBot
             selectedTile.Highlight(mouseOverCOlor);
         }
 
+        private void FillLoginTextboxes()
+        {
+            var selLogins = _ocSelectedLogins.Cast<LoginGvVM>().ToList();
+            if (selLogins.Count == 1)
+            {
+                txtLoadLogin.ClearValue(true);
+                txtLoadPassword.ClearValue(true);
+                txtLoadDomain.ClearValue(true);
+                var selLogin = selLogins.Single();
+                txtLoadLogin.Text = selLogin.Name;
+                txtLoadPassword.Text = selLogin.Password;
+                txtLoadDomain.Text = selLogin.AddressesString;
+            }
+            else
+            {
+                txtLoadLogin.ResetValue(true);
+                txtLoadPassword.ResetValue(true);
+                txtLoadDomain.ResetValue(true);
+            }
+        }
+
         #endregion
-        
+
         #region - Core Functionality
 
         public int UpdateGuiWithNewTipsters()
         {
-            var db = new LocalDbContext();
+            var dm = new DataManager();
             var ddlTipsters = new List<DdlItem> { new DdlItem(-1, "(Moje Zakłady)") };
-            var tipsters = db.Tipsters.Include(t => t.Website);
-            var tipstersButSelf = tipsters.ButSelf().DistinctBy(t => t.Id).ToList();
-            ddlTipsters.AddRange(tipstersButSelf.Select(t => new DdlItem(t.Id, $"{t.Name} ({t.Website.Address})")));
-            Dispatcher.Invoke(() =>
-            {
-                mddlTipsters.ItemsSource = ddlTipsters;
-                mddlTipsters.DisplayMemberPath = "Text";
-                mddlTipsters.SelectedValuePath = "Index";
-            });
+            var tipstersVM = dm.GetTipstersExceptDefault().ToTipstersGvVM();
+            ddlTipsters.AddRange(tipstersVM.Select(t => new DdlItem(t.Id, $"{t.Name} ({t.WebsiteAddress})")));
+            Dispatcher.Invoke(() => mddlTipsters.ItemsSource = ddlTipsters);
             
-            var tipstersVM = tipstersButSelf.OrderBy(t => t.Name).MapTo<TipsterGvVM>();
             var addedTipsters = new List<TipsterGvVM>();
             Dispatcher.Invoke(() =>
             {
@@ -1759,24 +1902,15 @@ namespace BettingBot
                 _ocTipsters.ReplaceAll(tipstersVM);
                 if (addedTipsters.Any())
                 {
-                    var firstAddedTipster = addedTipsters.First();
-
-                    var actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
-                    gridTipsters.ShowLoader();
-
-                    gvTipsters.ScrollTo(firstAddedTipster);
-
-                    gridTipsters.HideLoader();
-                    if (!gridMain.HasLoader())
-                        _buttonsAndContextMenus.EnableControls();
-
                     if (oldTIpstersCount > 0)
-                        actuallyDisabledControls.ReplaceAll(addedTipsters);
+                        _ocSelectedTipsters.ReplaceAll(addedTipsters);
+                    if (_ocSelectedTipsters.Any())
+                        gvTipsters.ScrollTo(_ocSelectedTipsters.First());
                 }
-                txtLoad.ResetValue(true);
+                txtTipsterName.ResetValue(true);
             });
 
-            db.Websites.RemoveUnused(db.Tipsters.ButSelf());
+            dm.RemoveUnusedWebsites();
             return addedTipsters.Count;
         }
 
@@ -1784,28 +1918,47 @@ namespace BettingBot
         {
             try
             {
-                string newLink = null;
-                string placeholder = null;
+                string tipsterName = null;
+                string tipsterNamePlaceholder = null;
+                DomainType? tipsterDomain = null;
                 var headlessMode = false;
                 Dispatcher.Invoke(() =>
                 {
                     headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
-                    newLink = txtLoad.Text;
-                    placeholder = txtLoad.Tag?.ToString();
+                    tipsterName = txtTipsterName.Text.Trim(); // nie usuwać spacji, bo Hintwise pozwala na spacje w nazwie
+                    tipsterNamePlaceholder = txtTipsterName.Tag?.ToString();
+                    tipsterDomain = ddlTipsterDomain.SelectedEnumValue<DomainType>();
                 });
 
-                if (!newLink.IsNullWhiteSpaceOrDefault(placeholder))
+                if (tipsterName.IsNullWhiteSpaceOrDefault(tipsterNamePlaceholder))
+                    throw new Exception("Wpisany ciąg znaków jest niepoprawny");
+                if (tipsterDomain == DomainType.Custom && !tipsterName.IsUrl())
+                    throw new Exception("Wpisany ciąg znaków nie jest adresem Url");
+
+                var dm = new DataManager().ReceiveInfoWith<DataManager>(dl_InformationSent);
+                if (tipsterDomain == DomainType.Betshoot
+                    || tipsterDomain == DomainType.Custom && tipsterName.ToLower().Contains(strBetshoot))
                 {
-                    DataLoader dl;
-                    if (new Uri(newLink).Host.ToLower().Contains(betshoot))
-                        dl = new BetShootLoader(newLink);
-                    else if (new Uri(newLink).Host.ToLower().Contains(hintwise))
-                        dl = new HintWiseLoader(newLink, headlessMode);
-                    else
-                        throw new Exception($"Nie istnieje loader dla strony: {newLink}");
-                    dl.InformationSent += dl_InformationSent;
-                    dl.DownloadNewTipster();
+                    var betshoot = new BetshootClient();
+                    var tipsterAddress = tipsterDomain != DomainType.Custom 
+                        ? betshoot.ReceiveInfoWith<BetshootClient>(dl_InformationSent).TipsterAddress(tipsterName).Address
+                        : tipsterName;
+                    var tipsterResponse = betshoot.ReceiveInfoWith<BetshootClient>(dl_InformationSent).Tipster(tipsterAddress);
+                    dm.AddTipsterIfNotExists(tipsterResponse.ToDbTipster()); // wywołuje TipsterConverter
                 }
+                else if (tipsterDomain == DomainType.Hintwise
+                    || tipsterDomain == DomainType.Custom && tipsterName.ToLower().Contains(strHintwise))
+                {
+                    var login = dm.WebsiteLogin(DomainType.Hintwise);
+                    var hintwise = new HintwiseClient(login.Name, login.Password, headlessMode);
+                    var tipsterAddress = tipsterDomain != DomainType.Custom
+                        ? hintwise.ReceiveInfoWith<HintwiseClient>(dl_InformationSent).TipsterAddress(tipsterName).Address
+                        : tipsterName;
+                    var tipsterResponse = hintwise.ReceiveInfoWith<HintwiseClient>(dl_InformationSent).Tipster(tipsterAddress);
+                    dm.AddTipsterIfNotExists(tipsterResponse.ToDbTipster());
+                }
+                else
+                    throw new Exception($"Nie istnieje loader dla: {tipsterDomain} {tipsterName}");
             }
             finally
             {
@@ -1815,42 +1968,48 @@ namespace BettingBot
 
         private void DownloadTipsToDb()
         {
-            var db = new LocalDbContext();
-
             try
             {
-                var me = Tipster.Me();
-                var tipsters = db.Tipsters.Include(t => t.Website).Where(t => t.Name != me.Name).ToArray();
+                var dm = new DataManager().ReceiveInfoWith<DataManager>(dl_InformationSent);
+                var dbTipsters = dm.GetTipstersExceptDefault();
                 var selectedTipstersIds = _ocSelectedTipsters.Cast<TipsterGvVM>().Select(t => t.Id).ToArray();
-                var selectedTipsters = tipsters.WhereByMany(t => t.Id, selectedTipstersIds).ToArray();
+                var selectedDbTipsters = dbTipsters.WhereByMany(t => t.Id, selectedTipstersIds).ToList();
 
                 var headlessMode = false;
                 var onlySelected = false;
-                DateTime? fromDate = null;
+                ExtendedTime fromDate = null;
                 Dispatcher.Invoke(() =>
                 {
                     headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
                     fromDate = cbLoadTipsFromDate.IsChecked == true
-                        ? dpLoadTipsFromDate.SelectedDate.ToDMY()
+                        ? dpLoadTipsFromDate.SelectedDate?.ToDMY().ToExtendedTime(TimeZoneKind.CurrentLocal)
                         : null;
                     onlySelected = cbLoadTipsOnlySelected.IsChecked == true;
                 });
                 
-                foreach (var t in onlySelected ? selectedTipsters : tipsters)
+                foreach (var t in onlySelected ? selectedDbTipsters : dbTipsters)
                 {
-                    db.Entry(t.Website).Reference(e => e.Login).Load();
-                    DataLoader dl;
-                    if (t.Website.Address.ToLower() == betshoot)
+                    //var footballdataClient = new FootballdataClient();
+                    //var fixturesResponse = footballdataClient.Fixtures();
+                    //dm.UpsertMatches(fixturesResponse.ToFixtures());
+                    
+                    var domain = t.Website.Address.ToLower();
+                    if (domain == strBetshoot)
                     {
-                        dl = new BetShootLoader(t.Link);
-                        dl.InformationSent += dl_InformationSent;
-                        dl.DownloadTips();
+                        var tipsResponse = new BetshootClient().ReceiveInfoWith<BetshootClient>(dl_InformationSent)
+                            .Tips(t.ToBetshootTipsterResponse(), fromDate);
+                        dm.UpsertBets(tipsResponse.Tipster.ToDbTipster(), tipsResponse.ToDbBets());
                     }
-                    else if (t.Website.Address.ToLower() == hintwise)
+                    else if (domain == strHintwise)
                     {
-                        dl = new HintWiseLoader(t.Link, t.Website.Login?.Name, t.Website.Login?.Password, headlessMode);
-                        dl.InformationSent += dl_InformationSent;
-                        ((HintWiseLoader) dl).DownloadTips(fromDate);
+                        var tipsResponse = new HintwiseClient(
+                            t.Website.Login.Name, 
+                            t.Website.Login.Password,
+                            headlessMode
+                        )
+                            .ReceiveInfoWith<HintwiseClient>(dl_InformationSent)
+                            .Tips(t.ToHintwiseTipsterResponse(), fromDate);
+                        dm.UpsertBets(tipsResponse.Tipster.ToDbTipster(), tipsResponse.ToDbBets());
                     }
                     else
                         throw new Exception($"Nie istnieje loader dla strony: {t.Website.Address}");
@@ -1859,20 +2018,18 @@ namespace BettingBot
             finally
             {
                 SeleniumDriverManager.CloseAllDrivers();
-                db.Dispose();
             }
         }
 
         private void CalculateBets()
         {
-            var db = new LocalDbContext();
+            var dm = new DataManager();
             var stakingTypeOnLose = (StakingTypeOnLose) Dispatcher.Invoke(() => ddlStakingTypeOnLose.SelectedValue);
             var stakingTypeOnWin = (StakingTypeOnWin) Dispatcher.Invoke(() => ddlStakingTypeOnWin.SelectedValue);
 
-            var betsByDate = db.Bets.Include(b => b.Tipster).Include(b => b.Pick)
-                .OrderBy(b => b.Date).ThenBy(b => b.Match);
+            var betsByDate = dm.GetBets().ToBetsToDisplayGvVM();
 
-            var pendingBets = betsByDate.Where(b => b.BetResult == (int) Result.Pending).ToList();
+            var pendingBets = betsByDate.Where(b => b.BetResult == BetResult.Pending).ToList();
             var bets = betsByDate.ExceptBy(pendingBets, b => b.Id).ToList();
             bets = bets.Concat(pendingBets).ToList(); //.Where(b => !b.Pick.ToLower().Contains("both"))
             var initStake = Dispatcher.Invoke(() => numInitialStake.Value ?? 0);
@@ -1908,25 +2065,21 @@ namespace BettingBot
             var selectedPickTypes = Dispatcher.Invoke(() => mddlPickTypes.SelectedCustomIds());
 
             var applyTipsterFilter = Dispatcher.Invoke(() => cbTipster.IsChecked) == true;
-            var tipsterIds = Dispatcher.Invoke(() => mddlTipsters.SelectedCustomIds());
-            var tipsters = new List<Tipster>();
-            if (tipsterIds.Length == 1 && tipsterIds.Single() == -1)
-            {
-                db.Tipsters.AddOrUpdate(Tipster.Me());
-                db.SaveChanges();
-            }
-            else
-                tipsters = db.Tipsters.Where(t => tipsterIds.Any(id => id == t.Id)).ToList();
+            var selectedMddlTipsterIds = Dispatcher.Invoke(() => mddlTipsters.SelectedCustomIds());
+
+            dm.EnsureDefaultTipsterExists();
+
+            var tipsters = dm.GetTipstersById(selectedMddlTipsterIds).ToTipstersGvVM();
 
             var oddRef = Dispatcher.Invoke(() => rnumOddsLesserGreaterThan.Value) ?? 0;
             var applyOddsLesserGreaterThanFilter = Dispatcher.Invoke(() => cbOddsLesserGreaterThan.IsChecked) == true;
-            var oddsLesserGreaterThanSelected = (OddsLesserGreaterThanFilterChoice)Dispatcher.Invoke(() => rddlOddsLesserGreaterThan.SelectedValue);
+            var oddsLesserGreaterThanSelected = (OddsLesserGreaterThanFilterChoice)Dispatcher.Invoke(() => ddlOddsLesserGreaterThan.SelectedValue);
             var getOddsGreaterThan = oddsLesserGreaterThanSelected == OddsLesserGreaterThanFilterChoice.GreaterThan;
 
             var applyLowestHighestOddsByPeriodFilter = Dispatcher.Invoke(() => cbLHOddsByPeriodFilter.IsChecked) == true;
             var getHighestOddsByPeriod = Dispatcher.Invoke(() => rbHighestOddsByPeriod.IsChecked) == true;
             var getLowestOddsByPeriod = Dispatcher.Invoke(() => rbLowestOddsByPeriod.IsChecked) == true;
-            var period = (int) (Dispatcher.Invoke(() => numLHOddsPeriodInDays.Value) ?? 1);
+            var period = (Dispatcher.Invoke(() => numLHOddsPeriodInDays.Value) ?? 1).ToInt();
 
             var dataFiltersList = new List<DataFilter>();
 
@@ -1986,11 +2139,15 @@ namespace BettingBot
             
             Dispatcher.Invoke(() =>
             {
+                _raisingEventImplicitlyFromCode = true; // zapobiegnij wywołaniu gvData_SelectionChanged podczas przeładowania zakładów
+                
                 _ocBetsToDisplayGvVM.ReplaceAll(bs.Bets);
                 gvData.ScrollToEnd();
                 _ocAggregatedWinLoseStatisticsGvVM.ReplaceAll(new AggregatedWinLoseStatisticsGvVM(bs.LosesCounter, bs.WinsCounter));
                 _ocProfitByPeriodStatistics.ReplaceAll(new ProfitByPeriodStatisticsGvVM(bs.Bets, ddlProfitByPeriodStatistics.SelectedEnumValue<Period>()));
                 gvProfitByPeriodStatistics.ScrollToEnd();
+
+                _raisingEventImplicitlyFromCode = false;
             });
 
             if (bs.Bets.Any())
@@ -2002,17 +2159,17 @@ namespace BettingBot
                 var losesInRow = bs.LosesCounter.Any(c => c.Value > 0) ? bs.LosesCounter.MaxBy(c => c.Value).ToString() : "-";
                 var winsInRow = bs.WinsCounter.Any(c => c.Value > 0) ? bs.WinsCounter.MaxBy(c => c.Value).ToString() : "-";
 
-                var lostOUfromWonBTTS = bs.Bets.Count(b => b.Pick.Choice == PickChoice.BothToScore && b.BetResult != Result.Pending && b.MatchResult.Contains("-") &&
-                    (b.Pick.Value.ToDouble().Eq(0) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() > 2 ||
-                    b.Pick.Value.ToDouble().Eq(1) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() <= 2));
+                var lostOUfromWonBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2));
 
-                var wonOUfromLostBTTS = bs.Bets.Count(b => b.Pick.Choice == PickChoice.BothToScore && b.BetResult != Result.Pending && b.MatchResult.Contains("-") &&
-                    (b.Pick.Value.ToDouble().Eq(0) && b.BetResult == Result.Lose && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() <= 2 ||
-                    b.Pick.Value.ToDouble().Eq(1) && b.BetResult == Result.Lose && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() > 2));
+                var wonOUfromLostBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore > 2));
 
-                var wonBTTSwithOU = bs.Bets.Count(b => b.Pick.Choice == PickChoice.BothToScore && b.BetResult != Result.Pending && b.MatchResult.Contains("-") &&
-                    (b.Pick.Value.ToDouble().Eq(0) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() <= 2 ||
-                    b.Pick.Value.ToDouble().Eq(1) && b.BetResult == Result.Win && b.MatchResult.Remove(" ").Split("-").Select(x => x.ToInt()).Sum() > 2));
+                var wonBTTSwithOU = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2));
 
                 var gs = new GeneralStatisticsGvVM();
                 gs.Add(new GeneralStatisticGvVM("Maksymalna stawka:", $"{maxStakeBet.Stake:0.00} zł ({maxStakeBet.Nr})"));
@@ -2021,7 +2178,7 @@ namespace BettingBot
                 gs.Add(new GeneralStatisticGvVM("Najniższy budżet po odjęciu stawki:", $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} zł ({minBudgetInclStakeBet.Nr})"));
                 gs.Add(new GeneralStatisticGvVM("Porażki z rzędu:", $"{losesInRow}"));
                 gs.Add(new GeneralStatisticGvVM("Zwycięstwa z rzędu:", $"{winsInRow}"));
-                gs.Add(new GeneralStatisticGvVM("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == Result.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == Result.Pending && b.Date.ToDMY() == DateTime.Now.ToDMY())}]"));
+                gs.Add(new GeneralStatisticGvVM("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == BetResult.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == BetResult.Pending && b.LocalTimestamp.Rfc1123.ToDMY() == DateTime.Now.ToDMY())}]"));
                 gs.Add(new GeneralStatisticGvVM("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
                 if (lostOUfromWonBTTS + wonBTTSwithOU != 0)
                     gs.Add(new GeneralStatisticGvVM("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
@@ -2029,7 +2186,7 @@ namespace BettingBot
                 Dispatcher.Invoke(() =>
                 {
                     _ocGeneralStatistics.ReplaceAll(gs.ToList());
-
+                    
                     var flyouts = gridMain.FindLogicalDescendants<Grid>().Where(fo => fo.Name.EndsWith("Flyout")).ToList();
                     var otherFlyouts = flyouts.Except(gridStatisticsFlyout);
 
@@ -2077,7 +2234,7 @@ namespace BettingBot
                 new MddlState("FilterTipsterChoice", mddlTipsters),
 
                 new CbState("FilterOddsLGThanEnabled", cbOddsLesserGreaterThan),
-                new DdlState("FilterOddsLGThanSign", rddlOddsLesserGreaterThan),
+                new DdlState("FilterOddsLGThanSign", ddlOddsLesserGreaterThan),
                 new NumState("FilterOddsLGThanValue", rnumOddsLesserGreaterThan),
 
                 new CbState("FilterSelectionEnabled", cbSelection),
@@ -2161,6 +2318,13 @@ namespace BettingBot
     {
         BudgetLowerThanMax = -1,
         PreviousPeriodLost
+    }
+
+    public enum DomainType
+    {
+        Betshoot,
+        Hintwise,
+        Custom
     }
 
     #endregion
