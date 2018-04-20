@@ -54,7 +54,8 @@ namespace BettingBot.Common.UtilityClasses
                     (f.FindLogicalAncestor<Grid>() == null || f.FindLogicalAncestor<Grid>().IsVisible) &&
                     (f.FindLogicalAncestor<MetroTabItem>() == null || f.FindLogicalAncestor<MetroTabItem>().IsSelected) &&
                     f.FindLogicalAncestor<StackPanel>(sp => sp.Name.EndsWith("ContextMenu")) == null &&
-                    f.HasClientRectangle(cmCon) && f.ClientRectangle(cmCon).Contains(e.GetPosition(cmCon))).ToList();
+                    f.HasClientRectangle(cmCon) && f.ClientRectangle(cmCon).Contains(e.GetPosition(cmCon)) &&
+                    f.IsVisible && f.Opacity > 0).ToList();
 
             mouseHoveredElements = mouseHoveredElements.GroupBy(Panel.GetZIndex).MaxBy(g => g.Key).ToList();
             if (!mouseHoveredElements.Any())
@@ -68,7 +69,7 @@ namespace BettingBot.Common.UtilityClasses
                 var message =
                     "Występuje wiele elementów do wyświetlenia menu kontekstowego (conajmniej dwa mają jednakowe ZIndeksy):\n" +
                     string.Join("\n", mouseHoveredElements.Select(el => $"({el.ZIndex()}: {el.Name})"));
-                throw new Exception(message);
+                Debug.Print(message);
             }
 
             foreach (var c in mouseHoveredElements)

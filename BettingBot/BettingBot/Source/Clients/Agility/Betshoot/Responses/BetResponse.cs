@@ -16,6 +16,8 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
         public MatchResult MatchResult { get; set; } // przy dziedziczeniu nadpisac tą właściwość na dzieidzeczącą z niej
         public BetResult BetResult { get; set; }
         public double Odds { get; set; }
+        public DisciplineType? Discipline { get; set; }
+        public string LeagueName { get; set; }
 
         public DbBet ToDbBet() => BetConverter.ToDbBet(this); // data jest już w utc przed konwersją
     }

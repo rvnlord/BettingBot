@@ -1,8 +1,10 @@
-﻿namespace BettingBot.Source.DbContext.Models
+﻿using BettingBot.Source.Converters;
+
+namespace BettingBot.Source.DbContext.Models
 {
     public class DbTeamAlternateName
     {
-        public string AternateName { get; set; }
+        public string AlternateName { get; set; }
 
         public int TeamId { get; set; }
 
@@ -13,12 +15,17 @@
             if (!(obj is DbTeamAlternateName)) return false;
             var o = (DbTeamAlternateName)obj;
 
-            return AternateName == o.AternateName;
+            return AlternateName == o.AlternateName;
         }
 
         public override int GetHashCode()
         {
-            return AternateName.GetHashCode() ^ 387;
+            return AlternateName.GetHashCode() ^ 387;
+        }
+
+        public DbTeamAlternateName CopyWithoutNavigationProperties()
+        {
+            return TeamConverter.CopyWithoutNavigationProperties(this);
         }
     }
 }

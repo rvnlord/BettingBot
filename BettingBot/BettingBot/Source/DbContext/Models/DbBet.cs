@@ -18,6 +18,10 @@ namespace BettingBot.Source.DbContext.Models
         public string OriginalAwayName { get; set; }
         public string OriginalMatchResultString { get; set; }
         public string OriginalPickString { get; set; }
+        public int? OriginalDiscipline { get; set; }
+        public string OriginalLeagueName { get; set; }
+
+        public int? TriedAssociateWithMatch { get; set; }
 
         public int TipsterId { get; set; }
         public int? MatchId { get; set; }
@@ -46,7 +50,17 @@ namespace BettingBot.Source.DbContext.Models
                 && OriginalHomeName.EqIgnoreCase(b.OriginalHomeName)
                 && OriginalAwayName.EqIgnoreCase(b.OriginalAwayName) 
                 && TipsterId == b.TipsterId
-                && PickId == b.PickId;
+                && PickId == b.PickId
+                && OriginalDiscipline == b.OriginalDiscipline;
+        }
+
+        public bool EqualsWoOriginalDate(DbBet b)
+        {
+            return OriginalHomeName.EqIgnoreCase(b.OriginalHomeName)
+                   && OriginalAwayName.EqIgnoreCase(b.OriginalAwayName)
+                   && TipsterId == b.TipsterId
+                   && PickId == b.PickId
+                   && OriginalDiscipline == b.OriginalDiscipline;
         }
 
         public override int GetHashCode()
@@ -55,7 +69,18 @@ namespace BettingBot.Source.DbContext.Models
                 * OriginalHomeName.GetHashCode() ^ 11
                 * OriginalAwayName.GetHashCode() ^ 17
                 * TipsterId.GetHashCode() ^ 19 
-                * PickId.GetHashCode() ^ 23;
+                * PickId.GetHashCode() ^ 23
+                * OriginalDiscipline.GetHashCode() ^ 29;
+        }
+
+        public DbBet CopyWithoutNavigationProperties()
+        {
+            return BetConverter.CopyWithoutNavigationProperties(this);
+        }
+
+        public BetToAssociateGvVM ToBetToAssociateGvVM()
+        {
+            return BetConverter.ToBetToAssociateGvVM(this);
         }
     }
 }

@@ -6,17 +6,14 @@ namespace BettingBot.Source.Clients.Agility.Betshoot
 {
     public class BetshootClient : AgilityClient
     {
-        private readonly TimeZoneKind _timeZone;
-
-        public BetshootClient()
-        {
-            _address = "https://www.betshoot.com/competition/users/";
-            _timeZone = TimeZoneKind.GreenwichStandardTime;
-        }
+        public BetshootClient() 
+            : base(
+                  "https://www.betshoot.com/competition/users/", 
+                  TimeZoneKind.GreenwichStandardTime) { }
 
         public TipsterAddressResponse TipsterAddress(string tipsterName)
         {
-            return Get(null, html => new TipsterAddressResponse()
+            return Get(null, (html, arm) => new TipsterAddressResponse()
                 .ReceiveInfoWith<TipsterAddressResponse>(Response_InformationSent)
                 .Parse(html, tipsterName, _address));
         }
@@ -24,16 +21,16 @@ namespace BettingBot.Source.Clients.Agility.Betshoot
         public TipsterResponse Tipster(string tipsterAddress)
         {
             var relativeAddress = tipsterAddress.Remove(_address);
-            return Get(relativeAddress, html => new TipsterResponse()
+            return Get(relativeAddress, (html, arm) => new TipsterResponse()
                 .ReceiveInfoWith<TipsterResponse>(Response_InformationSent)
                 .Parse(html, tipsterAddress));
         }
 
         public BetsResponse Tips(TipsterResponse tipster, ExtendedTime fromDate = null)
         {
-            return Get(tipster.Name, html => new BetsResponse()
+            return Get(tipster.Name, (html, arm) => new BetsResponse()
                 .ReceiveInfoWith<BetsResponse>(Response_InformationSent)
-                .Parse(html, tipster, fromDate, _timeZone));
+                .Parse(html, arm, tipster, fromDate, _timeZone));
         }
     }
 }

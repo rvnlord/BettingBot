@@ -1,10 +1,18 @@
 ﻿using BettingBot.Common;
+using BettingBot.Common.UtilityClasses;
 
 namespace BettingBot.Source.Clients
 {
     public abstract class Client : InformationSender
     {
         protected string _address;
+        protected readonly TimeZoneKind _timeZone;
+
+        protected Client(string address, TimeZoneKind timeZone)
+        {
+            Address = address;
+            _timeZone = timeZone;
+        }
 
         protected string Address
         {

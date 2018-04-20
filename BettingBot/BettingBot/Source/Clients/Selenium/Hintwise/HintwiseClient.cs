@@ -2,22 +2,21 @@
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
 using BettingBot.Source.Clients.Selenium.Hintwise.Responses;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 
 namespace BettingBot.Source.Clients.Selenium.Hintwise
 {
     public class HintwiseClient : SeleniumClient, ISeleniumAuthenticable
     {
         private readonly HintwiseSeleniumDriverManager _hsdm;
-        private readonly TimeZoneKind _timeZone;
 
-        public HintwiseClient(string login, string password, bool headlessMode) : base(login, password, headlessMode)
+        public HintwiseClient(string login, string password, bool headlessMode) 
+            : base(
+                "https://hintwise.com/",
+                TimeZoneKind.GreenwichStandardTime, // .GMTStandardTime ze zmianą czasu na letni/zimowy w wielkiej brytanii, ale wygląda na to, że na hintwise znów jest innas trefa, WTF?
+                login, password, headlessMode)
         {
-            _address = "https://hintwise.com/";
             _sdm = new HintwiseSeleniumDriverManager();
             _hsdm = (HintwiseSeleniumDriverManager) _sdm;
-            _timeZone = TimeZoneKind.GMTStandardTime; // ze zmianą czasu na letni/zimowy w wielkiej brytanii
         }
 
         public TipsterAddressResponse TipsterAddress(string tipsterName)
@@ -45,6 +44,8 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
 
         protected override T Get<T>(QueryType queryType, string action, NavigateToResponse<T> navigator)
         {
+            OnInformationSending("Łączenie z Hintwise...");
+
             var url = _address + action;
             if (!url.EndsWith("/")) url += "/";
 

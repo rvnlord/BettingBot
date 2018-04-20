@@ -21,9 +21,12 @@ namespace BettingBot.Source.ViewModels
         private ExtendedTime _timestamp;
         private PickChoice _pickChoice;
         private double? _pickValue;
+        private DisciplineType? _discipline;
+        private string _leagueName;
+
         private string _unparsedPickString;
         private string _unparsedMatchString;
-
+        
         private int _nr;
         private double _stake;
         private double _profit;
@@ -43,16 +46,17 @@ namespace BettingBot.Source.ViewModels
         public ExtendedTime LocalTimestamp { get => _timestamp; set => SetPropertyAndNotify(ref _timestamp, value, nameof(LocalTimestamp)); }
         public PickChoice PickChoice { get => _pickChoice; set => SetPropertyAndNotify(ref _pickChoice, value, nameof(PickChoice)); }
         public double? PickValue { get => _pickValue; set => SetPropertyAndNotify(ref _pickValue, value, nameof(PickValue)); }
+        public DisciplineType? Discipline { get => _discipline; set => SetPropertyAndNotify(ref _discipline, value, nameof(Discipline)); }
+        public string LeagueName { get => _leagueName; set => SetPropertyAndNotify(ref _leagueName, value, nameof(LeagueName)); }
 
         public int Nr { get => _nr; set => SetPropertyAndNotify(ref _nr, value, nameof(Nr)); }
-
         
         public double Stake { get => _stake; set => SetPropertyAndNotify(ref _stake, value, nameof(Stake)); }
         public double Profit { get => _profit; set => SetPropertyAndNotify(ref _profit, value, nameof(Profit)); }
         public double Budget { get => _budget; set => SetPropertyAndNotify(ref _budget, value, nameof(Budget)); }
         public double BudgetBeforeResult { get => _budgetBeforeResult; set => SetPropertyAndNotify(ref _budgetBeforeResult, value, nameof(BudgetBeforeResult)); }
         
-        public string TipsterString => $"{_tipsterName} ({_tipsterWebsite})";
+        public string TipsterString => $"{_tipsterName} ({_tipsterWebsite.Take(1)})";
         public string OddsString => Odds <= 0 ? "" : $"{Odds:0.00}";
         public string StakeString => (Stake < 0 ? "-" + $"{Stake:0.##}".Substring(1) : $"{Stake:0.##}") + " zł";
         public string ProfitString => BetResult == BetResult.Pending 
@@ -69,38 +73,23 @@ namespace BettingBot.Source.ViewModels
                 : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " zł";
         public string DateString => LocalTimestamp.Rfc1123.ToString("dd-MM-yyyy HH:mm");
 
-        public string MatchResultString => _matchHomeScore != null 
-            && _matchAwayScore != null 
-            && BetResult != BetResult.Pending 
-            && BetResult != BetResult.Canceled 
-            ? $"{_matchHomeScore} - {_matchAwayScore}" 
-            : BetResult == BetResult.Pending 
-                ? "" 
-                : "-";
-
-        public string BetResultString
+        public string MatchResultString
         {
             get
             {
-                switch (BetResult)
-                {
-                    case BetResult.Win:
-                        return "Wygrana";
-                    case BetResult.Lose:
-                        return "Przegrana";
-                    case BetResult.Canceled:
-                        return "Anulowano";
-                    case BetResult.HalfLost:
-                        return "- 1/2";
-                    case BetResult.HalfWon:
-                        return "+ 1/2";
-                    case BetResult.Pending:
-                        return "Oczekuje";
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                if (BetResult == BetResult.Pending)
+                    return "";
+                if (BetResult == BetResult.Canceled && _matchHomeScore == null && _matchAwayScore == null)
+                    return "-";
+
+                return $"{_matchHomeScore} - {_matchAwayScore}";
             }
         }
+
+        public string BetResultString => BetConverter.BetResultToLocalizedString(BetResult);
+
+        public string DisciplineString => DisciplineConverter.DisciplineTypeToLocalizedString(Discipline);
+
         public string PickString
         {
             get
@@ -113,7 +102,13 @@ namespace BettingBot.Source.ViewModels
             }
         }
 
-        public string IsAssociatedString => IsAssociatedWithArbitraryData ? "+" : "";
+        public string IsAssociatedString => IsAssociatedWithArbitraryData 
+            ? "+" 
+            : TriedAssociateWithMatch
+                ? "-"
+                : "";
+
+        public bool TriedAssociateWithMatch { get; set; }
 
         public bool IsBetResultOriginal { get; set; }
         public bool IsMatchHomeNameOriginal { get; set; }
@@ -122,6 +117,8 @@ namespace BettingBot.Source.ViewModels
         public bool IsMatchAwayScoreOriginal { get; set; }
         public bool IsLocalTimestampOriginal { get; set; }
         public bool IsAssociatedWithArbitraryData { get; set; }
+        public bool IsDisciplineOriginal { get; set; }
+        public bool IsLeagueNameOriginal { get; set; }
 
         public void SetUnparsedPickString(string unparsedPickString) => _unparsedPickString = unparsedPickString;
         public string GetUnparsedPickString() => _unparsedPickString;
@@ -154,5 +151,10 @@ namespace BettingBot.Source.ViewModels
         }
 
         public override string ToString() => $"{Id} - {DateString}, {MatchHomeName} - {MatchAwayName}, {TipsterName}";
+
+        public BetToAssociateGvVM ToBetToAssociateGvVM()
+        {
+            return BetConverter.ToBetToAssociateGvVM(this);
+        }
     }
 }

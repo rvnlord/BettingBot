@@ -91,7 +91,7 @@
                     </mah:Tile>
                 </StackPanel>
                 <Grid x:Name="gridContent">
-
+                    <Button x:Name="btnTEST" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="TEST" HorizontalAlignment="Left" Margin="420,0,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnTEST_Click" />
                     <mah:MetroAnimatedTabControl x:Name="matcMain"  Margin="0,0,0,0" Padding="0" BorderThickness="0" Background="Transparent">
                         <mah:MetroTabItem>
 
@@ -110,20 +110,53 @@
 
                             <mah:MetroTabItem.Content>
                                 <Grid x:Name="gridData">
-                                    <DataGrid x:Name="gvData" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="1335" Height="700" MaxHeight="700" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvData_Sorting" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" PreviewKeyDown="gvData_PreviewKeyDown" HorizontalScrollBarVisibility="Disabled">
+                                    <Grid x:Name="gridAssociateMatchPromptOuterContainer" Background="#C0000000" ZIndex="1" Visibility="Hidden">
+                                        <Border BorderBrush="White" BorderThickness="1" Width="612" Height="312" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <Grid x:Name="gridAssociateMatchPromptContainer" Background="#000080">
+                                                <Grid x:Name="gridAssociateMatchInnerContainer" Margin="5">
+                                                    <DataGrid x:Name="gvBetsToAssociate" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="600" Height="25" MaxHeight="25" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="false" HorizontalScrollBarVisibility="Disabled" HeadersVisibility="None">
+                                                        <DataGrid.Columns>
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Data" Binding="{Binding DateString}" Width="120" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Tipster" Binding="{Binding TipsterName}" Width="120" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Liga" Binding="{Binding LeagueName}" Width="100" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="U siebie" Binding="{Binding MatchHomeName}" Width="130" CellStyle="{StaticResource RightAlignedCellStyle}" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="*" CellStyle="{StaticResource LeftAlignedCellStyle}" />
+                                                        </DataGrid.Columns>
+                                                    </DataGrid>
+                                                    <Label x:Name="lblAssociateWithMatch" Content="Powiąż z:" Width="60" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
+                                                    <TextBox x:Name="txtSearchMatchToAssociate" Tag="Mecz do powiązania z zakładem..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="430" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="65,30,0,0" />
+                                                    <Button x:Name="btnSearchMatchToAssociateWithBet" Style="{DynamicResource MySquareButtonStyle}" Content="Szukaj" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="100" TabIndex="1" Margin="500,30,0,0" Click="btnSearchMatchToAssociateWithBet_Click" />
+                                                    <DataGrid x:Name="gvMatchesToAssociate" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,65,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="600" Height="200" MaxHeight="200" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="false" HorizontalScrollBarVisibility="Disabled" HeadersVisibility="None">
+                                                        <DataGrid.Columns>
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Data" Binding="{Binding DateString}" Width="120" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Liga" Binding="{Binding LeagueName}" Width="150" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="U siebie" Binding="{Binding MatchHomeName}" Width="165" CellStyle="{StaticResource RightAlignedCellStyle}" />
+                                                            <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="*" CellStyle="{StaticResource LeftAlignedCellStyle}" />
+                                                        </DataGrid.Columns>
+                                                    </DataGrid>
+                                                    <Button x:Name="btnAssociateBetWithMatch" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="Powiąż" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="150" TabIndex="1" Margin="140,270,0,0" Click="btnAssociateBetWithMatch_Click" />
+                                                    <Button x:Name="btnRemoveAssociationBetWithMatch" Style="{DynamicResource MySquareButtonStyle}" Content="Usuń powiązanie" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="150" TabIndex="3" Margin="295,270,0,0" Click="btnRemoveAssociationBetWithMatch_Click" />
+                                                    <Button x:Name="btnCancelAssociatingBetWithMatch" Style="{DynamicResource MySquareButtonStyle}" Content="Anuluj" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="150" TabIndex="2" Margin="450,270,0,0" Click="btnCancelAssociatingBetWithMatch_Click"/>
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    <DataGrid x:Name="gvData" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="1355" Height="700" MaxHeight="700" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvData_Sorting" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" PreviewKeyDown="gvData_PreviewKeyDown" HorizontalScrollBarVisibility="Disabled">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn IsReadOnly="True" Header="" Binding="{Binding IsAssociatedString}" Width="25" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Nr" Binding="{Binding Nr}" Width="50" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Tipster" Binding="{Binding TipsterString}" Width="150" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Dyscyplina" Binding="{Binding DisciplineString}" Width="100" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Liga" Binding="{Binding LeagueName}" Width="100" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Tipster" Binding="{Binding TipsterString}" Width="120" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Data" Binding="{Binding DateString}" Width="120" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="U siebie" Binding="{Binding MatchHomeName}" Width="150" CellStyle="{StaticResource RightAlignedCellStyle}" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="150" CellStyle="{StaticResource LeftAlignedCellStyle}" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Typ" Binding="{Binding PickString}" Width="150" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="U siebie" Binding="{Binding MatchHomeName}" Width="130" CellStyle="{StaticResource RightAlignedCellStyle}" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="130" CellStyle="{StaticResource LeftAlignedCellStyle}" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Typ" Binding="{Binding PickString}" Width="100" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Zakład" Binding="{Binding BetResultString}" Width="80" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Wynik" Binding="{Binding MatchResultString}" Width="80" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Kurs" Binding="{Binding OddsString}" Width="60" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Stawka" Binding="{Binding StakeString}" Width="100" />
-                                            <DataGridTextColumn IsReadOnly="True" Header="Profit" Binding="{Binding ProfitString}" Width="100" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Stawka" Binding="{Binding StakeString}" Width="80" />
+                                            <DataGridTextColumn IsReadOnly="True" Header="Profit" Binding="{Binding ProfitString}" Width="80" />
                                             <DataGridTextColumn IsReadOnly="True" Header="Budżet" Binding="{Binding BudgetString}" Width="*" />
                                         </DataGrid.Columns>
                                     </DataGrid>
@@ -177,7 +210,7 @@
 
                                 <Button x:Name="btnClearDatabase" Style="{DynamicResource MySquareButtonStyle}" Content="Wyczyść bazę" HorizontalAlignment="Left" Margin="236,350,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnClearDatabase_Click" />
                                 <Label x:Name="lblAdditionalField" Content="" HorizontalAlignment="Left" Margin="0,179,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numCoeffOnLose" HorizontalAlignment="Left" Margin="333,105,0,0" VerticalAlignment="Top" Width="100" Height="30" Minimum="0" Maximum="1000" TabIndex="0" Value="0" NumericInputMode="Numbers" IsEnabled="False" />
+                                <mah:NumericUpDown x:Name="numCoeffOnLose" HorizontalAlignment="Left" Margin="333,105,0,0" VerticalAlignment="Top" Width="100" Height="30" Minimum="0" Maximum="1000" TabIndex="0" Value="0" NumericInputMode="Decimal" StringFormat="{}{0:N2}" IsEnabled="False" />
                                 <Label x:Name="lblFilters" Content="Filtry:" HorizontalAlignment="Left" Margin="443,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Foreground="Blue" FontWeight="Bold"/>
                                 <Button x:Name="btnGet" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="Oblicz" HorizontalAlignment="Left" Margin="358,350,0,0" VerticalAlignment="Top" Height="30" Width="75" Click="btnCalculate_Click" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
                                 <Label x:Name="lblOnLose" Content="Przy porażce" HorizontalAlignment="Left" Margin="0,105,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
@@ -189,7 +222,7 @@
                                 <TextBox x:Name="txtNotes" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Notatki..."  TextWrapping="Wrap" VerticalAlignment="Top" Width="377" FontFamily="Segoe UI" Height="150" TabIndex="2" AcceptsReturn="True" Margin="56,384,0,0" IsReadOnly="True">
                                 </TextBox>
                                 <ComboBox x:Name="ddlStakingTypeOnWin" HorizontalAlignment="Left" Margin="147,140,0,0" VerticalAlignment="Top" Width="181" Height="30" />
-                                <mah:NumericUpDown x:Name="numCoeffOnWin" NumericInputMode="Numbers" HorizontalAlignment="Left" Margin="333,140,0,0" VerticalAlignment="Top" Width="100" Height="30" Minimum="0" Maximum="1000" TabIndex="0" Value="0" IsEnabled="False" />
+                                <mah:NumericUpDown x:Name="numCoeffOnWin" NumericInputMode="Decimal" StringFormat="{}{0:N2}" HorizontalAlignment="Left" Margin="333,140,0,0" VerticalAlignment="Top" Width="100" Height="30" Minimum="0" Maximum="1000" TabIndex="0" Value="0" IsEnabled="False" />
                                 <Label x:Name="lblOnWin" Content="Przy zwycięstwie" HorizontalAlignment="Left" Margin="0,140,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <Label x:Name="lblLoseCondition" Content="Warunek porażki:" HorizontalAlignment="Left" Margin="0,245,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <ComboBox x:Name="ddlLoseCondition" HorizontalAlignment="Left" Margin="216,245,0,0" VerticalAlignment="Top" Width="217" Height="30" />
@@ -286,7 +319,7 @@
                                         <mah:MetroTabItem.Content>
                                             <Grid x:Name="gridTipsters">
                                                 <Button x:Name="btnAddTipster" Content="Dodaj" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="100" Click="btnAddTipster_Click" TabIndex="1" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
-                                                <TextBox x:Name="txtTipsterName" Tag="Nazwa..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="200" FontFamily="Segoe UI" Height="30" AcceptsReturn="True" Margin="105,0,0,0" />
+                                                <TextBox x:Name="txtTipsterName" Tag="Nazwa..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="200" FontFamily="Segoe UI" Height="30" AcceptsReturn="False" Margin="105,0,0,0" />
                                                 <ComboBox x:Name="ddlTipsterDomain" HorizontalAlignment="Left" Margin="310,0,0,0" VerticalAlignment="Top" Width="323" Height="30" />
                                                 <TextBox x:Name="txtLoadDomain" Tag="Strona..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="207" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="0,375,0,0" />
                                                 <TextBox x:Name="txtLoadLogin" Tag="Login..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="207" FontFamily="Segoe UI" Height="30" TabIndex="104" AcceptsReturn="False" Margin="212,375,0,0" />
@@ -476,6 +509,9 @@
                                             <Grid>
                                                 <CheckBox x:Name="cbHideLoginPasswordsOption" Height="30" Content="Ukryj hasła w tabeli loginów" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Checked="cbHideLoginPasswordsOption_Checked" Unchecked="cbHideLoginPasswordsOption_Unchecked" />
                                                 <CheckBox x:Name="cbShowBrowserOnDataLoadingOption" Height="30" Content="Pokaż przeglądarkę podczas ładowania" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" IsChecked="True" />
+                                                <Label x:Name="lblFootballDataApiPublicKey" Content="Football-Data Klucz Api:" HorizontalAlignment="Left" Margin="0,70,0,0" VerticalAlignment="Top" Height="30" Width="160" VerticalContentAlignment="Center"/>
+                                                <TextBox x:Name="txtFootballDataApiPublicKey" Tag="klucz publiczny..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="213" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="165,70,-0.434,0" />
+                                                <CheckBox x:Name="cbIgnoreAssociatingTried" Height="30" Content="Nie powiązuj zakładów, które wcześniej próbowano" HorizontalAlignment="Left" Margin="0,105,0,0" VerticalAlignment="Top" IsChecked="True" />
                                             </Grid>
                                         </mah:MetroTabItem.Content>
                                     </mah:MetroTabItem>

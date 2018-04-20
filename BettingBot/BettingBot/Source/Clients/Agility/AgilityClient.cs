@@ -1,4 +1,6 @@
-﻿using BettingBot.Common;
+﻿using System;
+using BettingBot.Common;
+using BettingBot.Common.UtilityClasses;
 using BettingBot.Source.Clients.Agility.Betshoot;
 using RestSharp;
 
@@ -6,23 +8,22 @@ namespace BettingBot.Source.Clients.Agility
 {
     public abstract class AgilityClient : Client
     {
-        protected AgilityClient()
-        {
+        protected AgilityRestManager _arm;
 
+        protected AgilityClient(string address, TimeZoneKind timeZone) : base(address, timeZone)
+        {
+            _arm = new AgilityRestManager();
         }
 
-        protected virtual T Get<T>(string action, DeserializeResponse<T> deserializer) where T : ResponseBase
+        protected virtual T Get<T>(string action, DeserializeAgilityResponse<T> agilityDeserializer) where T : ResponseBase
         {
             var url = _address + action;
-            if (!url.EndsWith("/"))
-                url += "/";
-            var request = new RestRequest(Method.GET);
-            request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+            if (!url.EndsWith("/")) url += "/";
 
-            var rawResponse = new RestClient(url).Execute(request);
-            if (rawResponse == null || rawResponse.ContentLength == 0)
-                throw new BetshootException("Serwer zwrócił pustą wiadomość");
-            return deserializer(rawResponse.Content);
+            var html = _arm.GetHtml(url);
+            return agilityDeserializer(html, _arm);
         }
+
+        public delegate T DeserializeAgilityResponse<out T>(string html, AgilityRestManager arm) where T : ResponseBase;
     }
 }

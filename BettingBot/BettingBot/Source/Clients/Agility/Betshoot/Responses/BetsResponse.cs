@@ -13,7 +13,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
         public TipsterResponse Tipster { get; set; }
         public List<BetResponse> Bets { get; set; }
 
-        public BetsResponse Parse(string html, TipsterResponse tipster, ExtendedTime fromDateClientLocal, TimeZoneKind serverTimezone)
+        public BetsResponse Parse(string html, AgilityRestManager arm, TipsterResponse tipster, ExtendedTime fromDateClientLocal, TimeZoneKind serverTimezone)
         {
             HandleErrors(html);
 
@@ -40,19 +40,34 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                     .FirstChild.GetAttributeValue("alt", "");
                 
                 var pickStr = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("predict")).InnerText.RemoveHTMLSymbols();
-                var matchStr = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("pick-teams")).InnerText.RemoveHTMLSymbols();
+                var spanPickTeams = bp.Descendants("span").Single(x => x.GetAttributeValue("class", "").Equals("pick-teams"));
+                var aPickTeams = spanPickTeams.Descendants("a").SingleOrDefault();
+                var matchStr = (aPickTeams ?? spanPickTeams).InnerText.RemoveHTMLSymbols();
                 var rawMatchResultStr = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("mresult")).InnerText;
                 var odds = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("pick-odd")).InnerText.ToDouble();
 
+                var hrefAPickTeams = aPickTeams?.GetAttributeValue("href", "");
+                string disciplineStr = null;
+                string leagueName = null;
+                if (hrefAPickTeams != null)
+                {
+                    var disciplineLeagueStr = arm.GetHtml(hrefAPickTeams).HtmlRoot().Descendants("p")
+                        .Single(p => p.GetAttributeValue("class", "").Equals("post-byline2")).InnerText.RemoveHTMLSymbols().Split(" - ");
+                    disciplineStr = disciplineLeagueStr[0];
+                    leagueName = disciplineLeagueStr[1];
+                }
+                
                 var newBet = new BetResponse
                 {
                     Date = date,
                     HomeName = matchStr.BeforeFirst(" - "),
                     AwayName = matchStr.AfterFirst(" - "),
                     Pick = PickConverter.ParseToPickResponse(pickStr, matchStr),
-                    MatchResult = MatchResultConverter.ParseToMatchResultResponse(rawMatchResultStr),
+                    MatchResult = MatchConverter.ToMatchResultResponse(rawMatchResultStr),
                     BetResult = BetConverter.ParseBetshootResultStringToBetResult(mResult),
-                    Odds = odds
+                    Odds = odds,
+                    Discipline = DisciplineConverter.ToDisciplineTypeOrNull(disciplineStr),
+                    LeagueName = leagueName
                 };
 
                 if (fromDate != null && date < fromDate)

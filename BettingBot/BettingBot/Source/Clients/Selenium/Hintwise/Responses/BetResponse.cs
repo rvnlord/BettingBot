@@ -16,6 +16,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
         public MatchResult MatchResult { get; set; }
         public BetResult BetResult { get; set; }
         public double Odds { get; set; }
+        public DisciplineType Discipline { get; set; }
 
         public DbBet ToDbBet() => BetConverter.ToDbBet(this);
     }

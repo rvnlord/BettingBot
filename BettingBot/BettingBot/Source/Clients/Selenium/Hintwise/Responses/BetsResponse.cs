@@ -65,6 +65,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
                     sdm.EnableWaitingForElements();
 
                     var extDate = ParseDate(tdCurrPredRowCells[0].Text, previousDate, serverTimezone, ref year);
+                    var discipline = DisciplineConverter.ToDisciplineType(tdCurrPredRowCells[1].Text.Trim());
                     var matchStr = tdCurrPredRowCells[2].FindElement(By.TagName("a")).Text.RemoveHTMLSymbols().Trim();
                     var pickStr = isFree ? tdCurrPredRowCells[3].Text.UntilWithout("(").RemoveHTMLSymbols().Trim() : "Ukryty";
 
@@ -76,7 +77,8 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
                         Pick = PickConverter.ParseToPickResponse(pickStr, matchStr),
                         MatchResult = MatchResult.Inconclusive(),
                         BetResult = BetResult.Pending,
-                        Odds = 0
+                        Odds = 0,
+                        Discipline = discipline
                     };
                     newBets.Add(newBet);
                 }
@@ -100,6 +102,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
                     var tdHistPredRowCells = trHistPredRow.FindElements(By.TagName("td"));
 
                     var extDate = ParseDate(tdHistPredRowCells[0].Text, previousDate, serverTimezone, ref year);
+                    var discipline = DisciplineConverter.ToDisciplineType(tdHistPredRowCells[1].Text.Trim());
                     var matchStr = tdHistPredRowCells[2].FindElement(By.TagName("a")).Text.RemoveHTMLSymbols().Trim();
                     var pickStr = tdHistPredRowCells[3].Text.BeforeFirst("(").RemoveHTMLSymbols().Trim();
                     var rawMatchResultStr = tdHistPredRowCells[4].Text.RemoveHTMLSymbols().Trim();
@@ -113,9 +116,10 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
                         HomeName = matchStr.BeforeFirst(matchSep),
                         AwayName = matchStr.AfterFirst(matchSep),
                         Pick = PickConverter.ParseToPickResponse(pickStr, matchStr),
-                        MatchResult = MatchResultConverter.ParseToMatchResultResponse(rawMatchResultStr),
+                        MatchResult = MatchConverter.ToMatchResultResponse(rawMatchResultStr),
                         BetResult = betResult,
-                        Odds = odds
+                        Odds = odds,
+                        Discipline = discipline
                     };
 
                     previousDate = extDate;

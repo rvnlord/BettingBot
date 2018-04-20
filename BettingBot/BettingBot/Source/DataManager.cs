@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using BettingBot.Common;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext;
@@ -15,7 +17,8 @@ namespace BettingBot.Source
 {
     public class DataManager : InformationSender
     {
-        private LocalDbContext _db;
+        private static readonly object _lock = new object();
+        private readonly LocalDbContext _db;
 
         public DataManager()
         {
@@ -90,9 +93,16 @@ namespace BettingBot.Source
                 bet.PickId = pickId.ToInt();
                 bet.Pick = null; // nie dodawaj do bazy właściwości z innych tabel
             }
-            
+
             var minDate = bets.Select(b => b.OriginalDate).Min(); // min d z nowych, zawiera wszystkie z tą datą
             _db.Bets.RemoveBy(b => b.OriginalDate >= minDate && b.TipsterId == tipsterId);
+
+            var plusOneDay = minDate.AddDays(1);
+            var minusOneDay = minDate.AddDays(-1);
+            var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
+            var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
+            _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
+            
             _db.Bets.AddRange(bets.Distinct()); 
                 // 1. jeśli obstawiono 2x ten sam mecz, ale tip jest ukryty to powstanie duplikat, możemy go odrzucić, bo kiedy poznamy zakład, to i tak obydwa mecze zostaną załadowane.
                 // 2. bug hintwise mecze o tym samym czasie mogą być posortowane w dowolnej kolejności, czyli np na początku jednej strony i na końcu nastepnej mogą wystąpić te same, optymalnie poskakac po stronach pagera tam i z powrotem kilka razy
@@ -149,13 +159,32 @@ namespace BettingBot.Source
 
         public virtual List<DbBet> GetBets()
         {
-            
             return _db.Bets.Include(b => b.Tipster)
                 .Include(b => b.Match.Home)
                 .Include(b => b.Match.Away)
                 .Include(b => b.Pick)
+                .Include(b => b.Match.League.Discipline)
                 .AsEnumerable()
                 .OrderBy(b => b.Match?.Date ?? b.OriginalDate).ThenBy(b => b.Match?.Home?.Name ?? b.OriginalHomeName).ToList();
+        }
+
+        public virtual DbBet GetBetById(int id)
+        {
+            return _db.Bets.Include(b => b.Tipster)
+                .Include(b => b.Match.Home)
+                .Include(b => b.Match.Away)
+                .Include(b => b.Pick)
+                .Include(b => b.Match.League.Discipline)
+                .Single(b => b.Id == id);
+        }
+
+        public virtual List<DbMatch> GetMatches()
+        {
+            return _db.Matches.Include(m => m.League.Discipline)
+                .Include(m => m.Home)
+                .Include(m => m.Away)
+                .AsEnumerable()
+                .OrderBy(m => m.Date).ThenBy(m => m.Home.Name).ToList();
         }
 
         public virtual DbLogin AddLogin(DbLogin dbLogin)
@@ -188,7 +217,7 @@ namespace BettingBot.Source
 
         public virtual List<DbLogin> GetLogins()
         {
-            return _db.Logins.OrderBy(l => l.Name).ToList();
+            return _db.Logins.Include(l => l.Websites).OrderBy(l => l.Name).ToList();
         }
 
         private void AddWebsiteByAddress(IEnumerable<string> addresses, int loginId)
@@ -256,5 +285,316 @@ namespace BettingBot.Source
         {
             _db.Websites.RemoveUnused(_db.Tipsters.ButSelf());
         }
+
+        public DateTime? GetOldestUnassociatedMatchDate()
+        {
+            if (!_db.Bets.Any())
+                return null;
+            return _db.Bets.Where(b => b.MatchId == null).Select(b => b.OriginalDate).Min();
+        }
+
+        public DateTime? GetNewestUnassociatedMatchDate()
+        {
+            if (!_db.Bets.Any())
+                return null;
+            return _db.Bets.Where(b => b.MatchId == null).Select(b => b.OriginalDate).Max();
+        }
+
+        public void UpsertMatches(List<DbMatch> newMatches)
+        {
+            OnInformationSending($"Aktualizowanie meczy {_db.Matches.Count()} (dodawane: {newMatches.Count})");
+
+            if (!newMatches.Any())
+            {
+                OnInformationSending("Zaaktualizowano mecze");
+                return;
+            }
+
+            var matchesToAdd = newMatches.Distinct().ToArray();
+            var newMatchIds = matchesToAdd.Select(m => m.Id).ToArray();
+            var matchesToRemoveOriginal = _db.Matches.Include(m => m.Bets).Where(m => newMatchIds.Contains(m.Id)).ToList();
+            var matchesToRemove = matchesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var matches = matchesToRemove.Union(matchesToAdd.Except(matchesToRemove)).ToArray();
+
+            var betsToAdd = matchesToAdd.SelectMany(m => m.Bets).Distinct().ToArray();
+            var betsToRemoveOriginal = matchesToRemoveOriginal.SelectMany(m => m.Bets).Distinct().ToList();
+            var betsToRemove = betsToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var bets = betsToRemove.Union(betsToAdd.Except(betsToRemove)).ToArray();
+
+            _db.Bets.RemoveRange(betsToRemoveOriginal);
+            _db.Matches.RemoveRange(matchesToRemoveOriginal);
+            _db.SaveChanges();
+
+            foreach (var m in matches)
+                m.Bets = bets.Where(b => b.MatchId == m.Id).ToList();
+            _db.Matches.AddRange(matches);
+            _db.SaveChanges();
+
+            OnInformationSending($"Zaaktualizowano mecze ({_db.Matches.Count()})");
+        }
+
+        public void UpsertLeagues(List<DbLeague> newLeagues)
+        {
+            OnInformationSending("Aktualizowanie lig...");
+
+            if (!newLeagues.Any())
+            {
+                OnInformationSending("Zaaktualizowano ligi...");
+                return;
+            }
+
+            var leaguesToAdd = newLeagues.Distinct().ToArray();
+            var newLeagueIds = newLeagues.Select(l => l.Id).ToArray();
+            var leaguesToRemoveOriginal = _db.Leagues.Where(l => newLeagueIds.Contains(l.Id)).ToArray(); // uq: l.Name, l.Season, l.DisciplineId
+            var leaguesToRemove = leaguesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var leagues = leaguesToRemove.Union(leaguesToAdd.Except(leaguesToRemove)).ToArray();
+
+            var leagueAlternateNamesToAdd = leaguesToAdd.SelectMany(l => l.LeagueAlternateNames).Distinct().ToArray();
+            var leagueAlternateNamesToRemoveOriginal = leaguesToRemoveOriginal.SelectMany(l => l.LeagueAlternateNames).Distinct().ToArray(); // uq: id, altname
+            var leagueAlternateNamesToRemove = leagueAlternateNamesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var leagueAlternatenames = leagueAlternateNamesToRemove.Union(leagueAlternateNamesToAdd.Except(leagueAlternateNamesToRemove)).ToArray();
+
+            var disciplinesToAdd = leaguesToAdd.Select(l => l.Discipline).Where(d => d != null).Distinct().ToArray();
+            var disciplinesToRemoveOriginal = leaguesToRemoveOriginal.Select(l => l.Discipline).Where(d => d != null).Distinct().ToArray(); // uq: d.Id, d.Name
+            var disciplinesToRemove = disciplinesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var disciplines = disciplinesToRemove.Union(disciplinesToAdd.Except(disciplinesToRemove)).ToArray();
+            
+            _db.Disciplines.RemoveRange(disciplinesToRemoveOriginal);
+            _db.LeagueAlternateNames.RemoveRange(leagueAlternateNamesToRemoveOriginal);
+            _db.Leagues.RemoveRange(leaguesToRemoveOriginal);
+            _db.SaveChanges();
+
+            foreach (var l in leagues)
+            {
+                l.Discipline = disciplines.Single(d => d.Id == l.DisciplineId);
+                l.LeagueAlternateNames = leagueAlternatenames.Where(la => la.LeagueId == l.Id).ToList();
+            }
+            _db.Leagues.AddRange(leagues);
+            _db.SaveChanges();
+
+            OnInformationSending("Zaaktualizowano ligi...");
+        }
+
+        public void UpsertTeams(List<DbTeam> newTeams)
+        {
+            OnInformationSending("Aktualizowanie zespołów...");
+
+            if (!newTeams.Any())
+            {
+                OnInformationSending("Zaaktualizowano zespoły...");
+                return;
+            }
+
+            var teamsToAdd = newTeams.Distinct().ToArray();
+            var teamsToAddids = teamsToAdd.Select(m => m.Id).ToArray(); // unique id, name
+            var teamsToRemoveOriginal = _db.Teams.Include(t => t.HomeMatches).Include(t => t.AwayMatches).Where(t => teamsToAddids.Contains(t.Id)).ToArray();
+            var teamsToRemove = teamsToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var teams = teamsToRemove.Union(teamsToAdd.Except(teamsToRemove)).ToArray();
+
+            var teamAlternateNamesToAdd = teamsToAdd.SelectMany(t => t.TeamAlternateNames).Distinct().ToArray();
+            var teamAlternateNamesToRemoveOriginal = teamsToRemoveOriginal.SelectMany(t => t.TeamAlternateNames).Distinct().ToArray(); // uq: altname
+            var teamAlternateNamesToRemove = teamAlternateNamesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var teamAlternatenames = teamAlternateNamesToRemove.Union(teamAlternateNamesToAdd.Except(teamAlternateNamesToRemove)).ToArray();
+            
+            var matchesToAdd = teamsToAdd.SelectMany(t => t.HomeMatches).Union(teamsToRemove.SelectMany(t => t.AwayMatches)).Distinct().ToList();
+            var matchesToRemoveOriginal = teamsToRemoveOriginal.SelectMany(t => t.HomeMatches).Union(teamsToRemoveOriginal.SelectMany(t => t.AwayMatches)).Distinct().ToList();
+            var matchesToRemove = matchesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
+            var matches = matchesToRemove.Union(matchesToAdd.Except(matchesToRemove)).ToArray();
+            
+            _db.TeamAlternateNames.RemoveRange(teamAlternateNamesToRemoveOriginal);
+            _db.Matches.RemoveRange(matchesToRemoveOriginal);
+            _db.Teams.RemoveRange(teamsToRemoveOriginal);
+            _db.SaveChanges();
+
+            var teamAlternateNamesRemainingInDb = _db.TeamAlternateNames.Select(ta => ta.AlternateName).ToArray();
+
+            foreach (var t in teams)
+            {
+                t.HomeMatches = matches.Where(m => m.HomeId == t.Id).ToList();
+                t.AwayMatches = matches.Where(m => m.AwayId == t.Id).ToList();
+                t.TeamAlternateNames = teamAlternatenames.Where(ta => ta.TeamId == t.Id && !ta.AlternateName.EqAnyIgnoreCase(teamAlternateNamesRemainingInDb)).ToList(); // fix: np Ac Ajaccio (510) i GFC Ajaccio (555) mają ten sam skrót
+            }
+            _db.Teams.AddRange(teams);
+            _db.SaveChanges();
+            
+            OnInformationSending("Zaaktualizowano zespoły...");
+        }
+        
+        public List<DbLeague> GetLeaguesByYear(int year)
+        {
+            return !_db.Leagues.Any()
+                ? new List<DbLeague>()
+                : _db.Leagues.Where(l => l.Season == year).ToList();
+        }
+
+        public List<DbLeague> GetLeaguesBetweenYears(int yearFrom, int yearTo)
+        {
+            return !_db.Leagues.Any()
+                ? new List<DbLeague>()
+                : _db.Leagues
+                    .Include(l => l.Matches)
+                    .Where(l => l.Season >= yearFrom && l.Season <= yearTo).ToList();
+        }
+        
+        public int[] GetLeagueIdsBetweenYears(int yearFrom, int yearTo)
+        {
+            return !_db.Leagues.Any()
+                ? new int[0] 
+                : _db.Leagues.Where(l => l.Season >= yearFrom && l.Season <= yearTo).Select(l => l.Id).ToArray();
+        }
+
+        public int[] GetLeagueIds()
+        {
+            return !_db.Leagues.Any()
+                ? new int[0]
+                : _db.Leagues.Select(l => l.Id).ToArray();
+        }
+
+        public DateTime? GetOldestUnfinishedMatchDate()
+        {
+            if (!_db.Matches.Any())
+                return null;
+            var finished = MatchStatus.Finished.ToInt();
+            return _db.Matches.Where(m => m.Status != finished).Select(b => (DateTime?) b.Date).Min() // jesli null to wszystkie są skończone
+                ?? _db.Matches.Where(m => m.Status == finished).Select(b => b.Date).Max(); // wtedy weż datę ostatniego ukończonego
+        }
+
+        public List<int> AssociateBetsWithFootballDataMatchesAutomatically(bool ignoreBetsTriedToAssociateBefore)
+        {
+            OnInformationSending("Powiązywanie zakładów z meczami (Football-Data)...");
+            
+            var unassociatedIds = new List<int>();
+
+            List<DbBet> dbBets;
+
+            if (ignoreBetsTriedToAssociateBefore)
+            {
+                dbBets = _db.Bets.Include(b => b.Match.League.Discipline).Where(b => b.MatchId == null
+                    && (b.TriedAssociateWithMatch == null || b.TriedAssociateWithMatch == 0)
+                    && (b.Match == null || b.Match.League == null || b.Match.League.DisciplineId == null
+                        || b.Match.League.DisciplineId == 0)).ToList();
+            }
+            else
+            {
+                dbBets = _db.Bets.Include(b => b.Match.League.Discipline).Where(b => b.MatchId == null
+                    && (b.Match == null || b.Match.League == null || b.Match.League.DisciplineId == null 
+                        || b.Match.League.DisciplineId == 0)).ToList();
+            }
+            
+            var dbMatches = _db.Matches.Include(m => m.Home.TeamAlternateNames)
+                .Include(m => m.Away.TeamAlternateNames)
+                .Include(m => m.League).ToList();
+            var dbAllAltNames = _db.TeamAlternateNames.Select(ta => ta.AlternateName).ToList();
+
+            var i = 0;
+            var bCount = dbBets.Count;
+            var assosCount = 0;
+            var unassCount = 0;
+
+            var alternateNames = new List<DbTeamAlternateName>();
+
+            foreach (var b in dbBets)
+            {
+                OnInformationSending($"Powiązywanie zakładów z meczami ({++i} z {bCount}: p: {assosCount}, n: {unassCount})...");
+                var matchesWithMatchingName = dbMatches.Where(m =>
+                    m.Home.Name.EqIgnoreCase(b.OriginalHomeName)
+                    || b.OriginalHomeName.EqAnyIgnoreCase(m.Home.TeamAlternateNames.Select(ta => ta.AlternateName))
+                    || m.Away.Name.ToLower().EqIgnoreCase(b.OriginalAwayName)
+                    || b.OriginalAwayName.EqAnyIgnoreCase(m.Away.TeamAlternateNames.Select(ta => ta.AlternateName))).ToList();
+
+                var matchesWithMatchingDates = matchesWithMatchingName.Where(m => b.OriginalDate.Between(m.Date.SubtractDays(1), m.Date.AddDays(1)));
+
+                var match = matchesWithMatchingDates.OrderBy(m => m.Date).ThenBy(m => m.League.Season).FirstOrDefault(); // fix: football-data bug - pojedynczy mecz należy do dwóch lig np: Ligue 2 17/18 i 16/17
+
+                if (match != null)
+                {
+                    b.MatchId = match.Id;
+
+                    if (!b.OriginalHomeName.EqIgnoreCase(b.OriginalAwayName))
+                    {
+                        if (!b.OriginalHomeName.EqAnyIgnoreCase(match.Home.TeamAlternateNames.Select(ta => ta.AlternateName))
+                            && !b.OriginalHomeName.EqAnyIgnoreCase(dbAllAltNames))
+                        {
+                            alternateNames.Add(new DbTeamAlternateName
+                            {
+                                TeamId = match.HomeId,
+                                AlternateName = b.OriginalHomeName
+                            });
+                        }
+                        if (!b.OriginalAwayName.EqAnyIgnoreCase(match.Away.TeamAlternateNames.Select(ta => ta.AlternateName))
+                            && !b.OriginalAwayName.EqAnyIgnoreCase(dbAllAltNames))
+                        {
+                            alternateNames.Add(new DbTeamAlternateName
+                            {
+                                TeamId = match.AwayId,
+                                AlternateName = b.OriginalAwayName
+                            });
+                        }
+                    }
+
+                    assosCount++;
+
+                    OnInformationSending("Zapiosywanie powiązań zakładów z meczami...");
+
+                    if (assosCount % 100 == 0)
+                    {
+                        _db.TeamAlternateNames.AddRange(alternateNames.Distinct());
+                        _db.SaveChanges();
+                        dbAllAltNames.AddRange(alternateNames.Distinct().Select(ta => ta.AlternateName));
+                        alternateNames.Clear();
+                    }
+
+                    OnInformationSending("Zapiosano powiązania zakładów z meczami");
+                }
+                else // if (match == null)
+                {
+                    unassociatedIds.Add(b.Id);
+                    unassCount++;
+                }
+
+                b.TriedAssociateWithMatch = true.ToInt();
+            }
+
+            OnInformationSending("Zapiosywanie powiązań zakładów z meczami...");
+            
+            _db.TeamAlternateNames.AddRange(alternateNames.Distinct());
+            _db.SaveChanges();
+
+            OnInformationSending("Powiązano zakłady z meczami (Football-Data)");
+
+            return unassociatedIds;
+        }
+
+        public void AssociateBetWithMatchById(int betId, int matchId)
+        {
+            _db.Bets.Single(b => b.Id == betId).MatchId = matchId;
+            _db.SaveChanges();
+        }
+
+        public void RemoveMatchIdFromBetById(int betId)
+        {
+            _db.Bets.Single(b => b.Id == betId).MatchId = null;
+            _db.SaveChanges();
+        }
+
+        //private void WithDisabledConstraints(Action action)
+        //{
+        //    _db.Database.Connection.Open();
+
+        //    _db.Database.ExecuteSqlCommand("PRAGMA foreign_keys=OFF;");
+        //    _db.Database.ExecuteSqlCommand("PRAGMA ignore_check_constraints=true;");
+
+        //    action();
+
+        //    _db.Database.ExecuteSqlCommand("PRAGMA foreign_keys=ON;");
+        //    _db.Database.ExecuteSqlCommand("PRAGMA ignore_check_constraints=false;");
+
+        //    _db.Database.Connection.Close();
+        //}
+
+        //private void SaveChangesWithDisabledConstraints()
+        //{
+        //    WithDisabledConstraints(() => _db.SaveChanges());
+        //}
     }
 }

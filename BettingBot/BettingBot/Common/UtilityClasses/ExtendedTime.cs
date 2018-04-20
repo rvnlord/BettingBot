@@ -52,6 +52,18 @@ namespace BettingBot.Common.UtilityClasses
             TimeZone = timeZone;
         }
 
+        public ExtendedTime(int year, int month, int day, TimeZoneKind timeZone = TimeZoneKind.UTC)
+        {
+            Rfc1123 = new DateTime(year, month, day);
+            TimeZone = timeZone;
+        }
+
+        public ExtendedTime(int year, int month, int day, int hour, int minute, int second, TimeZoneKind timeZone = TimeZoneKind.UTC)
+        {
+            Rfc1123 = new DateTime(year, month, day, hour, minute, second);
+            TimeZone = timeZone;
+        }
+
         public ExtendedTime ToTimezone(TimeZoneKind timeZone)
         {
             if (timeZone == TimeZoneKind.CurrentLocal)

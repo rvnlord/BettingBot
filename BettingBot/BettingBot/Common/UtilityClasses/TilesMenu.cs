@@ -221,8 +221,8 @@ namespace BettingBot.Common.UtilityClasses
                     var tileHalfH = _tlMoving.Height / 2;
 
                     if (_tlMoving == null) return;
-                    var tilesMovingUp = dummyTiles.Where(tl => (_tlMoving.PositionY() + _tlMoving.Height - (tl.PositionY() + tileHalfH)).Between(0, tileHalfH)).ToArray();
-                    var tilesMovingDown = dummyTiles.Where(tl => (tl.PositionY() + tileHalfH - _tlMoving.PositionY()).Between(0, tileHalfH)).ToArray();
+                    var tilesMovingUp = dummyTiles.Where(tl => (_tlMoving.PositionY() + _tlMoving.Height - (tl.PositionY() + tileHalfH)).BetweenExcl(0, tileHalfH)).ToArray();
+                    var tilesMovingDown = dummyTiles.Where(tl => (tl.PositionY() + tileHalfH - _tlMoving.PositionY()).BetweenExcl(0, tileHalfH)).ToArray();
                     var matchingDummyTIles = tilesMovingUp.Concat(tilesMovingDown).Except(_switchingTIles).ToArray();
                     if (matchingDummyTIles.Length > 1) throw new ArgumentException($"{nameof(matchingDummyTIles)}.Length is greater than 1");
                     if (matchingDummyTIles.Length == 1)

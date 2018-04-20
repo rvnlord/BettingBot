@@ -22,6 +22,7 @@ namespace BettingBot.Source.DbContext
         public virtual DbSet<DbTeam> Teams { get; set; }
         public virtual DbSet<DbTeamAlternateName> TeamAlternateNames { get; set; }
         public virtual DbSet<DbLeague> Leagues { get; set; }
+        public virtual DbSet<DbLeagueAlternateName> LeagueAlternateNames { get; set; }
         public virtual DbSet<DbDiscipline> Disciplines { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -61,21 +62,29 @@ namespace BettingBot.Source.DbContext
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new IndexAttribute("uq_bets", 5)));
+            modelBuilder.Entity<DbBet>()
+                .Property(e => e.OriginalDiscipline)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("uq_bets", 6)));
 
             modelBuilder.Entity<DbBet>()
                 .HasRequired(e => e.Tipster)
                 .WithMany(e => e.Bets)
-                .HasForeignKey(e => e.TipsterId);
+                .HasForeignKey(e => e.TipsterId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<DbBet>()
                 .HasRequired(e => e.Pick)
                 .WithMany(e => e.Bets)
-                .HasForeignKey(e => e.PickId);
+                .HasForeignKey(e => e.PickId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<DbBet>()
                 .HasOptional(e => e.Match)
                 .WithMany(e => e.Bets)
-                .HasForeignKey(e => e.MatchId);
+                .HasForeignKey(e => e.MatchId)
+                .WillCascadeOnDelete(false);
 
             // Match
 
@@ -111,22 +120,26 @@ namespace BettingBot.Source.DbContext
             modelBuilder.Entity<DbMatch>()
                 .HasRequired(e => e.Home)
                 .WithMany(e => e.HomeMatches)
-                .HasForeignKey(e => e.HomeId);
+                .HasForeignKey(e => e.HomeId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<DbMatch>()
                 .HasRequired(e => e.Away)
                 .WithMany(e => e.AwayMatches)
-                .HasForeignKey(e => e.AwayId);
+                .HasForeignKey(e => e.AwayId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<DbMatch>()
                 .HasRequired(e => e.League)
                 .WithMany(e => e.Matches)
-                .HasForeignKey(e => e.LeagueId);
+                .HasForeignKey(e => e.LeagueId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<DbMatch>()
                 .HasMany(e => e.Bets)
                 .WithOptional(e => e.Match)
-                .HasForeignKey(e => e.MatchId);
+                .HasForeignKey(e => e.MatchId)
+                .WillCascadeOnDelete(false);
 
             // Teams
 
@@ -147,27 +160,47 @@ namespace BettingBot.Source.DbContext
             modelBuilder.Entity<DbTeam>()
                 .HasMany(e => e.HomeMatches)
                 .WithRequired(e => e.Home)
-                .HasForeignKey(e => e.HomeId);
+                .HasForeignKey(e => e.HomeId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<DbTeam>()
                 .HasMany(e => e.AwayMatches)
                 .WithRequired(e => e.Away)
-                .HasForeignKey(e => e.AwayId);
+                .HasForeignKey(e => e.AwayId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<DbTeam>()
+                .HasMany(e => e.TeamAlternateNames)
+                .WithRequired(e => e.Team)
+                .HasForeignKey(e => e.TeamId)
+                .WillCascadeOnDelete(false);
 
             // TeamAlternateNames
 
             modelBuilder.Entity<DbTeamAlternateName>()
-                .HasKey(e => e.AternateName)
+                .HasKey(e => e.AlternateName)
                 .ToTable("tblTeamAlternateNames");
 
             modelBuilder.Entity<DbTeamAlternateName>()
-                .Property(e => e.AternateName)
+                .Property(e => e.AlternateName)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("uq_teamsalternatenames_alternatenameteamid", 0)));
+            modelBuilder.Entity<DbTeamAlternateName>()
+                .Property(e => e.TeamId)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("uq_teamsalternatenames_alternatenameteamid", 1)));
+
+            modelBuilder.Entity<DbTeamAlternateName>()
+                .Property(e => e.AlternateName)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
 
             modelBuilder.Entity<DbTeamAlternateName>()
                 .HasRequired(e => e.Team)
                 .WithMany(e => e.TeamAlternateNames)
-                .HasForeignKey(e => e.TeamId);
+                .HasForeignKey(e => e.TeamId)
+                .WillCascadeOnDelete(false);
 
             // Leagues
 
@@ -196,11 +229,34 @@ namespace BettingBot.Source.DbContext
                     new IndexAnnotation(new IndexAttribute("uq_leagues", 3)));
 
             modelBuilder.Entity<DbLeague>()
-                .HasRequired(e => e.Discipline)
+                .HasOptional(e => e.Discipline)
                 .WithMany(e => e.Leagues)
-                .HasForeignKey(e => e.DisciplineId);
+                .HasForeignKey(e => e.DisciplineId)
+                .WillCascadeOnDelete(false);
 
-            // tblDisciplines
+            modelBuilder.Entity<DbLeague>()
+                .HasMany(e => e.LeagueAlternateNames)
+                .WithRequired(e => e.League)
+                .HasForeignKey(e => e.LeagueId)
+                .WillCascadeOnDelete(false);
+
+            // LeagueAlternateNames
+
+            modelBuilder.Entity<DbLeagueAlternateName>()
+                .HasKey(e => new { e.AlternateName, e.LeagueId })
+                .ToTable("tblLeagueAlternateNames");
+
+            modelBuilder.Entity<DbLeagueAlternateName>()
+                .Property(e => e.AlternateName)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+
+            modelBuilder.Entity<DbLeagueAlternateName>()
+                .HasRequired(e => e.League)
+                .WithMany(e => e.LeagueAlternateNames)
+                .HasForeignKey(e => e.LeagueId)
+                .WillCascadeOnDelete(false);
+
+            // Disciplines
 
             modelBuilder.Entity<DbDiscipline>()
                 .HasKey(e => e.Id)
@@ -212,8 +268,9 @@ namespace BettingBot.Source.DbContext
 
             modelBuilder.Entity<DbDiscipline>()
                 .HasMany(e => e.Leagues)
-                .WithRequired(e => e.Discipline)
-                .HasForeignKey(e => e.DisciplineId);
+                .WithOptional(e => e.Discipline)
+                .HasForeignKey(e => e.DisciplineId)
+                .WillCascadeOnDelete(false);
 
             // Tipsters
 
@@ -228,7 +285,8 @@ namespace BettingBot.Source.DbContext
             modelBuilder.Entity<DbTipster>()
                 .HasMany(e => e.Bets)
                 .WithRequired(e => e.Tipster)
-                .HasForeignKey(e => e.TipsterId);
+                .HasForeignKey(e => e.TipsterId)
+                .WillCascadeOnDelete(false);
 
             // Picks
 
@@ -243,7 +301,8 @@ namespace BettingBot.Source.DbContext
             modelBuilder.Entity<DbPick>()
                 .HasMany(e => e.Bets)
                 .WithRequired(e => e.Pick)
-                .HasForeignKey(e => e.PickId);
+                .HasForeignKey(e => e.PickId)
+                .WillCascadeOnDelete(false);
             
             // Logins
 
@@ -284,7 +343,8 @@ namespace BettingBot.Source.DbContext
             modelBuilder.Entity<DbWebsite>()
                 .HasMany(e => e.Tipsters)
                 .WithOptional(e => e.Website)
-                .HasForeignKey(e => e.WebsiteId);
+                .HasForeignKey(e => e.WebsiteId)
+                .WillCascadeOnDelete(false);
 
             // Options
 

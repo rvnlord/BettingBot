@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using BettingBot.Source.Converters;
+using BettingBot.Source.ViewModels;
 
 namespace BettingBot.Source.DbContext.Models
 {
@@ -9,10 +11,10 @@ namespace BettingBot.Source.DbContext.Models
         public DateTime Date { get; set; }
         public int Status { get; set; }
         public int MatchDay { get; set; }
-        public int HomeScore { get; set; }
-        public int AwayScore { get; set; }
-        public int HomeScoreHalf { get; set; }
-        public int AwayScoreHalf { get; set; }
+        public int? HomeScore { get; set; }
+        public int? AwayScore { get; set; }
+        public int? HomeScoreHalf { get; set; }
+        public int? AwayScoreHalf { get; set; }
 
         public int HomeId { get; set; }
         public int AwayId { get; set; }
@@ -40,6 +42,16 @@ namespace BettingBot.Source.DbContext.Models
                 * HomeId.GetHashCode() ^ 11
                 * AwayId.GetHashCode() ^ 17
                 * LeagueId.GetHashCode() ^ 23;
+        }
+
+        public DbMatch CopyWithoutNavigationProperties()
+        {
+            return MatchConverter.CopyWithoutNavigationProperties(this);
+        }
+
+        public MatchToAssociateGvVM ToMatchToAssociateGvVM()
+        {
+            return MatchConverter.ToMatchToAssociateGvVM(this);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace BettingBot.Source.Clients.Selenium
+﻿using BettingBot.Common.UtilityClasses;
+
+namespace BettingBot.Source.Clients.Selenium
 {
     public abstract class SeleniumClient : Client
     {
@@ -7,7 +9,7 @@
         protected bool _headlessMode;
         protected SeleniumDriverManager _sdm;
 
-        protected SeleniumClient(string login, string password, bool headlessMode)
+        protected SeleniumClient(string address, TimeZoneKind timeZone, string login, string password, bool headlessMode) : base(address, timeZone)
         {
             _login = login;
             _password = password;

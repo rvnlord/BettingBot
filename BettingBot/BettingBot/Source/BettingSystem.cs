@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
 
@@ -76,8 +77,19 @@ namespace BettingBot.Source
 
         public void ApplyFilters()
         {
-            FilteredBets = Filters
+            var rawFilteredBets = Filters
                 .Aggregate(InitialBets, (bets, filter) => filter.Apply(bets));
+            MaintainOrder(rawFilteredBets);
+            FilteredBets = rawFilteredBets;
+        }
+
+        private void MaintainOrder(List<BetToDisplayGvVM> bets)
+        {
+            var concludedBets = bets.Where(b => b.BetResult != BetResult.Pending).OrderBy(b => b.LocalTimestamp)
+                .ThenBy(b => b.MatchHomeName).ToList();
+            var pendingBets = bets.Where(b => b.BetResult == BetResult.Pending).OrderBy(b => b.LocalTimestamp)
+                .ThenBy(b => b.MatchHomeName).ToList();
+            bets.ReplaceAll(concludedBets.Concat(pendingBets));
         }
 
         private bool IsLost(double budget, double previousBudget, double maxBudget)
@@ -104,6 +116,7 @@ namespace BettingBot.Source
                 ApplyStakingForAggregation();
             else
                 ApplyStakingForIndividual();
+            MaintainOrder(Bets);
         }
 
         private void ApplyStakingForIndividual()

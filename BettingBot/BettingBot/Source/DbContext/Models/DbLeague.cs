@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BettingBot.Source.Converters;
 
 namespace BettingBot.Source.DbContext.Models
 {
@@ -8,10 +9,11 @@ namespace BettingBot.Source.DbContext.Models
         public string Name { get; set; }
         public int Season { get; set; }
 
-        public int DisciplineId { get; set; }
+        public int? DisciplineId { get; set; }
 
         public virtual DbDiscipline Discipline { get; set; }
         public virtual IList<DbMatch> Matches { get; set; } = new List<DbMatch>();
+        public virtual IList<DbLeagueAlternateName> LeagueAlternateNames { get; set; } = new List<DbLeagueAlternateName>();
 
         public override bool Equals(object obj)
         {
@@ -27,7 +29,12 @@ namespace BettingBot.Source.DbContext.Models
         {
             return Name.GetHashCode() ^ 19 
                 * Season.GetHashCode() ^ 23
-                * DisciplineId ^ 29;
+                * DisciplineId.GetHashCode() ^ 29;
+        }
+
+        public DbLeague CopyWithoutNavigationProperties()
+        {
+            return LeagueConverter.CopyWithoutNavigationProperties(this);
         }
     }
 }

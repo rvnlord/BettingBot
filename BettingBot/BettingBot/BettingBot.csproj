@@ -40,6 +40,9 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=6.2.2.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
+    </Reference>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
       <Private>True</Private>
@@ -143,6 +146,9 @@
     <Reference Include="WebDriver.Support, Version=3.11.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Selenium.Support.3.11.0\lib\net45\WebDriver.Support.dll</HintPath>
     </Reference>
+    <Reference Include="websocket-sharp, Version=1.0.1.0, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>..\packages\WebSocketSharp-netstandard.1.0.1\lib\net45\websocket-sharp.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -156,19 +162,37 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\AutomapperConfiguration.cs" />
     <Compile Include="Common\UtilityClasses\ActionStatus.cs" />
+    <Compile Include="Common\UtilityClasses\ApiFlag.cs" />
+    <Compile Include="Common\UtilityClasses\ApiFlags.cs" />
     <Compile Include="Common\UtilityClasses\ContextMenu.cs" />
     <Compile Include="Common\UtilityClasses\ContextMenuItem.cs" />
     <Compile Include="Common\UtilityClasses\ContextMenusManager.cs" />
     <Compile Include="Common\UtilityClasses\ExtendedTime.cs" />
+    <Compile Include="Common\UtilityClasses\Parameter.cs" />
+    <Compile Include="Common\UtilityClasses\Parameters.cs" />
     <Compile Include="Common\UtilityClasses\TilesMenu.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Source\Clients\Agility\AgilityRestManager.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\BetshootException.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\BetResponse.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\BetshootResponse.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\BetsResponse.cs" />
+    <Compile Include="Source\Clients\Api\ApiAuthenticatedRequest.cs" />
+    <Compile Include="Source\Clients\Api\ApiClient.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\FootballDataAuthenticatedRequest.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\FootballDataClient.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\FootballDataException.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\CompetitionResponse.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\CompetitionsResponse.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\FixtureResponse.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\FixturesResponse.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\FootballDataResponse.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\TeamResponse.cs" />
+    <Compile Include="Source\Clients\Api\FootballData\Responses\TeamsResponse.cs" />
     <Compile Include="Source\Clients\Responses\PickResponse.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\TipsterAddressResponse.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\TipsterResponse.cs" />
@@ -177,6 +201,10 @@
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\BetResponse.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\BetsResponse.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\HintwiseResponse.cs" />
+    <Compile Include="Source\Converters\DisciplineConverter.cs" />
+    <Compile Include="Source\Converters\LeagueConverter.cs" />
+    <Compile Include="Source\Converters\TeamConverter.cs" />
+    <Compile Include="Source\DbContext\Models\DbLeagueAlternateName.cs" />
     <Compile Include="Source\Models\MatchResult.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\TipsterAddressResponse.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\TipsterResponse.cs" />
@@ -196,8 +224,9 @@
     <Compile Include="Source\DbContext\Models\DbTeam.cs" />
     <Compile Include="Source\DbContext\Models\DbTeamAlternateName.cs" />
     <Compile Include="Source\InformationSender.cs" />
-    <Compile Include="Source\Converters\MatchResultConverter.cs" />
+    <Compile Include="Source\Converters\MatchConverter.cs" />
     <Compile Include="Source\Converters\PickConverter.cs" />
+    <Compile Include="Source\ViewModels\BetToAssociateGvVM.cs" />
     <Compile Include="Source\ViewModels\Collections\AggregatedWinLoseStatisticsGvVM.cs" />
     <Compile Include="Source\DbContext\Models\DbBet.cs" />
     <Compile Include="Source\BettingSystem.cs" />
@@ -225,10 +254,11 @@
     <Compile Include="Common\UtilityClasses\INotifyPropertyChangedUtils.cs" />
     <Compile Include="Source\ViewModels\Collections\ProfitByPeriodStatisticsGvVM.cs" />
     <Compile Include="Source\SearchEngine.cs" />
-    <Compile Include="Source\SeleniumDriverManager.cs" />
+    <Compile Include="Source\Clients\Selenium\SeleniumDriverManager.cs" />
     <Compile Include="Source\Clients\Selenium\Asianodds\AsianOddsClient.cs" />
     <Compile Include="Source\Clients\Selenium\Cloudbet\CloudBetClient.cs" />
     <Compile Include="Source\DbContext\Models\DbTipster.cs" />
+    <Compile Include="Source\ViewModels\MatchToAssociateGvVM.cs" />
     <Compile Include="Source\ViewModels\ProfitByPeriodStatisticGvVM.cs" />
     <Compile Include="Source\ViewModels\TipsterGvVM.cs" />
     <Compile Include="Common\Utilities.cs" />

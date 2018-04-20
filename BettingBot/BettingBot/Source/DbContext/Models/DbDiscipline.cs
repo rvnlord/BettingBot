@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BettingBot.Source.Converters;
 
 namespace BettingBot.Source.DbContext.Models
 {
@@ -20,6 +21,11 @@ namespace BettingBot.Source.DbContext.Models
         public override int GetHashCode()
         {
             return Name.GetHashCode() ^ 387;
+        }
+
+        public DbDiscipline CopyWithoutNavigationProperties()
+        {
+            return DisciplineConverter.CopyWithoutNavigationProperties(this);
         }
     }
 }

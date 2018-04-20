@@ -59,6 +59,19 @@ namespace BettingBot.Common
         }
     }
 
+    public static class TUtils
+    {
+        public static void SwapIf<T>(Func<T, T, bool> cond, ref T o1, ref T o2)
+        {
+            if (cond(o1, o2))
+            {
+                var temp = o1;
+                o1 = o2;
+                o2 = temp;
+            }
+        }
+    }
+
     public static class PointUtils
     {
         public static Point ScreenCenter()
@@ -80,7 +93,7 @@ namespace BettingBot.Common
         }
     }
 
-    public static class GridViewSelectionUtilities
+    public static class GridViewSelectionUtils
     {
         private static bool _isSyncingSelection;
         private static readonly List<Tuple<WeakReference, List<DataGrid>>> _collectionToGridViews = new List<Tuple<WeakReference, List<DataGrid>>>();
@@ -88,7 +101,7 @@ namespace BettingBot.Common
         public static readonly DependencyProperty SelectedItemsProperty = DependencyProperty.RegisterAttached(
             "SelectedItems",
             typeof(INotifyCollectionChanged),
-            typeof(GridViewSelectionUtilities),
+            typeof(GridViewSelectionUtils),
             new PropertyMetadata(null, OnSelectedItemsChanged));
 
         public static INotifyCollectionChanged GetSelectedItems(DependencyObject obj)
