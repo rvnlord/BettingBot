@@ -99,7 +99,7 @@ namespace BettingBot.Source
 
             var plusOneDay = minDate.AddDays(1);
             var minusOneDay = minDate.AddDays(-1);
-            var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
+            var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay && b.TipsterId == tipsterId).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
             var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
             _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
             
@@ -314,12 +314,30 @@ namespace BettingBot.Source
             var newMatchIds = matchesToAdd.Select(m => m.Id).ToArray();
             var matchesToRemoveOriginal = _db.Matches.Include(m => m.Bets).Where(m => newMatchIds.Contains(m.Id)).ToList();
             var matchesToRemove = matchesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
-            var matches = matchesToRemove.Union(matchesToAdd.Except(matchesToRemove)).ToArray();
+            var matches = matchesToRemove.Union(matchesToAdd.Except(matchesToRemove)).ToList();
 
             var betsToAdd = matchesToAdd.SelectMany(m => m.Bets).Distinct().ToArray();
             var betsToRemoveOriginal = matchesToRemoveOriginal.SelectMany(m => m.Bets).Distinct().ToList();
             var betsToRemove = betsToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
             var bets = betsToRemove.Union(betsToAdd.Except(betsToRemove)).ToArray();
+            bets.ForEach(b => b.TriedAssociateWithMatch = false.ToInt());
+
+            var matchesDistinctById = matches.DistinctBy(m => m.Id).ToArray();
+            if (matches.Count != matchesDistinctById.Length)
+            {
+                var sameIds = matches.Except(matchesDistinctById).Select(m => m.Id).ToArray();
+                foreach (var id in sameIds)
+                {
+                    var duplicatesById = matches.Where(m => m.Id == id).ToArray();
+                    var correctMatch = duplicatesById.MaxBy(m => m.Date);
+                    var incorrectmatches = duplicatesById.ExceptBy(correctMatch, m => m.Date).ToArray();
+                    matches.RemoveRange(incorrectmatches);
+                }
+            }
+                // fix dla Unique (PRIMARY KEY) Constraint failed, ponieważ baza Football-Data potrafi zwrócić dwa mecze o tym samym Id
+                // matches.Where(m => matches.Any(om => om.Id == m.Id && m != om)).ToArray()
+                // [0]: {22-04-2018 13:00 107 () - 450 () - 456 ()
+                // [1]: {23-04-2018 18:45 107 () - 450 () - 456 ()
 
             _db.Bets.RemoveRange(betsToRemoveOriginal);
             _db.Matches.RemoveRange(matchesToRemoveOriginal);
@@ -577,6 +595,12 @@ namespace BettingBot.Source
             _db.SaveChanges();
         }
 
+        public DbLogin GetLoginByWebsite(string url)
+        {
+            var domain = url.UrlToDomain().ToLower();
+            return _db.Websites.Include(w => w.Login).SingleOrDefault(w => w.Address.ToLower() == domain)?.Login;
+        }
+
         //private void WithDisabledConstraints(Action action)
         //{
         //    _db.Database.Connection.Open();
@@ -596,5 +620,7 @@ namespace BettingBot.Source
         //{
         //    WithDisabledConstraints(() => _db.SaveChanges());
         //}
+
+
     }
 }

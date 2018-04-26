@@ -22,12 +22,10 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
 
             OnInformationSending("Ustalono dane Tipstera");
 
-            return new TipsterResponse
-            {
-                Name = tipsterName,
-                Domain = tipsterDomain,
-                Address = originalAddress
-            };
+            Name = tipsterName;
+            Domain = tipsterDomain;
+            Address = originalAddress;
+            return this;
         }
 
         public DbTipster ToDbTipster()

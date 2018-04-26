@@ -324,7 +324,7 @@
                                                 <TextBox x:Name="txtLoadDomain" Tag="Strona..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="207" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="0,375,0,0" />
                                                 <TextBox x:Name="txtLoadLogin" Tag="Login..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="207" FontFamily="Segoe UI" Height="30" TabIndex="104" AcceptsReturn="False" Margin="212,375,0,0" />
                                                 <TextBox x:Name="txtLoadPassword" Tag="Hasło..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="209" FontFamily="Segoe UI" Height="30" TabIndex="102" AcceptsReturn="False" Margin="424,375,0,0" />
-                                                <DataGrid x:Name="gvTipsters" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="633" Height="300" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvTipsters_PreviewKeyDown" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvTipsters_Sorting">
+                                                <DataGrid x:Name="gvTipsters" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="633" Height="300" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvTipsters_PreviewKeyDown" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvTipsters_Sorting" HorizontalScrollBarVisibility="Hidden">
                                                     <DataGrid.Columns>
                                                         <DataGridTextColumn IsReadOnly="True" Header="Imię" Binding="{Binding Name}" Width="120" />
                                                         <DataGridTextColumn IsReadOnly="True" Header="Strona" Binding="{Binding DomainWithOp}" Width="120" />
@@ -337,7 +337,7 @@
                                                 </DatePicker>
                                                 <Button x:Name="btnSaveLogin" Content="Zapisz Zaznaczony" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="207" Click="btnSaveLogin_Click" TabIndex="1" Margin="0,410,0,0" />
                                                 <Button x:Name="btnAddNewLogin" Content="Dodaj Nowy Login" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="207" Click="btnAddNewLogin_Click" TabIndex="1" Margin="212,410,0,0" />
-                                                <DataGrid x:Name="gvLogins" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,445,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="633" Height="162" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvLogins_PreviewKeyDown" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvLogins_Sorting">
+                                                <DataGrid x:Name="gvLogins" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,445,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="633" Height="162" MaxHeight="300" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" PreviewKeyDown="gvLogins_PreviewKeyDown" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvLogins_Sorting" HorizontalScrollBarVisibility="Hidden">
                                                     <DataGrid.Columns>
                                                         <DataGridTextColumn IsReadOnly="True" Header="Strony" Binding="{Binding AddressesString}" Width="*" />
                                                         <DataGridTextColumn IsReadOnly="True" Header="Login" Binding="{Binding Name}" Width="*" />
@@ -394,7 +394,7 @@
 
                             <Grid Margin="0,60,0,0">
 
-                                <DataGrid x:Name="gvAggregatedWinsLosesStatistics" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="150" Height="185" MaxHeight="185" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvAggregatedWinsLosesStatistics_Sorting">
+                                <DataGrid x:Name="gvAggregatedWinsLosesStatistics" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="150" Height="185" MaxHeight="185" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" Sorting="gvAggregatedWinsLosesStatistics_Sorting" HorizontalScrollBarVisibility="Hidden">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn IsReadOnly="True" Header="Ilość" Binding="{Binding Count}" Width="50" />
                                         <DataGridTextColumn IsReadOnly="True" Header="P" Binding="{Binding Loses}" Width="*" />
@@ -404,7 +404,7 @@
 
                                 <ComboBox x:Name="ddlProfitByPeriodStatistics" HorizontalAlignment="Left" Margin="155,0,0,0" VerticalAlignment="Top" Width="278" Height="30" />
 
-                                <DataGrid x:Name="gvProfitByPeriodStatistics" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="155,35,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="278" Height="150" MaxHeight="150" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvProfitByPeriodStatistics_Sorting"  CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true">
+                                <DataGrid x:Name="gvProfitByPeriodStatistics" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="155,35,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="278" Height="150" MaxHeight="150" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvProfitByPeriodStatistics_Sorting"  CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" HorizontalScrollBarVisibility="Hidden">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn IsReadOnly="True" Header="Okres" Binding="{Binding Period}" Width="107" />
                                         <DataGridTextColumn IsReadOnly="True" Header="Profit" Binding="{Binding ProfitStr}" Width="107" />
@@ -412,7 +412,7 @@
                                     </DataGrid.Columns>
                                 </DataGrid>
 
-                                <DataGrid x:Name="gvGeneralStatistics" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,190,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="433" Height="335" MaxHeight="335" AllowDrop="True" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="false">
+                                <DataGrid x:Name="gvGeneralStatistics" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,190,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="433" Height="335" MaxHeight="335" AllowDrop="True" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="false" HorizontalScrollBarVisibility="Hidden">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn IsReadOnly="True" Header="Statystyka" Binding="{Binding Name}" Width="*" />
                                         <DataGridTextColumn IsReadOnly="True" Header="Wartość" Binding="{Binding Value}" Width="*" />

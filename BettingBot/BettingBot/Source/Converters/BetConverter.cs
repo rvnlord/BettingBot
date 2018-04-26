@@ -1,5 +1,6 @@
 ﻿using System;
 using BettingBot.Common;
+using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
 using BetshootBetResponse = BettingBot.Source.Clients.Agility.Betshoot.Responses.BetResponse;
@@ -9,23 +10,22 @@ namespace BettingBot.Source.Converters
 {
     public static class BetConverter
     {
-        public static BetResult ParseBetshootResultStringToBetResult(string mResult)
+        public static BetResult ParseBetshootResultStringToBetResult(string mResultClass, int stake, double odds, double profit)
         {
+            if (mResultClass == null) throw new ArgumentNullException(nameof(mResultClass));
             BetResult betResult;
-            if (mResult.Equals("draw"))
+            if (mResultClass.EqIgnoreCase("morange"))
                 betResult = BetResult.Canceled;
-            else if (mResult.EqIgnoreCase("won"))
-                betResult = BetResult.Win;
-            else if (mResult.EqIgnoreCase("lost"))
-                betResult = BetResult.Lose;
-            else if (mResult.EqIgnoreCase("half lost"))
-                betResult = BetResult.HalfLost;
-            else if (mResult.EqIgnoreCase("won 1/2"))
-                betResult = BetResult.HalfWon;
-            else if (mResult.EqIgnoreCase("pending"))
+            else if (mResultClass.EqIgnoreCase("mgreen"))
+                betResult = (stake * odds - stake).Eq(profit) ? BetResult.Win : BetResult.HalfWon;
+            else if (mResultClass.EqIgnoreCase("mred"))
+                betResult = (-profit).Eq(stake) ? BetResult.Lose : BetResult.HalfLost;
+            else if (mResultClass.EqIgnoreCase("munits2"))
                 betResult = BetResult.Pending;
             else throw new Exception("Błąd Parsowania");
             return betResult;
+                // fix: zmiana na betshoot - span o klasie m<sth> nie zawiera już informacji o statusie zakładu 
+                // w elemencie imb / attr alt, trzeba parsować po klasie i stawce zakładu
         }
 
         public static DbBet ToDbBet(BetshootBetResponse betResponse)
@@ -96,6 +96,7 @@ namespace BettingBot.Source.Converters
             betToDisplayVM.PickValue = dbBet.Pick.Value;
             betToDisplayVM.SetUnparsedPickString(dbBet.OriginalPickString);
 
+            betToDisplayVM.MatchId = dbBet.MatchId;
             betToDisplayVM.TriedAssociateWithMatch = dbBet.TriedAssociateWithMatch != null && dbBet.TriedAssociateWithMatch >= 1;
 
             return betToDisplayVM;
@@ -134,6 +135,7 @@ namespace BettingBot.Source.Converters
             betToDisplayVM.PickChoice = oldBetToDisplayGvVM.PickChoice;
             betToDisplayVM.PickValue = oldBetToDisplayGvVM.PickValue;
             betToDisplayVM.SetUnparsedPickString(oldBetToDisplayGvVM.GetUnparsedPickString());
+            betToDisplayVM.MatchId = oldBetToDisplayGvVM.MatchId;
 
             betToDisplayVM.TriedAssociateWithMatch = oldBetToDisplayGvVM.TriedAssociateWithMatch;
 
@@ -177,6 +179,7 @@ namespace BettingBot.Source.Converters
                 OriginalPickString = dbBet.OriginalPickString,
                 OriginalDiscipline = dbBet.OriginalDiscipline,
                 OriginalLeagueName = dbBet.OriginalLeagueName,
+                OriginalStake = dbBet.OriginalStake,
 
                 TriedAssociateWithMatch = dbBet.TriedAssociateWithMatch,
                 TipsterId = dbBet.TipsterId,
@@ -195,6 +198,7 @@ namespace BettingBot.Source.Converters
                 LeagueName = betToDisplayGvVM.LeagueName,
                 MatchHomeName = betToDisplayGvVM.MatchHomeName,
                 MatchAwayName = betToDisplayGvVM.MatchAwayName,
+                MatchId = betToDisplayGvVM.MatchId
             };
         }
 
@@ -209,6 +213,22 @@ namespace BettingBot.Source.Converters
                 MatchHomeName = dbBet.OriginalHomeName,
                 MatchAwayName = dbBet.OriginalAwayName,
                 MatchId = dbBet.MatchId
+            };
+        }
+
+        public static BetRequest ToBetRequest(BetToDisplayGvVM betToDisplayGvVm)
+        {
+            return new BetRequest
+            {
+                Date = betToDisplayGvVm.LocalTimestamp.ToUTC(),
+                Discipline = betToDisplayGvVm.Discipline,
+                LeagueName = betToDisplayGvVm.LeagueName,
+                MatchHomeName = betToDisplayGvVm.MatchHomeName,
+                MatchAwayName = betToDisplayGvVm.MatchAwayName,
+                PickChoice = betToDisplayGvVm.PickChoice,
+                PickValue = betToDisplayGvVm.PickValue,
+                Stake = betToDisplayGvVm.Stake,
+                MatchId = betToDisplayGvVm.MatchId
             };
         }
     }

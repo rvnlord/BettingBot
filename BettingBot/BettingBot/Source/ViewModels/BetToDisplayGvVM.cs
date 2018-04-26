@@ -2,6 +2,7 @@
 using System.Text;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
 using BettingBot.Source.Converters;
 
 namespace BettingBot.Source.ViewModels
@@ -48,6 +49,7 @@ namespace BettingBot.Source.ViewModels
         public double? PickValue { get => _pickValue; set => SetPropertyAndNotify(ref _pickValue, value, nameof(PickValue)); }
         public DisciplineType? Discipline { get => _discipline; set => SetPropertyAndNotify(ref _discipline, value, nameof(Discipline)); }
         public string LeagueName { get => _leagueName; set => SetPropertyAndNotify(ref _leagueName, value, nameof(LeagueName)); }
+        public int? MatchId { get; set; }
 
         public int Nr { get => _nr; set => SetPropertyAndNotify(ref _nr, value, nameof(Nr)); }
         
@@ -155,6 +157,11 @@ namespace BettingBot.Source.ViewModels
         public BetToAssociateGvVM ToBetToAssociateGvVM()
         {
             return BetConverter.ToBetToAssociateGvVM(this);
+        }
+
+        public BetRequest ToBetRequest()
+        {
+            return BetConverter.ToBetRequest(this);
         }
     }
 }

@@ -38,6 +38,7 @@ using BettingBot.Source.Clients.Agility.Betshoot;
 using BettingBot.Source.Clients.Api.FootballData;
 using BettingBot.Source.Clients.Api.FootballData.Responses;
 using BettingBot.Source.Clients.Selenium;
+using BettingBot.Source.Clients.Selenium.Asianodds;
 using BettingBot.Source.Clients.Selenium.Hintwise;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext;
@@ -231,13 +232,13 @@ namespace BettingBot
 
         private void btnTEST_Click(object sender, RoutedEventArgs e)
         {
-            var fdApiKey =  txtFootballDataApiPublicKey.Text;
-            var footballdata = new FootballDataClient(fdApiKey);
-            var dm = new DataManager();
+            //var fdApiKey =  txtFootballDataApiPublicKey.Text;
+            //var footballdata = new FootballDataClient(fdApiKey);
+            //var dm = new DataManager();
 
-            var bets = dm.GetBets().ToBetsToDisplayGvVM()
-                .Where(b => b.TipsterName.EqIgnoreCase("Dajkula"))
-                .OrderByDescending(b => b.LocalTimestamp).ToList();
+            //var bets = dm.GetBets().ToBetsToDisplayGvVM()
+            //    .Where(b => b.TipsterName.EqIgnoreCase("Dajkula"))
+            //    .OrderByDescending(b => b.LocalTimestamp).ToList();
 
             //var competitions = footballdata.Competitions(2006);
             //var teams = footballdata.Teams(466);
@@ -265,7 +266,11 @@ namespace BettingBot
             //var dbLeagues = footballdata.Competitions().Competitions.ToDbLeagues();
             //dm.UpsertLeagues(dbLeagues);
 
+            var et1 = ExtendedTime.LocalNow;
+            var et2 = ExtendedTime.UtcNow - TimeSpan.FromDays(2);
 
+            var t1 = et1 - et2;
+            var t2 = et2 - et1;
         }
 
         private async void btnCalculate_Click(object sender, RoutedEventArgs e)
@@ -1481,15 +1486,9 @@ namespace BettingBot
             
             switch (e.ClickedItem.Text)
             {
-                case "Znajdź":
+                case "Znajdź i postaw zakład":
                 {
-                    //var se = new SearchEngine();
-                    //se.FindBet(selectedBets.Single());
-                    //var odds = string.Join("\n", se.FoundBets.Select(b => b.ToString()));
-                    //var result = await Dispatcher.Invoke(async () => await this.ShowMessageAsync("Znalezione zakłady", odds, MessageDialogStyle.AffirmativeAndNegative));
-                    //if (result == MessageDialogResult.Affirmative)
-                    //    SeleniumDriverManager.CloseAllDrivers();
-
+                    await MakeBet();
                     break;
                 }
                 case "Powiąż ręcznie z meczem":
@@ -1595,16 +1594,11 @@ namespace BettingBot
 
         #region - DataLoader Events
 
-        private void dl_InformationSent(object sender, InformationSentEventArgs e)
+        private void client_InformationReceived(object sender, InformationSentEventArgs e)
         {
-            Dispatcher.Invoke(() =>
-            {
-                var loaderStatuses = this.FindLogicalDescendants<TextBlock>().Where(c => c.Name == "prLoaderStatus").ToArray();
-                foreach (var tb in loaderStatuses)
-                    tb.Text = e.Information;
-            });
+            UpdateLoaderStatusText(e.Information);
         }
-
+        
         #endregion
 
         #endregion
@@ -1623,15 +1617,20 @@ namespace BettingBot
                     actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
                     loaderContainer.ShowLoader();
                 });
-                
-                action();
 
-                Dispatcher.Invoke(() =>
+                try
                 {
-                    loaderContainer.HideLoader();
-                    if (!gridMain.HasLoader())
-                        actuallyDisabledControls.EnableControls();
-                });
+                    action();
+                }
+                finally
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        loaderContainer.HideLoader();
+                        if (!gridMain.HasLoader())
+                            actuallyDisabledControls.EnableControls();
+                    });
+                }
             });
             return task;
         }
@@ -1996,13 +1995,19 @@ namespace BettingBot
             if (!cm.IsEnabled) return;
 
             var selectedBets = _ocSelectedBetsToDisplayGvVM.Cast<BetToDisplayGvVM>().ToArray();
-            if (selectedBets.Length == 0x0)
+            if (selectedBets.Length == 0)
             {
                 cm.Close();
                 return;
             }
             cm.EnableAll();
-            if (selectedBets.Length >= 0x2)
+            if (selectedBets.Length == 1)
+            {
+                var selectedBet = selectedBets.Single();
+                if (selectedBet.BetResult != BetResult.Pending)
+                    cm.Disable("Znajdź i postaw zakład");
+            }
+            if (selectedBets.Length >= 2)
                 cm.Disable("Znajdź i postaw zakład", "Powiąż ręcznie z meczem", "Kopiuj do wyszukiwania");
         }
 
@@ -2115,6 +2120,16 @@ namespace BettingBot
             gridAssociateMatchPromptOuterContainer.Visibility = Visibility.Hidden;
         }
 
+        public void UpdateLoaderStatusText(string text)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var loaderStatuses = this.FindLogicalDescendants<TextBlock>().Where(c => c.Name == "prLoaderStatus").ToArray();
+                foreach (var tb in loaderStatuses)
+                    tb.Text = text;
+            });
+        }
+
         #endregion
 
         #region - Core Functionality
@@ -2168,15 +2183,15 @@ namespace BettingBot
                 if (tipsterDomain == DomainType.Custom && !tipsterName.IsUrl())
                     throw new Exception("Wpisany ciąg znaków nie jest adresem Url");
 
-                var dm = new DataManager().ReceiveInfoWith<DataManager>(dl_InformationSent);
+                var dm = new DataManager().ReceiveInfoWith<DataManager>(client_InformationReceived);
                 if (tipsterDomain == DomainType.Betshoot
                     || tipsterDomain == DomainType.Custom && tipsterName.ToLower().Contains(strBetshoot))
                 {
                     var betshoot = new BetshootClient();
                     var tipsterAddress = tipsterDomain != DomainType.Custom 
-                        ? betshoot.ReceiveInfoWith<BetshootClient>(dl_InformationSent).TipsterAddress(tipsterName).Address
+                        ? betshoot.ReceiveInfoWith<BetshootClient>(client_InformationReceived).TipsterAddress(tipsterName).Address
                         : tipsterName;
-                    var tipsterResponse = betshoot.ReceiveInfoWith<BetshootClient>(dl_InformationSent).Tipster(tipsterAddress);
+                    var tipsterResponse = betshoot.ReceiveInfoWith<BetshootClient>(client_InformationReceived).Tipster(tipsterAddress);
                     dm.AddTipsterIfNotExists(tipsterResponse.ToDbTipster()); // wywołuje TipsterConverter
                 }
                 else if (tipsterDomain == DomainType.Hintwise
@@ -2185,9 +2200,9 @@ namespace BettingBot
                     var login = dm.WebsiteLogin(DomainType.Hintwise);
                     var hintwise = new HintwiseClient(login.Name, login.Password, headlessMode);
                     var tipsterAddress = tipsterDomain != DomainType.Custom
-                        ? hintwise.ReceiveInfoWith<HintwiseClient>(dl_InformationSent).TipsterAddress(tipsterName).Address
+                        ? hintwise.ReceiveInfoWith<HintwiseClient>(client_InformationReceived).TipsterAddress(tipsterName).Address
                         : tipsterName;
-                    var tipsterResponse = hintwise.ReceiveInfoWith<HintwiseClient>(dl_InformationSent).Tipster(tipsterAddress);
+                    var tipsterResponse = hintwise.ReceiveInfoWith<HintwiseClient>(client_InformationReceived).Tipster(tipsterAddress);
                     dm.AddTipsterIfNotExists(tipsterResponse.ToDbTipster());
                 }
                 else
@@ -2203,7 +2218,7 @@ namespace BettingBot
         {
             try
             {
-                var dm = new DataManager().ReceiveInfoWith<DataManager>(dl_InformationSent);
+                var dm = new DataManager().ReceiveInfoWith<DataManager>(client_InformationReceived);
                 var dbTipsters = dm.GetTipstersExceptDefault();
                 var selectedTipstersIds = _ocSelectedTipsters.Cast<TipsterGvVM>().Select(t => t.Id).ToArray();
                 var selectedDbTipsters = dbTipsters.WhereByMany(t => t.Id, selectedTipstersIds).ToList();
@@ -2227,7 +2242,7 @@ namespace BettingBot
                     var domain = t.Website.Address.ToLower();
                     if (domain == strBetshoot)
                     {
-                        var tipsResponse = new BetshootClient().ReceiveInfoWith<BetshootClient>(dl_InformationSent)
+                        var tipsResponse = new BetshootClient().ReceiveInfoWith<BetshootClient>(client_InformationReceived)
                             .Tips(t.ToBetshootTipsterResponse(), fromDate);
                         dm.UpsertBets(tipsResponse.Tipster.ToDbTipster(), tipsResponse.ToDbBets());
                     }
@@ -2237,7 +2252,7 @@ namespace BettingBot
                             t.Website.Login.Name, 
                             t.Website.Login.Password,
                             headlessMode
-                        ).ReceiveInfoWith<HintwiseClient>(dl_InformationSent)
+                        ).ReceiveInfoWith<HintwiseClient>(client_InformationReceived)
                             .Tips(t.ToHintwiseTipsterResponse(), fromDate);
                         dm.UpsertBets(tipsResponse.Tipster.ToDbTipster(), tipsResponse.ToDbBets());
                     }
@@ -2245,8 +2260,17 @@ namespace BettingBot
                         throw new Exception($"Nie istnieje loader dla strony: {t.Website.Address}");
                 }
 
-                ImportMatchesFromFootballData(dm);
+                try
+                {
+                    ImportMatchesFromFootballData(dm);
+                }
+                catch (FootballDataException ex)
+                {
+                    UpdateLoaderStatusText($"Football-Data Api zwróciło błąd, mecze nie zostaną zaaktualizowane. Błąd: {ex.Message}");
+                }
+                
                 dm.AssociateBetsWithFootballDataMatchesAutomatically(ignoreAutoAssociatingBetsThatWereAlreadyTried);
+                CalculateBets();
             }
             finally
             {
@@ -2257,7 +2281,7 @@ namespace BettingBot
         private void ImportMatchesFromFootballData(DataManager dm)
         {
             var fdApiKey = Dispatcher.Invoke(() => txtFootballDataApiPublicKey.Text);
-            var footballdata = new FootballDataClient(fdApiKey);
+            var footballdata = new FootballDataClient(fdApiKey).ReceiveInfoWith<FootballDataClient>(client_InformationReceived);
             var today = DateTime.Today;
             var year = today.Year;
             
@@ -2509,6 +2533,37 @@ namespace BettingBot
             }
 
             _bs = bs;
+        }
+
+        private async Task MakeBet()
+        {
+            try
+            {
+                var dm = new DataManager();
+                var headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
+                var betRequest = _ocSelectedBetsToDisplayGvVM.Cast<BetToDisplayGvVM>().Single().ToBetRequest();
+
+                await AsyncWithLoader(gridData, () =>
+                {
+                    var login = dm.GetLoginByWebsite("https://www.asianodds88.com/");
+                    if (login == null) throw new NullReferenceException("Brak loginu dla żądanej strony");
+
+                    var asianodds = new AsianoddsClient(login.Name, login.Password, headlessMode)
+                        .ReceiveInfoWith<AsianoddsClient>(client_InformationReceived);
+                    var betResponse = asianodds.MakeBet(betRequest);
+                    //dm.AddBet(betResponse.ToDbBet());
+                    var t = 0;
+                });
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
+            }
+            finally
+            {
+                SeleniumDriverManager.CloseAllDrivers();
+            }
         }
 
         #endregion

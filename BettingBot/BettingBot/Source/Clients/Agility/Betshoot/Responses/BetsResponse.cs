@@ -20,31 +20,33 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
             var fromDate = fromDateClientLocal?.ToTimezone(serverTimezone); // konwertuj na strefę czasową serwera, nie znamy czasu serwera, prawdopodobnie UTC
             var newBets = new List<BetResponse>();
 
-            var htmlBettingPicks = html.HtmlRoot()
+            var spanBettingPicks = html.HtmlRoot()
                 .Descendants()
                 .Where(n => n.GetAttributeValue("class", "").Equals("bettingpick"))
                 .ToArray();
             
             var i = 0;
 
-            foreach (var bp in htmlBettingPicks)
+            foreach (var spanBp in spanBettingPicks)
             {
-                OnInformationSending($"Wczytywanie zakładów ({++i} z {htmlBettingPicks.Length})...");
-                var strDate = bp.Descendants()
-                    .Single(x => x.GetAttributeValue("class", "").Equals("bettingpickdate"))
+                OnInformationSending($"Wczytywanie zakładów ({++i} z {spanBettingPicks.Length})...");
+                var strDate = spanBp.Descendants()
+                    .Single(x => x.HasClass("bettingpickdate"))
                     .InnerText;
                 var dateArr = strDate.Split('-').Swap(0, 2);
                 var date = new ExtendedTime(new DateTime(dateArr[2].ToInt(), dateArr[1].ToInt(), dateArr[0].ToInt()));
-                var mResult = bp.Descendants()
-                    .Single(x => x.GetAttributeValue("class", "").ContainsAny("mgreen", "mred", "morange", "munits2"))
-                    .FirstChild.GetAttributeValue("alt", "");
-                
-                var pickStr = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("predict")).InnerText.RemoveHTMLSymbols();
-                var spanPickTeams = bp.Descendants("span").Single(x => x.GetAttributeValue("class", "").Equals("pick-teams"));
+                var spanBetResultClass = spanBp.Descendants("span")
+                    .Single(span => span.HasClass("mgreen", "mred", "morange", "munits2"))
+                    .GetOnlyClass(); // fix opisany w konwerterze
+                var stake = spanBp.Descendants("span").Single(span => span.HasClass("pick-stake")).InnerText.Trim().ToInt();
+                var profit = spanBp.Descendants("span").Single(span => span.HasClass("munits")).InnerText.Trim().ToDouble();
+
+                var pickStr = spanBp.Descendants("span").Single(span => span.HasClass("predict")).InnerText.RemoveHTMLSymbols();
+                var spanPickTeams = spanBp.Descendants("span").Single(span => span.HasClass("pick-teams"));
                 var aPickTeams = spanPickTeams.Descendants("a").SingleOrDefault();
                 var matchStr = (aPickTeams ?? spanPickTeams).InnerText.RemoveHTMLSymbols();
-                var rawMatchResultStr = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("mresult")).InnerText;
-                var odds = bp.Descendants().Single(x => x.GetAttributeValue("class", "").Equals("pick-odd")).InnerText.ToDouble();
+                var rawMatchResultStr = spanBp.Descendants("span").Single(x => x.HasClass("mresult")).InnerText;
+                var odds = spanBp.Descendants("span").Single(x => x.HasClass("pick-odd")).InnerText.ToDouble();
 
                 var hrefAPickTeams = aPickTeams?.GetAttributeValue("href", "");
                 string disciplineStr = null;
@@ -52,7 +54,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                 if (hrefAPickTeams != null)
                 {
                     var disciplineLeagueStr = arm.GetHtml(hrefAPickTeams).HtmlRoot().Descendants("p")
-                        .Single(p => p.GetAttributeValue("class", "").Equals("post-byline2")).InnerText.RemoveHTMLSymbols().Split(" - ");
+                        .Single(p => p.HasClass("post-byline2")).InnerText.RemoveHTMLSymbols().Split(" - ");
                     disciplineStr = disciplineLeagueStr[0];
                     leagueName = disciplineLeagueStr[1];
                 }
@@ -64,7 +66,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                     AwayName = matchStr.AfterFirst(" - "),
                     Pick = PickConverter.ParseToPickResponse(pickStr, matchStr),
                     MatchResult = MatchConverter.ToMatchResultResponse(rawMatchResultStr),
-                    BetResult = BetConverter.ParseBetshootResultStringToBetResult(mResult),
+                    BetResult = BetConverter.ParseBetshootResultStringToBetResult(spanBetResultClass, stake, odds, profit),
                     Odds = odds,
                     Discipline = DisciplineConverter.ToDisciplineTypeOrNull(disciplineStr),
                     LeagueName = leagueName

@@ -69,7 +69,7 @@ namespace BettingBot.Common.UtilityClasses
             _tile.MouseLeave += tlContextMenuItem_MouseLeave;
             _tile.Click += tlContextMenuItem_Click;
 
-            if (spMenuContainer.Children.ToArray().Any())
+            if (spMenuContainer.Children.IColToArray().Any())
             {
                 var prevLastTile = spMenuContainer.Children.OfType<Tile>().Last();
                 prevLastTile.Margin = new Thickness(prevLastTile.Margin.Left, prevLastTile.Margin.Top, prevLastTile.Margin.Right, 0);
@@ -83,7 +83,7 @@ namespace BettingBot.Common.UtilityClasses
         public ContextMenuItem Destroy()
         {
             _spMenuContainer.Children.Remove(_tile);
-            if (_spMenuContainer.Children.ToArray().Any())
+            if (_spMenuContainer.Children.IColToArray().Any())
             {
                 var lastTile = _spMenuContainer.Children.OfType<Tile>().Last();
                 lastTile.Margin = new Thickness(lastTile.Margin.Left, lastTile.Margin.Top, lastTile.Margin.Right, 2);

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using BettingBot.Common;
+using BettingBot.Source.Clients.Selenium.Asianodds;
 using BettingBot.Source.Clients.Selenium.Hintwise;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -21,7 +22,7 @@ namespace BettingBot.Source.Clients.Selenium
 
         public WebDriverWait Wait
         {
-            get => _wait ?? (_wait = new WebDriverWait(_driver, new TimeSpan(0, 0, 10)));
+            get => _wait ?? (_wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(20)));
             set => _wait = value;
         }
 
@@ -146,9 +147,72 @@ namespace BettingBot.Source.Clients.Selenium
             return _driver.FindElementByName(name);
         }
 
+        public bool WaitUntilOrTimeout(Func<IWebDriver, bool> waitUntil)
+        {
+            try
+            {
+                Wait.Until(waitUntil);
+                return false;
+            }
+            catch (WebDriverTimeoutException)
+            {
+                return true;
+            }
+        }
+
         public HintwiseSeleniumDriverManager ToHsdm()
         {
             return (HintwiseSeleniumDriverManager) this;
+        }
+
+        public AsianoddsSeleniumDriverManager ToAosdm()
+        {
+            return (AsianoddsSeleniumDriverManager)this;
+        }
+
+        public void TryUntilElementAttachedToPage(Action action, bool dontWait = false, int throwOnCatchNum = 10)
+        {
+            if (dontWait)
+                DisableWaitingForElements();
+
+            var isExCaught = true;
+            var catchCount = 0;
+            while (isExCaught)
+            {
+                try
+                {
+                    action();
+                    isExCaught = false;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    isExCaught = true;
+                    catchCount++;
+                    if (catchCount >= throwOnCatchNum)
+                        throw;
+                }
+            }
+
+            if (dontWait)
+                EnableWaitingForElements();
+        }
+
+        public void WithoutWaitingForElements(Action action)
+        {
+            DisableWaitingForElements();
+            action();
+            EnableWaitingForElements();
+        }
+
+        public object ExecuteScript(string script, params object[] args)
+        {
+            return ((IJavaScriptExecutor) _driver).ExecuteScript(script, args);
+        }
+
+        public void HideElement(By by)
+        {
+            var element = _driver.FindElement(by);
+            ((IJavaScriptExecutor) _driver).ExecuteScript("arguments[0].style.visibility='hidden'", element);
         }
     }
 }

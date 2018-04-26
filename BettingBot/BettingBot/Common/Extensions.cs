@@ -39,6 +39,7 @@ using Expression = System.Linq.Expressions.Expression;
 using BettingBot.Common.UtilityClasses;
 using BettingBot.Properties;
 using BettingBot.Source.Clients.Api.FootballData.Responses;
+using BettingBot.Source.Clients.Selenium;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
@@ -48,6 +49,7 @@ using CustomMenuItem = BettingBot.Common.UtilityClasses.CustomMenuItem;
 using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OpenQA.Selenium;
 using RestSharp;
 using ContextMenu = BettingBot.Common.UtilityClasses.ContextMenu;
 using Point = System.Windows.Point;
@@ -87,6 +89,11 @@ namespace BettingBot.Common
         public static bool EqualsAny<T>(this T o, params T[] os)
         {
             return os.Any(s => s.Equals(o));
+        }
+
+        public static bool In<T>(this T o, params T[] os)
+        {
+            return o.EqualsAny(os);
         }
 
         public static TDest MapTo<TDest, TSource>(this TSource srcEl)
@@ -182,22 +189,31 @@ namespace BettingBot.Common
                     return str.Split(s);
             return new[] { str };
         }
-        
-        public static string[] SameWords(this string str, string otherStr, bool casaeSensitive = false, string splitBy = " ", int minWordLength = 1)
+
+        public static string[] SameWords(this string str, string otherStr, int minWordLength, Func<string, bool> condition = null)
         {
-            if (casaeSensitive)
+            return str.SameWords(otherStr, false, " ", minWordLength, condition);
+        }
+        
+        public static string[] SameWords(this string str, string otherStr, bool caseSensitive = false, string splitBy = " ", int minWordLength = 1, Func<string, bool> condition = null)
+        {
+            if (!caseSensitive)
             {
                 str = str.ToLower();
                 otherStr = otherStr.ToLower();
             }
             
-            var str1Arr = str.Split(splitBy);
-            var str2Arr = otherStr.Split(splitBy);
+            var str1Arr = str.Split(splitBy).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            if (condition != null)
+                str1Arr = str1Arr.Where(condition).ToArray();
+            var str2Arr = otherStr.Split(splitBy).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            if (condition != null)
+                str1Arr = str1Arr.Where(condition).ToArray();
             var intersection = str1Arr.Intersect(str2Arr).Where(w => w.Length >= minWordLength);
             return intersection.ToArray();
         }
 
-        public static string[] SameWords(this string str, string[] otherStrings, bool casaeSensitive, string splitBy = " ", int minWordLength = 1)
+        public static string[] SameWords(this string str, string[] otherStrings, bool casaeSensitive, string splitBy = " ", int minWordLength = 1, Func<string, bool> condition = null)
         {
             var sameWords = new List<string>();
 
@@ -212,19 +228,24 @@ namespace BettingBot.Common
             return str.SameWords(otherStrings, false, " ", 1);
         }
 
-        public static bool HasSameWords(this string str, string otherStr, bool caseSensitive = false, string splitBy = " ", int minWordLength = 1)
+        public static bool HasSameWords(this string str, string otherStr, int minWordLength, Func<string, bool> condition)
         {
-            return str.SameWords(otherStr, caseSensitive, splitBy, minWordLength).Any();
+            return str.SameWords(otherStr, false, " ", minWordLength, condition).Any();
         }
 
-        public static bool HasSameWords(this string str, string[] otherStrings, bool caseSensitive, string splitBy = " ", int minWordLength = 1)
+        public static bool HasSameWords(this string str, string otherStr, bool caseSensitive = false, string splitBy = " ", int minWordLength = 1, Func<string, bool> condition = null)
         {
-            return str.SameWords(otherStrings, caseSensitive, splitBy, minWordLength).Any();
+            return str.SameWords(otherStr, caseSensitive, splitBy, minWordLength, condition).Any();
+        }
+
+        public static bool HasSameWords(this string str, string[] otherStrings, bool caseSensitive, string splitBy = " ", int minWordLength = 1, Func<string, bool> condition = null)
+        {
+            return str.SameWords(otherStrings, caseSensitive, splitBy, minWordLength, condition).Any();
         }
 
         public static bool HasSameWords(this string str, params string[] otherStrings)
         {
-            return str.SameWords(otherStrings, false, " ", 1).Any();
+            return str.SameWords(otherStrings, false, " ", 1, null).Any();
         }
         
         public static bool IsDouble(this string str)
@@ -392,6 +413,25 @@ namespace BettingBot.Common
             return MatchConverter.ToMatchStatus(matchStatus);
         }
 
+        public static string EnsureSuffix(this string str, string suffix)
+        {
+            if (!str.EndsWith(suffix))
+                str += suffix;
+            return str;
+        }
+
+        public static bool ContainsAny(this string str, IEnumerable<string> strings)
+        {
+            var lStr = str.ToLower();
+            return strings.Select(s => s.ToLower()).Any(lStr.Contains);
+        }
+
+        public static bool ContainsAll(this string str, IEnumerable<string> strings)
+        {
+            var lStr = str.ToLower();
+            return strings.Select(s => s.ToLower()).All(lStr.Contains);
+        }
+
         #endregion
 
         #region Double Extensions
@@ -536,6 +576,15 @@ namespace BettingBot.Common
 
         #endregion
 
+        #region TimeSpan Extensions
+
+        public static TimeSpan Abs(this TimeSpan ts)
+        {
+            return ts < TimeSpan.Zero ? -ts : ts;
+        }
+
+        #endregion
+
         #region Collections Extensions
 
         #region - Array Extensions
@@ -588,14 +637,14 @@ namespace BettingBot.Common
                 source.RemoveBy(e => Equals(selector(e), match));
         }
 
-        public static T[] ToArray<T>(this IList<T> list)
+        public static T[] IListToArray<T>(this IList<T> list)
         {
             var array = new T[list.Count];
             list.CopyTo(array, 0);
             return array;
         }
 
-        public static object[] ToArray(this IList list)
+        public static object[] IListToArray(this IList list)
         {
             var array = new object[list.Count];
             for (var i = 0; i < list.Count; i++)
@@ -637,6 +686,15 @@ namespace BettingBot.Common
             foreach (var current in items)
                 list.Add(current);
         }
+
+        public static void RemoveRange(this IList list, IEnumerable items)
+        {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+            foreach (var current in items)
+                list.Remove(current);
+        }
+
 
         public static void RemoveIfExists<T>(this List<T> list, T item)
         {
@@ -802,14 +860,7 @@ namespace BettingBot.Common
         {
             return competitions.Select(c => c.ToDbLeague()).ToList();
         }
-
-        public static bool ContainsAll<T>(this IEnumerable<T> en1, IEnumerable<T> en2)
-        {
-            var arr1 = en1.Distinct().ToArray();
-            var arr2 = en2.Distinct().ToArray();
-            return arr1.Intersect(arr2).Count() == arr2.Length;
-        }
-
+        
         public static List<TDest> MapCollectionTo<TDest, TSource>(this IEnumerable<TSource> source)
             where TSource : class
             where TDest : class
@@ -869,23 +920,64 @@ namespace BettingBot.Common
             return dbMatches.Select(m => m.ToMatchToAssociateGvVM()).ToList();
         }
 
-        public static bool ContainsAny(this string str, IEnumerable<string> strings)
+        public static bool ContainsAll<T>(this IEnumerable<T> en1, IEnumerable<T> en2)
         {
-            var lStr = str.ToLower();
-            return strings.Select(s => s.ToLower()).Any(lStr.Contains);
+            var arr1 = en1.Distinct().ToArray();
+            var arr2 = en2.Distinct().ToArray();
+            return arr1.Intersect(arr2).Count() == arr2.Length;
         }
 
-        public static bool ContainsAll(this string str, IEnumerable<string> strings)
+        public static bool ContainsAny<T>(this IEnumerable<T> en1, IEnumerable<T> en2)
         {
-            var lStr = str.ToLower();
-            return strings.Select(s => s.ToLower()).All(lStr.Contains);
+            var arr1 = en1.Distinct().ToArray();
+            var arr2 = en2.Distinct().ToArray();
+            return arr1.Intersect(arr2).Any();
+        }
+
+        public static bool ContainsAll<T>(this IEnumerable<T> en1, params T[] en2)
+        {
+            return en1.ContainsAll(en2.AsEnumerable());
+        }
+
+        public static bool ContainsAny<T>(this IEnumerable<T> en1, params T[] en2)
+        {
+            return en1.ContainsAny(en2.AsEnumerable());
+        }
+
+        public static bool ContainsAll(this IEnumerable<string> en1, IEnumerable<string> en2)
+        {
+            var arr1 = en1.Select(x => x.ToLower()).Distinct().ToArray();
+            var arr2 = en2.Select(x => x.ToLower()).Distinct().ToArray();
+            return arr1.Intersect(arr2).Count() == arr2.Length;
+        }
+
+        public static bool ContainsAny(this IEnumerable<string> en1, IEnumerable<string> en2)
+        {
+            var arr1 = en1.Select(x => x.ToLower()).Distinct().ToArray();
+            var arr2 = en2.Select(x => x.ToLower()).Distinct().ToArray();
+            return arr1.Intersect(arr2).Any();
+        }
+
+        public static bool ContainsAll(this IEnumerable<string> en1, params string[] en2)
+        {
+            return en1.ContainsAll(en2.AsEnumerable());
+        }
+        
+        public static bool ContainsAny(this IEnumerable<string> en1, params string[] en2)
+        {
+            return en1.ContainsAny(en2.AsEnumerable());
         }
 
         public static bool CollectionEqual<T>(this IEnumerable<T> col1, IEnumerable<T> col2)
         {
             return col1.OrderBy(t => t).Distinct().SequenceEqual(col2.OrderBy(t => t).Distinct());
         }
-        
+
+        public static IEnumerable<TSource> ExceptBy<TSource, TSelector>(this IEnumerable<TSource> en, TSource el, Func<TSource, TSelector> selector)
+        {
+            return en.ExceptBy(el.ToEnumerable(), selector);
+        }
+
         #endregion
 
         #region - IQueryable Extensions
@@ -964,14 +1056,14 @@ namespace BettingBot.Common
 
         #region - ICollection Extensions
 
-        public static T[] ToArray<T>(this ICollection<T> col)
+        public static T[] IColToArray<T>(this ICollection<T> col)
         {
             var array = new T[col.Count];
             col.CopyTo(array, 0);
             return array;
         }
 
-        public static object[] ToArray(this ICollection col)
+        public static object[] IColToArray(this ICollection col)
         {
             var array = new object[col.Count];
             col.CopyTo(array, 0);
@@ -985,7 +1077,7 @@ namespace BettingBot.Common
 
         public static int Index(this ICollection col, object item)
         {
-            return Array.IndexOf(col.ToArray(), item);
+            return Array.IndexOf(col.IColToArray(), item);
         }
 
         public static int RemoveAll<T>(this ICollection<T> collection, Predicate<T> match)
@@ -1660,14 +1752,14 @@ namespace BettingBot.Common
         public static void SelectAll(this ListBox mddl)
         {
             mddl.UnselectAll();
-            var items = mddl.Items.ToArray();
+            var items = mddl.Items.IColToArray();
             foreach (var item in items)
                 mddl.SelectedItems.Add(item);
         }
 
         public static void UnselectAll(this ListBox mddl)
         {
-            var selectedItems = mddl.SelectedItems.ToArray();
+            var selectedItems = mddl.SelectedItems.IColToArray();
             foreach (var item in selectedItems)
                 mddl.SelectedItems.Remove(item);
         }
@@ -2032,6 +2124,85 @@ namespace BettingBot.Common
 
         #endregion
 
+        #region IWebElement Extensions
+
+        public static string XPath(this IWebElement element, string current = "")
+        {
+            var childTag = element.TagName;
+            if (childTag.EqIgnoreCase("html"))
+                return "/html[1]" + current;
+            var parentElement = element.FindElement(By.XPath(".."));
+            var childrenElements = parentElement.FindElements(By.XPath("*"));
+            var count = 0;
+            foreach (var childElement in childrenElements)
+            {
+                var childElementTag = childElement.TagName;
+                if (childTag.EqIgnoreCase(childElementTag))
+                    count++;
+                if (element.Equals(childElement))
+                {
+                    var childElementId = childElement.GetId();
+                    var childElementClasses = childElement.GetClasses();
+                    if (childElementId != null)
+                        return $"//{childTag}[@id='{childElementId}']{current}";
+                    if (childElementClasses.Any())
+                        return XPath(parentElement, $"/{childTag}[{childElementClasses.Select(c => $"contains(@class, '{c}')").JoinAsString(" and ")}]{current}");
+                    return XPath(parentElement, $"/{childTag}[{count}]{current}");
+                }
+            }
+            return null;
+        }
+
+        public static string[] GetClasses(this IWebElement element)
+        {
+            var classes = element.GetAttribute("class").Split(" ").Where(c => !string.IsNullOrWhiteSpace(c)).ToArray();
+            return !classes.Any() 
+                ? Enumerable.Empty<string>().ToArray() 
+                : classes;
+        }
+
+        public static string GetOnlyClass(this IWebElement element)
+        {
+            return element.GetClasses().Single();
+        }
+
+        public static string GetId(this IWebElement element)
+        {
+            var id = element.GetAttribute("id");
+            return string.IsNullOrWhiteSpace(id) ? null : id;
+        }
+
+        #endregion
+
+        #region HtmlNode
+
+        public static string[] GetClasses(this HtmlNode element)
+        {
+            return element.GetAttributeValue("class", "").Split(" ");
+        }
+
+        public static string GetOnlyClass(this HtmlNode element)
+        {
+            return element.GetAttributeValue("class", "").Split(" ").Single();
+        }
+
+        public static string GetId(this HtmlNode element)
+        {
+            return element.GetAttributeValue("id", "");
+        }
+
+        public static bool HasClass(this HtmlNode element, params string[] classes)
+        {
+            return element.GetAttributeValue("class", "").Split(" ").Select(cl => cl.ToLower()).Intersect(classes).Any();
+        }
+
+        public static bool HasClass(this HtmlNode element, string cl)
+        {
+            return element.HasClass(cl.ToEnumerable().ToArray());
+        }
+
+        #endregion
+
         #region Object Extensions
 
         public static string ToStringN(this object o)
@@ -2096,7 +2267,16 @@ namespace BettingBot.Common
         {
             if (obj == null) return null;
             if (obj is bool) return Convert.ToDouble(obj);
-            return Double.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+            
+            var strD = obj.ToString().Replace(",", ".");
+            var isNegative = strD.StartsWith("-");
+            if (isNegative || strD.StartsWith("+"))
+                strD = strD.Skip(1);
+            
+            var parsedVal = double.TryParse(strD, NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+            if (isNegative)
+                parsedVal = -parsedVal;
+            return parsedVal;
         }
 
         public static double ToDouble([NotNull] this object obj)

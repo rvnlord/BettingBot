@@ -74,6 +74,8 @@ namespace BettingBot.Source.Clients.Api.FootballData
 
         protected override T Query<T>(QueryType queryType, Method method, string action, Parameters parameters = null, DeserializeResponse<T> deserializer = null, ApiFlags flags = null)
         {
+            OnInformationSending($"Łączenie z Football-Data...");
+
             RateLimit();
             var omitVersion = flags?.V(ApiFlagType.OmitVersion) == true;
             var uri = $"{(omitVersion ? _address : _addressWithVersion)}{action}";
@@ -95,8 +97,10 @@ namespace BettingBot.Source.Clients.Api.FootballData
             {
                 try
                 {
+                    OnInformationSending($"Łączenie z Football-Data, próba {catchNum + 1} z {maxCatchNum}");
+
                     var rawResponse = new RestClient(uri).Execute(request);
-                    if (!rawResponse.StatusCode.ToInt().Between(200, 299) && !rawResponse.ContentType.Split(";").Any(m => m.EqIgnoreCase("application/json"))) // jeśli kod wskazuje błąd i json nie opisuje tego błędu to zwróć ogólny
+                    if (!rawResponse.StatusCode.ToInt().Between(200, 299) && !rawResponse.ContentType?.Split(";").Any(m => m.EqIgnoreCase("application/json")) == true) // jeśli kod wskazuje błąd i json nie opisuje tego błędu to zwróć ogólny
                         throw new FootballDataException($"{rawResponse.StatusCode.ToInt()}: {rawResponse.StatusDescription}");
                     if (string.IsNullOrEmpty(rawResponse.Content))
                         throw new FootballDataException("Serwer zwrócił pustą zawartość, prawdopodobnie ochrona przed spamem");
@@ -104,6 +108,9 @@ namespace BettingBot.Source.Clients.Api.FootballData
                     var response = deserializer == null
                         ? JsonConvert.DeserializeObject<T>(rawResponse.Content)
                         : deserializer(rawResponse.Content);
+
+                    OnInformationSending($"Otrzymano dane z Football-Data, próba {catchNum + 1} z {maxCatchNum}");
+
                     return response;
                 }
                 catch (FootballDataException ex)
@@ -111,8 +118,7 @@ namespace BettingBot.Source.Clients.Api.FootballData
                     catchNum++;
                     fdEx = ex;
 
-                    OnInformationSending($"Zapytanie zwrociło błąd, próba {catchNum} z {maxCatchNum}");
-                    Thread.Sleep(5000);
+                    OnInformationSending($"Zapytanie zwrociło błąd, próba {catchNum + 1} z {maxCatchNum}");
                 }
             }
 

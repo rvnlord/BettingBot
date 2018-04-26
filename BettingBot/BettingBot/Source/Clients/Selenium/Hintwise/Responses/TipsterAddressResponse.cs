@@ -49,11 +49,9 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
             if (!foundTipsterName.EqIgnoreCase(tipsterName))
                 throw new HintwiseException("Podany Tipster nie istnieje na stronie");
 
-            return new TipsterAddressResponse
-            {
-                Address = foundTipsterLink,
-                RelativeAddress = foundTipsterLink.Remove(baseAddress)
-            };
+            Address = foundTipsterLink;
+            RelativeAddress = foundTipsterLink.Remove(baseAddress);
+            return this;
         }
     }
 }

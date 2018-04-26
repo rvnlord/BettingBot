@@ -196,6 +196,11 @@
     <Compile Include="Source\Clients\Responses\PickResponse.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\TipsterAddressResponse.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\Responses\TipsterResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\AsianoddsException.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\AsianoddsSeleniumDriverManager.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\Requests\BetRequest.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\Responses\AsianoddsResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\Responses\BetResponse.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseException.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseSeleniumDriverManager.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\BetResponse.cs" />

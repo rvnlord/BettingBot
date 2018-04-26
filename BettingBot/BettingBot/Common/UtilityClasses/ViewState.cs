@@ -254,7 +254,7 @@ namespace BettingBot.Common.UtilityClasses
 
         public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new DbOption(Key, string.Join(",", Gv.SelectedItems.ToArray().Select(i => i.GetType().GetProperty(ByProperty)?.GetValue(i, null)).OrderBy(id => id))));
+            dbOptions.AddOrUpdate(new DbOption(Key, string.Join(",", Gv.SelectedItems.IColToArray().Select(i => i.GetType().GetProperty(ByProperty)?.GetValue(i, null)).OrderBy(id => id))));
             if (saveInstantly) db.SaveChanges();
         }
     }

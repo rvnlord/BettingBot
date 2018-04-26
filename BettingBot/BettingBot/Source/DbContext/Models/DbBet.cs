@@ -20,6 +20,7 @@ namespace BettingBot.Source.DbContext.Models
         public string OriginalPickString { get; set; }
         public int? OriginalDiscipline { get; set; }
         public string OriginalLeagueName { get; set; }
+        public double? OriginalStake { get; set; }
 
         public int? TriedAssociateWithMatch { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using BettingBot.Common;
 using BettingBot.Source.Converters;
 using BettingBot.Source.ViewModels;
 
@@ -30,7 +31,7 @@ namespace BettingBot.Source.DbContext.Models
             if (!(obj is DbMatch)) return false;
             var m = (DbMatch)obj;
 
-            return Date == m.Date 
+            return (Date - m.Date).Abs().TotalDays < 2
                 && HomeId == m.HomeId 
                 && AwayId == m.AwayId
                 && LeagueId == m.LeagueId;
@@ -42,6 +43,11 @@ namespace BettingBot.Source.DbContext.Models
                 * HomeId.GetHashCode() ^ 11
                 * AwayId.GetHashCode() ^ 17
                 * LeagueId.GetHashCode() ^ 23;
+        }
+
+        public override string ToString()
+        {
+            return $"{Date:dd-MM-yyyy HH:mm} {HomeId} ({Home?.Name}) - {AwayId} ({Away?.Name}) - {LeagueId} ({League?.Name})";
         }
 
         public DbMatch CopyWithoutNavigationProperties()

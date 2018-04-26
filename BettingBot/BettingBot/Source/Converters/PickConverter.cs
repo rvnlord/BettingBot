@@ -69,7 +69,7 @@ namespace BettingBot.Source.Converters
                         }
 
                         if (pickStr.HasSameWords(homeTeam, home) && pickStr.HasSameWords(awayTeam, away))
-                            return new PickResponse(pickOriginalString, pickStr.SameWords(homeTeam, home).Length >= pickStr.SameWords(awayTeam, away).Length ? PickChoice.Home : PickChoice.Away, null);
+                            return new PickResponse(pickOriginalString, pickStr.SameWords(homeTeam, null, home).Length >= pickStr.SameWords(awayTeam, away).Length ? PickChoice.Home : PickChoice.Away, null);
                         if (pickStr.HasSameWords(homeTeam, home))
                             return new PickResponse(pickOriginalString, PickChoice.Home, null);
                         if (pickStr.HasSameWords(draw))

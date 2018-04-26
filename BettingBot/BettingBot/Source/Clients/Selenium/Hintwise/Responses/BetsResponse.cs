@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
-using BettingBot.Source.Clients.Responses;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.Models;
@@ -138,11 +137,9 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
 
             OnInformationSending("Wczytano zakłady");
 
-            return new BetsResponse
-            {
-                Tipster = tipster,
-                Bets = newBets
-            };
+            Tipster = tipster;
+            Bets = newBets;
+            return this;
         }
 
         private static ExtendedTime ParseDate(string strDate, ExtendedTime previousDate, TimeZoneKind serverTimezone, ref int year)

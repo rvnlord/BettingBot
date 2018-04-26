@@ -9,14 +9,14 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
     {
         private readonly HintwiseSeleniumDriverManager _hsdm;
 
-        public HintwiseClient(string login, string password, bool headlessMode) 
+        public HintwiseClient(string login, string password, bool headlessMode)
             : base(
                 "https://hintwise.com/",
                 TimeZoneKind.GreenwichStandardTime, // .GMTStandardTime ze zmianą czasu na letni/zimowy w wielkiej brytanii, ale wygląda na to, że na hintwise znów jest innas trefa, WTF?
                 login, password, headlessMode)
         {
             _sdm = new HintwiseSeleniumDriverManager();
-            _hsdm = (HintwiseSeleniumDriverManager) _sdm;
+            _hsdm = _sdm.ToHsdm();
         }
 
         public TipsterAddressResponse TipsterAddress(string tipsterName)
@@ -46,8 +46,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
         {
             OnInformationSending("Łączenie z Hintwise...");
 
-            var url = _address + action;
-            if (!url.EndsWith("/")) url += "/";
+            var url = (_address + action).EnsureSuffix("/");
 
             _hsdm.OpenOrReuseDriver(_headlessMode);
 

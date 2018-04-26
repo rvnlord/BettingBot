@@ -12,6 +12,9 @@ namespace BettingBot.Common.UtilityClasses
         private DateTime _rfc1123;
         private TimeZoneKind _timeZone;
 
+        public static ExtendedTime UtcNow => new ExtendedTime(DateTime.UtcNow);
+        public static ExtendedTime LocalNow => new ExtendedTime(DateTime.Now, TimeZoneKind.CurrentLocal);
+
         public DateTime Rfc1123
         {
             get => _rfc1123;
@@ -88,6 +91,8 @@ namespace BettingBot.Common.UtilityClasses
             return ToUTC().Rfc1123.CompareTo(otherTime.ToUTC().Rfc1123);
         }
 
+        public static ExtendedTime Now(TimeZoneKind timeZone) => new ExtendedTime(DateTime.UtcNow).ToTimezone(timeZone);
+
         public override string ToString()
         {
             return $"{_rfc1123:HH:mm:ss dd-MM-yyyy} {TimeZone.GetDescription()} ({_unixTimestamp})";
@@ -133,6 +138,21 @@ namespace BettingBot.Common.UtilityClasses
         public static bool operator !=(ExtendedTime et1, ExtendedTime et2)
         {
             return !(et1 == et2);
+        }
+
+        public static ExtendedTime operator +(ExtendedTime et, TimeSpan ts)
+        {
+            return (et.Rfc1123 + ts).ToExtendedTime(et.TimeZone);
+        }
+
+        public static TimeSpan operator -(ExtendedTime et1, ExtendedTime et2)
+        {
+            return et1.ToUTC().Rfc1123 - et2.ToUTC().Rfc1123;
+        }
+
+        public static ExtendedTime operator -(ExtendedTime et, TimeSpan ts)
+        {
+            return (et.Rfc1123 - ts).ToExtendedTime(et.TimeZone);
         }
 
         public override int GetHashCode() => _unixTimestamp.GetHashCode() ^ _rfc1123.GetHashCode();
@@ -212,7 +232,7 @@ namespace BettingBot.Common.UtilityClasses
         {
             return _timeStamp.CompareTo(ut2._timeStamp);
         }
-
+        
         public long? ToLongN() => _timeStamp.ToLongN();
         public long ToLong() => _timeStamp.ToLong();
         public double? ToDoubleN() => _timeStamp.ToDoubleN();
