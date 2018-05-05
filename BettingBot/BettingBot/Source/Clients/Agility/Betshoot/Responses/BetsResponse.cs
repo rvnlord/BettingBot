@@ -22,7 +22,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
 
             var spanBettingPicks = html.HtmlRoot()
                 .Descendants()
-                .Where(n => n.GetAttributeValue("class", "").Equals("bettingpick"))
+                .Where(n => n.HasClass("bettingpick"))
                 .ToArray();
             
             var i = 0;
@@ -39,7 +39,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                     .Single(span => span.HasClass("mgreen", "mred", "morange", "munits2"))
                     .GetOnlyClass(); // fix opisany w konwerterze
                 var stake = spanBp.Descendants("span").Single(span => span.HasClass("pick-stake")).InnerText.Trim().ToInt();
-                var profit = spanBp.Descendants("span").Single(span => span.HasClass("munits")).InnerText.Trim().ToDouble();
+                var profit = spanBp.Descendants("span").Single(span => span.HasClass("munits")).InnerText.Trim().ToDoubleN();
 
                 var pickStr = spanBp.Descendants("span").Single(span => span.HasClass("predict")).InnerText.RemoveHTMLSymbols();
                 var spanPickTeams = spanBp.Descendants("span").Single(span => span.HasClass("pick-teams"));
@@ -79,12 +79,10 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
             }
 
             OnInformationSending("Wczytano zakłady");
-            
-            return new BetsResponse
-            {
-                Tipster = tipster,
-                Bets = newBets
-            };
+
+            Tipster = tipster;
+            Bets = newBets;
+            return this;
         }
 
         public List<DbBet> ToDbBets()

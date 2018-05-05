@@ -6,9 +6,11 @@ using BettingBot.Common;
 using BettingBot.Common.UtilityClasses;
 using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
 using BettingBot.Source.Converters;
+using BettingBot.Source.DbContext.Models;
 using MoreLinq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using WebSocketSharp;
 
 namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
 {
@@ -28,6 +30,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
         public double? PickValue { get; set; }
         public BetResult BetResult { get; set; }
         public double Stake { get; set; }
+        public double Odds { get; set; }
         public int? MatchId { get; set; }
 
         public BetResponse Parse(AsianoddsSeleniumDriverManager sdm, BetRequest betRequest, TimeZoneKind tz, AsianoddsClient ao)
@@ -207,9 +210,20 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                             else if (spanBetItemClasses.ContainsAny("FTHDPHomeOdd", "FTHDPAwayOdd"))
                                             {
                                                 double? handicapHome = null;
-                                                sdm.TryUntilElementAttachedToPage(() => handicapHome = tblGameRow.FindElement(By.XPath(".//span[contains(@class, 'FTHDPHome') and not(contains(@class, 'BetItem'))]")).Text.Trim().ToDoubleN());
+                                                sdm.TryUntilElementAttachedToPage(() =>
+                                                {
+                                                    var strFTHDPHome = tblGameRow.FindElement(By.XPath(".//span[contains(@class, 'FTHDPHome') and not(contains(@class, 'BetItem'))]")).Text.Trim();
+                                                    if (!string.IsNullOrEmpty(strFTHDPHome))
+                                                        handicapHome = StrSplitToDouble(strFTHDPHome.Split("-"));
+                                                });
                                                 double? handicapAway = null;
-                                                sdm.TryUntilElementAttachedToPage(() => handicapAway = tblGameRow.FindElement(By.XPath(".//span[contains(@class, 'FTHDPAway') and not(contains(@class, 'BetItem'))]")).Text.Trim().ToDoubleN());
+                                                sdm.TryUntilElementAttachedToPage(() =>
+                                                {
+                                                    var strFTHDPAway = tblGameRow.FindElement(By.XPath(".//span[contains(@class, 'FTHDPAway') and not(contains(@class, 'BetItem'))]")).Text.Trim();
+                                                    if (!string.IsNullOrEmpty(strFTHDPAway))
+                                                        handicapAway = StrSplitToDouble(strFTHDPAway.Split("-"));
+                                                });
+
                                                 if (handicapHome == null && handicapAway == null)
                                                     throw new AsianoddsException("Nie można pobrac wartości handicapu dla zakładu");
 
@@ -246,18 +260,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                                 string[] goalsThresholdSplit = null;
                                                 sdm.TryUntilElementAttachedToPage(() => goalsThresholdSplit = tblGameRow.FindElement(By.XPath(".//span[contains(@class, 'FTGoal') and not(contains(@class, 'BetItem'))]")).Text.Trim()
                                                     .Split("-"));
-                                                double goals;
-                                                if (goalsThresholdSplit.Length == 1)
-                                                {
-                                                    goals = goalsThresholdSplit.Single().ToDouble();
-                                                }
-                                                else if (goalsThresholdSplit.Length == 2)
-                                                {
-                                                    var goalsFromTo = goalsThresholdSplit.Select(x => x.ToDouble()).ToArray();
-                                                    goals = goalsFromTo[1] + (goalsFromTo[1] - goalsFromTo[0]) / 2;
-                                                }
-                                                else
-                                                    throw new AsianoddsException("Nie można pobrać progu punktów dla zakładu");
+                                                var goals = StrSplitToDouble(goalsThresholdSplit);
 
                                                 candidateBetReq.PickChoice = spanBetItemClasses.ContainsAny("FTOver") ? PickChoice.Over : PickChoice.Under;
                                                 candidateBetReq.PickValue = goals.Round(2);
@@ -294,8 +297,9 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                 .ThenBy(b => b.PickChoice.EnumToString()).ThenBy(b => b.PickValue).ToList();
 
             OnInformationSending($"Filtrowanie potencjalnych zakładów {candidateBetsDistinct.Count}...");
+            
+            var candidateBetsWithLowestTimeDifference = candidateBetsDistinct.GroupBy(b => b.TimeDifference).MinBy(b => b.Key).ToList();
 
-            var candidateBetsWithLowestTimeDifference = candidateBetsDistinct.GroupBy(b => b.TimeDifference).Min().ToList();
             var candidateBetsWithSamePick = candidateBetsWithLowestTimeDifference
                 .Where(b => b.PickChoice == betRequest.PickChoice && b.PickValue.Eq(betRequest.PickValue)).ToList();
             var finalBet = candidateBetsWithSamePick
@@ -321,12 +325,31 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
             sdm.Wait.Until(d => btnPlaceBet.Enabled);
             btnPlaceBet.Click();
 
+            var btnConfirmBet = sdm.FindElementByXPath("//*[@id='dlgPlaceBet']/div/div[6]/button[2]"); // //*[@id='dlgPlaceBet']//button[contains(@class, 'btnYes')]
+            sdm.Wait.Until(d => btnConfirmBet.Displayed && btnConfirmBet.Enabled);
+            btnConfirmBet.Click();
+
             OnInformationSending("Wczytywanie informacji o zakładzie...");
 
-            // załaduj stronę outstanding
-            // wczytaj z tabeli postawiony zakład do poniższych właściwości
+            var liMenuOutstandingBets = sdm.FindElementByXPath("//*[@id='liMemuOutsandingBets']");
+            try { liMenuOutstandingBets.Click(); }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message.ContainsAny("Other element would receive the click"))
+                    throw new AsianoddsException("Próba kliknięcia przycisku 'Place Bet' nie udała się, serwer zwrócił błąd");
+                throw;
+            }
+            
+            var tableOutstandingBets = sdm.FindElementByXPath("//*[@id='OutstandingBetsContanier']//table[@class='tableOutsanding']");
+            var trOutstandingBets = tableOutstandingBets.FindElements(By.XPath(".//tbody/tr[@class='trItem']")).Where(tr => tr.Displayed).ToArray();
+            var trPlacedBet = trOutstandingBets.Single(tr => tr
+                .FindElement(By.ClassName("span_homeName_awayName")).Text
+                .Trim().EqIgnoreCase($"{finalBet.MatchHomeName} -vs- {finalBet.MatchAwayName}"));
 
-            Date = finalBet.Date; // TODO: status zakładu z OUTSTANDING
+            var oddsResp = trPlacedBet.FindElement(By.ClassName("span_odds")).Text.Trim().ToDouble();
+            var stakeResp = trPlacedBet.FindElement(By.ClassName("spanStake_Currency")).Text.BeforeFirst("EUR").Trim().ToDouble();
+            
+            Date = finalBet.Date;
             Discipline = finalBet.Discipline;
             LeagueName = finalBet.LeagueName;
             MatchHomeName = finalBet.MatchHomeName;
@@ -334,17 +357,37 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
             PickChoice = (PickChoice) finalBet.PickChoice;
             PickValue = finalBet.PickValue;
             BetResult = BetResult.Pending;
-            Stake = stake;
+            Stake = stakeResp;
+            Odds = oddsResp;
             MatchId = finalBet.MatchId;
 
             OnInformationSending("Zakład został poprawnie zawarty...");
 
             return this;
         }
+        
+        private static double StrSplitToDouble(string[] strSplit)
+        {
+            if (strSplit.Length == 1)
+            {
+                return strSplit.Single().ToDouble();
+            }
+            if (strSplit.Length == 2)
+            {
+                var goalsFromTo = strSplit.Select(x => x.ToDouble()).ToArray();
+                return goalsFromTo[1] + (goalsFromTo[1] - goalsFromTo[0]) / 2;
+            }
+            throw new AsianoddsException("Nie można pobrać progu liczbowego dla zakłądu");
+        }
 
         public override string ToString()
         {
             return $"[{Date.Rfc1123:dd-MM-yyyy HH:mm}] {MatchHomeName} - {MatchAwayName}: {PickChoice.EnumToString()} {PickValue:0.##} (s: {Stake:0.00})";
+        }
+
+        public DbBet ToDbBet()
+        {
+            return BetConverter.ToDbBet(this);
         }
     }
 }

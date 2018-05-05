@@ -91,7 +91,7 @@
                     </mah:Tile>
                 </StackPanel>
                 <Grid x:Name="gridContent">
-                    <Button x:Name="btnTEST" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="TEST" HorizontalAlignment="Left" Margin="420,0,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnTEST_Click" />
+                    <Button x:Name="btnTEST" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="TEST" HorizontalAlignment="Left" Margin="420,0,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnTEST_Click" Visibility="Hidden" />
                     <mah:MetroAnimatedTabControl x:Name="matcMain"  Margin="0,0,0,0" Padding="0" BorderThickness="0" Background="Transparent">
                         <mah:MetroTabItem>
 
@@ -179,7 +179,23 @@
                             </mah:MetroTabItem.Header>
 
                             <mah:MetroTabItem.Content>
-                                <TextBlock FontSize="30" Text="Zakłady (Niezaimplementowane)" />
+                                <DataGrid x:Name="gvSentBets" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="1185" Height="700" MaxHeight="700" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" Sorting="gvSentBets_Sorting" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="true" HorizontalScrollBarVisibility="Disabled">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn IsReadOnly="True" Header="Nr" Binding="{Binding Nr}" Width="50" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Dyscyplina" Binding="{Binding DisciplineString}" Width="100" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Liga" Binding="{Binding LeagueName}" Width="100" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Data" Binding="{Binding DateString}" Width="120" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="U siebie" Binding="{Binding MatchHomeName}" Width="130" CellStyle="{StaticResource RightAlignedCellStyle}" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="130" CellStyle="{StaticResource LeftAlignedCellStyle}" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Typ" Binding="{Binding PickString}" Width="100" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Zakład" Binding="{Binding BetResultString}" Width="80" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Wynik" Binding="{Binding MatchResultString}" Width="80" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Kurs" Binding="{Binding OddsString}" Width="60" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Stawka" Binding="{Binding StakeString}" Width="80" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Profit" Binding="{Binding ProfitString}" Width="80" />
+                                        <DataGridTextColumn IsReadOnly="True" Header="Budżet" Binding="{Binding BudgetString}" Width="*" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </mah:MetroTabItem.Content>
                         </mah:MetroTabItem>
                     </mah:MetroAnimatedTabControl>

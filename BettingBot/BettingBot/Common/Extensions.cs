@@ -920,6 +920,14 @@ namespace BettingBot.Common
             return dbMatches.Select(m => m.ToMatchToAssociateGvVM()).ToList();
         }
 
+        public static List<SentBetGvVM> ToSentBetsGvVM(this IEnumerable<DbBet> dbBets)
+        {
+            var sentBets = dbBets.Select(b => b.ToSentBetGvVM()).OrderBy(b => b.LocalTimestamp).ThenBy(b => b.HomeName).ToList();
+            var i = 0;
+            sentBets.ForEach(b => b.Nr = ++i);
+            return sentBets;
+        }
+
         public static bool ContainsAll<T>(this IEnumerable<T> en1, IEnumerable<T> en2)
         {
             var arr1 = en1.Distinct().ToArray();

@@ -30,35 +30,32 @@ namespace BettingBot.Source.Clients.Selenium
 
         public void OpenOrReuseDriver(bool headlessMode = false, bool reuse = true)
         {
-            if (_driver.IsClosed())
+            if (!_driver.IsClosed()) return;
+            if (reuse && _drivers.Any() && _drivers.Last().IsOpen())
+                _driver = _drivers.Last();
+            else
             {
-                if (reuse && _drivers.Any() && _drivers.Last().IsOpen())
-                    _driver = _drivers.Last();
-                else
+                var chromeService = ChromeDriverService.CreateDefaultService($@"{AppDomain.CurrentDomain.BaseDirectory}");
+                var chromeOptions = new ChromeOptions();
+                if (headlessMode)
                 {
-                    var chromeService = ChromeDriverService.CreateDefaultService($@"{AppDomain.CurrentDomain.BaseDirectory}");
-                    var chromeOptions = new ChromeOptions();
-                    if (headlessMode)
+                    chromeOptions.AddArguments(new List<string>
                     {
-                        chromeOptions.AddArguments(new List<string>
-                        {
-                            "--silent-launch",
-                            "--no-startup-window",
-                            "no-sandbox",
-                            "headless"
-                        });
-                        chromeService.HideCommandPromptWindow = true;
-                    }
-                    
-                    _driver = new ChromeDriver(chromeService, chromeOptions);
-                    var size = new Size(1240, 720);
-                    _driver.Manage().Window.Size = size;
-                    _driver.Manage().Window.Position = PointUtils.CenteredWindowTopLeft(size).ToDrawingPoint();
-                    
-                    _drivers.Add(_driver);
-                    _driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
-                    _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
+                        "--silent-launch",
+                        "--no-startup-window",
+                        "no-sandbox",
+                        "headless"
+                    });
+                    chromeService.HideCommandPromptWindow = true;
                 }
+                    
+                _driver = new ChromeDriver(chromeService, chromeOptions);
+                var size = new Size(1240, 720);
+                _driver.Manage().Window.Size = size;
+                _driver.Manage().Window.Position = PointUtils.CenteredWindowTopLeft(size).ToDrawingPoint();
+                _driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
+                _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
+                _drivers.Add(_driver);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using BettingBot.Common;
 using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
+using BettingBot.Source.Clients.Selenium.Asianodds.Responses;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
 using BetshootBetResponse = BettingBot.Source.Clients.Agility.Betshoot.Responses.BetResponse;
@@ -10,16 +11,16 @@ namespace BettingBot.Source.Converters
 {
     public static class BetConverter
     {
-        public static BetResult ParseBetshootResultStringToBetResult(string mResultClass, int stake, double odds, double profit)
+        public static BetResult ParseBetshootResultStringToBetResult(string mResultClass, int stake, double odds, double? profit)
         {
             if (mResultClass == null) throw new ArgumentNullException(nameof(mResultClass));
             BetResult betResult;
             if (mResultClass.EqIgnoreCase("morange"))
                 betResult = BetResult.Canceled;
             else if (mResultClass.EqIgnoreCase("mgreen"))
-                betResult = (stake * odds - stake).Eq(profit) ? BetResult.Win : BetResult.HalfWon;
+                betResult = (stake * odds - stake).Eq(profit.ToDouble()) ? BetResult.Win : BetResult.HalfWon;
             else if (mResultClass.EqIgnoreCase("mred"))
-                betResult = (-profit).Eq(stake) ? BetResult.Lose : BetResult.HalfLost;
+                betResult = (-profit.ToDouble()).Eq(stake) ? BetResult.Lose : BetResult.HalfLost;
             else if (mResultClass.EqIgnoreCase("munits2"))
                 betResult = BetResult.Pending;
             else throw new Exception("Błąd Parsowania");
@@ -229,6 +230,42 @@ namespace BettingBot.Source.Converters
                 PickValue = betToDisplayGvVm.PickValue,
                 Stake = betToDisplayGvVm.Stake,
                 MatchId = betToDisplayGvVm.MatchId
+            };
+        }
+
+        public static DbBet ToDbBet(BetResponse betResponse)
+        {
+            return new DbBet
+            {
+                OriginalDate = betResponse.Date.ToUTC().Rfc1123,
+                BetResult = betResponse.BetResult.ToInt(),
+                MatchId = betResponse.MatchId,
+                Odds = betResponse.Odds,
+                OriginalStake = betResponse.Stake,
+                Pick = new DbPick { Choice = betResponse.PickChoice, Value = betResponse.PickValue },
+                OriginalHomeName = betResponse.MatchHomeName,
+                OriginalAwayName = betResponse.MatchAwayName,
+                OriginalLeagueName = betResponse.LeagueName,
+                OriginalDiscipline = betResponse.Discipline.ToIntN()
+            };
+        }
+
+        public static SentBetGvVM ToSentBetGvVM(DbBet dbBet)
+        {
+            return new SentBetGvVM
+            {
+                Id = dbBet.Id,
+                LocalTimestamp = dbBet.OriginalDate.ToExtendedTime().ToLocal(),
+                BetResult = dbBet.BetResult.ToEnum<BetResult>(),
+                MatchId = dbBet.MatchId,
+                Odds = dbBet.Odds,
+                Stake = dbBet.OriginalStake.ToDouble() * 4, // TODO: z API do walut
+                PickChoice = dbBet.Pick.Choice,
+                PickValue = dbBet.Pick.Value,
+                HomeName = dbBet.OriginalHomeName,
+                AwayName = dbBet.OriginalAwayName,
+                LeagueName = dbBet.OriginalLeagueName,
+                Discipline = dbBet.OriginalDiscipline.ToEnum<DisciplineType>()
             };
         }
     }

@@ -17,9 +17,7 @@ namespace BettingBot.Source.Clients.Agility
 
         protected virtual T Get<T>(string action, DeserializeAgilityResponse<T> agilityDeserializer) where T : ResponseBase
         {
-            var url = _address + action;
-            if (!url.EndsWith("/")) url += "/";
-
+            var url = (_address + action).EnsureSuffix("/");
             var html = _arm.GetHtml(url);
             return agilityDeserializer(html, _arm);
         }

@@ -167,8 +167,7 @@ namespace BettingBot.Common
             var gridViews = GetOrCreateGridViews(collection);
             foreach (var gridView in gridViews)
                 SyncSelection(gridView, oldItems, newItems);
-
-
+            
             _isSyncingSelection = false;
         }
 

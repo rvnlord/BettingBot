@@ -8,12 +8,6 @@ namespace BettingBot.Source.Clients
         protected string _address;
         protected readonly TimeZoneKind _timeZone;
 
-        protected Client(string address, TimeZoneKind timeZone)
-        {
-            Address = address;
-            _timeZone = timeZone;
-        }
-
         protected string Address
         {
             set
@@ -30,6 +24,12 @@ namespace BettingBot.Source.Clients
             get => _address;
         }
 
+        protected Client(string address, TimeZoneKind timeZone)
+        {
+            Address = address;
+            _timeZone = timeZone;
+        }
+        
         public delegate T DeserializeResponse<out T>(string content) where T : ResponseBase;
 
         protected virtual void Response_InformationSent(object sender, InformationSentEventArgs e)

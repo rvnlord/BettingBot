@@ -78,9 +78,8 @@ namespace BettingBot.Source.Clients.Api.FootballData
 
             RateLimit();
             var omitVersion = flags?.V(ApiFlagType.OmitVersion) == true;
-            var uri = $"{(omitVersion ? _address : _addressWithVersion)}{action}";
+            var uri = $"{(omitVersion ? _address : _addressWithVersion)}{action}".EnsureSuffix("/");
 
-            if (!uri.EndsWith("/")) uri += "/";
             var request = queryType == QueryType.Private
                 ? new FootballDataAuthenticatedRequest(method, ApiKey)
                 : new RestRequest(method);

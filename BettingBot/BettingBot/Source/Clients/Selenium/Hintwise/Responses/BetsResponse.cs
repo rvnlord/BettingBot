@@ -22,14 +22,14 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
 
             OnInformationSending("Zbieranie dodatkowych informacji...");
 
-            var matchSep = " vs ";
+            const string matchSep = " vs ";
             var originalAddress = sdm.Url;
             var fromDate = fromDateClientLocal?.ToTimezone(serverTimezone); // konwertuj na strefę czasową serwera
             var newBets = new List<BetResponse>();
             
-            IWebElement getDivCurrentPredictons() => sdm.FindElementByXPath(".//div[@id='predictions-grid']");
-            var divCurrentPredictons = getDivCurrentPredictons();
-            var currPredLastPageQueries = sdm.PagerLastPageQueries(divCurrentPredictons);
+            IWebElement getDivCurrentPredictions() => sdm.FindElementByXPath(".//div[@id='predictions-grid']");
+            var divCurrentPredictions = getDivCurrentPredictions();
+            var currPredLastPageQueries = sdm.PagerLastPageQueries(divCurrentPredictions);
             var currPredPagesCount = sdm.PagerLastPage(currPredLastPageQueries);
 
             IWebElement getDivHistoricalPredictions() => sdm.FindElementByXPath(".//div[@id='history-predictions']");
@@ -37,7 +37,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
             var histPredLastPageQueries = sdm.PagerLastPageQueries(divHistoricalPredictions);
             var histPredPagesCount = sdm.PagerLastPage(histPredLastPageQueries);
             
-            var previousDate = DateTime.Now.ToExtendedTime(TimeZoneKind.CurrentLocal).ToTimezone(serverTimezone); // w strefie czassowej serwera
+            var previousDate = ExtendedTime.UtcNow.ToTimezone(serverTimezone); // w strefie czassowej serwera
             var year = previousDate.Rfc1123.Year;
 
             OnInformationSending("Wczytywanie informacji o zakładach...");
@@ -48,12 +48,12 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
             {
                 OnInformationSending($"Wczytywanie nowych zakładów (strona {currPage} z {currPredPagesCount})...");
 
-                if (divCurrentPredictons.FindElement(By.TagName("span")).Text.ToLower().Contains("no results found"))
+                if (divCurrentPredictions.FindElement(By.TagName("span")).Text.ToLower().Contains("no results found"))
                     break;
 
                 sdm.PagerNavigateToCurrentPage(currPage, currPredLastPageQueries, originalAddress);
-                divCurrentPredictons = getDivCurrentPredictons();
-                var trCurrPredRows = divCurrentPredictons.FindElements(By.XPath(".//table[@class='items']/tbody/tr"));
+                divCurrentPredictions = getDivCurrentPredictions();
+                var trCurrPredRows = divCurrentPredictions.FindElements(By.XPath(".//table[@class='items']/tbody/tr"));
 
                 foreach (var trCurrPredRow in trCurrPredRows)
                 {
@@ -66,7 +66,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
                     var extDate = ParseDate(tdCurrPredRowCells[0].Text, previousDate, serverTimezone, ref year);
                     var discipline = DisciplineConverter.ToDisciplineType(tdCurrPredRowCells[1].Text.Trim());
                     var matchStr = tdCurrPredRowCells[2].FindElement(By.TagName("a")).Text.RemoveHTMLSymbols().Trim();
-                    var pickStr = isFree ? tdCurrPredRowCells[3].Text.UntilWithout("(").RemoveHTMLSymbols().Trim() : "Ukryty";
+                    var pickStr = isFree ? tdCurrPredRowCells[3].Text.BeforeFirst("(").RemoveHTMLSymbols().Trim() : "Ukryty";
 
                     var newBet = new BetResponse
                     {

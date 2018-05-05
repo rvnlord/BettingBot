@@ -69,7 +69,6 @@ namespace BettingBot.Source
                 OnInformationSending("Zapisano zakłady");
                 return;
             }
-
             
             var tipsterId = _db.Tipsters.Single(t => tipster.Name == t.Name && tipster.Link == t.Link).Id;
             var nextBetId = _db.Bets.Next(b => b.Id);
@@ -79,9 +78,8 @@ namespace BettingBot.Source
             {
                 bet.Id = nextBetId++;
                 bet.TipsterId = tipsterId;
-
-                var pick = bet.Pick;
                 
+                var pick = bet.Pick;
                 var pickId = _db.Picks.SingleOrDefault(p => p.Choice == pick.Choice && p.Value == pick.Value)?.Id;
                 if (pickId == null)
                 {
@@ -110,6 +108,21 @@ namespace BettingBot.Source
             _db.SaveChanges();
             
             OnInformationSending("Zapisano zakłady");
+        }
+
+        public void UpsertBet(DbTipster tipster, DbBet bet)
+        {
+            UpsertBets(tipster, new[] { bet }.ToList());
+        }
+
+        public void UpsertMyBets(List<DbBet> bets)
+        {
+            UpsertBets(DbTipster.Me(), bets);
+        }
+
+        public void UpsertMyBet(DbBet bet)
+        {
+            UpsertBet(DbTipster.Me(), bet);
         }
 
         public virtual List<DbTipster> GetTipstersExceptDefault()
@@ -517,7 +530,7 @@ namespace BettingBot.Source
                 var matchesWithMatchingName = dbMatches.Where(m =>
                     m.Home.Name.EqIgnoreCase(b.OriginalHomeName)
                     || b.OriginalHomeName.EqAnyIgnoreCase(m.Home.TeamAlternateNames.Select(ta => ta.AlternateName))
-                    || m.Away.Name.ToLower().EqIgnoreCase(b.OriginalAwayName)
+                    || m.Away.Name.EqIgnoreCase(b.OriginalAwayName)
                     || b.OriginalAwayName.EqAnyIgnoreCase(m.Away.TeamAlternateNames.Select(ta => ta.AlternateName))).ToList();
 
                 var matchesWithMatchingDates = matchesWithMatchingName.Where(m => b.OriginalDate.Between(m.Date.SubtractDays(1), m.Date.AddDays(1)));
@@ -601,6 +614,34 @@ namespace BettingBot.Source
             return _db.Websites.Include(w => w.Login).SingleOrDefault(w => w.Address.ToLower() == domain)?.Login;
         }
 
+        //public void AddBet(DbBet bet)
+        //{
+        //    if (bet.Tipster == null)
+        //        bet.TipsterId = -1;
+        //    bet.Id = _db.Bets.Next(b => b.Id);
+
+        //    var pick = bet.Pick;
+
+        //    var pickId = _db.Picks.SingleOrDefault(p => p.Choice == pick.Choice && p.Value == pick.Value)?.Id;
+        //    if (pickId == null)
+        //    {
+        //        pick.Id = _db.Picks.Next(p => p.Id);
+        //        _db.Picks.Add(pick);
+        //        _db.SaveChanges();
+        //        pickId = pick.Id;
+        //    }
+        //    bet.PickId = pickId.ToInt();
+        //    bet.Pick = null;
+
+        //    _db.Bets.Add(bet);
+        //    _db.SaveChanges();
+        //}
+
+        public DbBet[] GetMyBets()
+        {
+            return _db.Bets.Where(b => b.TipsterId == -1).Include(b => b.Pick).ToArray();
+        }
+
         //private void WithDisabledConstraints(Action action)
         //{
         //    _db.Database.Connection.Open();
@@ -620,7 +661,5 @@ namespace BettingBot.Source
         //{
         //    WithDisabledConstraints(() => _db.SaveChanges());
         //}
-
-
     }
 }

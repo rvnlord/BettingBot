@@ -70,7 +70,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
         {
             OnInformationSending("Logowanie...");
 
-            var loginUrl = "https://hintwise.com/login";
+            var loginUrl = $"{_address}login";
             var urlFromBeforeLogin = _hsdm.Url;
             _hsdm.NavigateToAndStopWaitingForUrlAfter(loginUrl, 5);
             loginUrl = _hsdm.Url; // dokładny adres logowania, żeby póxniej sprawdzić czy adres się zmienił, jeśli zostawimy domyślny, np  z http a po zalogowaniu przekieruje na ten sam adres z https to sprawdzenie czy d.Url != _prevUrl od razu zwróci true i przejdzie dalej nie oczekując w Waicie
@@ -89,9 +89,11 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
             var loginIncorrect = false;
             bool isLoginIncorrect()
             {
-                _hsdm.DisableWaitingForElements(); // jeśli jest błąd to element error jesty dostępny od razu, jeśli nie ma to nie możemy czekac n sekund na timeout, tylko przejść do warunku Correct od razu i czekać tylko na nowy Url
-                loginIncorrect = _hsdm.FindElementsByXPath(".//div[@class='errorMessage']")?.Select(div => div.Text).Any(text => text.EqIgnoreCase("Password incorrect!")) == true;
-                _hsdm.EnableWaitingForElements();
+                _hsdm.WithoutWaitingForElements(() =>
+                {
+                    loginIncorrect = _hsdm.FindElementsByXPath(".//div[@class='errorMessage']")?.Select(div => div.Text).Any(text => text.EqIgnoreCase("Password incorrect!")) == true;
+                }); // jeśli jest błąd to element error jest dostępny od razu, jeśli nie ma to nie możemy czekac n sekund na timeout, tylko przejść do warunku Correct od razu i czekać tylko na nowy Url
+                
                 return loginIncorrect;
             }
             bool isLoginCorrect() => _hsdm.Url != loginUrl;
@@ -108,9 +110,8 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
 
         public bool IsLogged()
         {
-            _sdm.DisableWaitingForElements();
-            var isLogged = !_sdm.FindElementsByXPath(".//a").Any(e => e.Text.ToLower().Contains("login"));
-            _sdm.EnableWaitingForElements();
+            var isLogged = false;
+            _sdm.WithoutWaitingForElements(() => isLogged = !_sdm.FindElementsByXPath(".//a").Any(e => e.Text.ContainsAny("login")));
             return isLogged;
         }
     }

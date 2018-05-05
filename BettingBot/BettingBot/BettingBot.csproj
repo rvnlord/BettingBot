@@ -240,7 +240,7 @@
     <Compile Include="Source\ViewModels\BetToDisplayGvVM.cs" />
     <Compile Include="Common\UtilityClasses\BrowserSession.cs" />
     <Compile Include="Common\UtilityClasses\ClipboardWrapper.cs" />
-    <Compile Include="Source\ViewModels\BetToSendVM.cs" />
+    <Compile Include="Source\ViewModels\SentBetGvVM.cs" />
     <Compile Include="Common\UtilityClasses\CustomList.cs" />
     <Compile Include="Common\UtilityClasses\CustomNameValueCollection.cs" />
     <Compile Include="Source\DataFilter.cs" />

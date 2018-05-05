@@ -83,5 +83,10 @@ namespace BettingBot.Source.DbContext.Models
         {
             return BetConverter.ToBetToAssociateGvVM(this);
         }
+
+        public SentBetGvVM ToSentBetGvVM()
+        {
+            return BetConverter.ToSentBetGvVM(this);
+        }
     }
 }

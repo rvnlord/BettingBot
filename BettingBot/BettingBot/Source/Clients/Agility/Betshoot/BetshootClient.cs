@@ -8,8 +8,8 @@ namespace BettingBot.Source.Clients.Agility.Betshoot
     {
         public BetshootClient() 
             : base(
-                  "https://www.betshoot.com/competition/users/", 
-                  TimeZoneKind.GreenwichStandardTime) { }
+                    "https://www.betshoot.com/competition/users/", 
+                    TimeZoneKind.GreenwichStandardTime) { }
 
         public TipsterAddressResponse TipsterAddress(string tipsterName)
         {
