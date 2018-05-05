@@ -58,7 +58,7 @@ namespace BettingBot.Source.ViewModels
         public double Budget { get => _budget; set => SetPropertyAndNotify(ref _budget, value, nameof(Budget)); }
         public double BudgetBeforeResult { get => _budgetBeforeResult; set => SetPropertyAndNotify(ref _budgetBeforeResult, value, nameof(BudgetBeforeResult)); }
         
-        public string TipsterString => $"{_tipsterName} ({_tipsterWebsite.Take(1)})";
+        public string TipsterString => _tipsterName.EqIgnoreCase("my") ? "Ja" :  $"{_tipsterName} ({_tipsterWebsite.Take(1)})";
         public string OddsString => Odds <= 0 ? "" : $"{Odds:0.00}";
         public string StakeString => (Stake < 0 ? "-" + $"{Stake:0.##}".Substring(1) : $"{Stake:0.##}") + " zł";
         public string ProfitString => BetResult == BetResult.Pending 

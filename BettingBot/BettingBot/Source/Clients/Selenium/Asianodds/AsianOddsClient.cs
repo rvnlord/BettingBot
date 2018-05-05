@@ -20,7 +20,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds
                 login, password, headlessMode)
         {
             _sdm = new AsianoddsSeleniumDriverManager();
-            _aosdm = (AsianoddsSeleniumDriverManager)_sdm;
+            _aosdm = _sdm.ToAosdm();
         }
 
         public BetResponse MakeBet(BetRequest betRequest)

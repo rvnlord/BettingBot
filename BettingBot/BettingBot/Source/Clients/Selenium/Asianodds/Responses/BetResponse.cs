@@ -147,7 +147,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                     try
                                     {
                                         string league = null;
-                                        sdm.TryUntilElementAttachedToPage(() => league = tblGameRow.FindElement(By.XPath(".//td[1]/input[@class='leauge']")).GetAttribute("value").Trim());
+                                        sdm.TryUntilElementAttachedToPage(() => league = tblGameRow.FindElement(By.XPath(".//td[1]/input[@class='leauge']")).GetAttribute("value").AfterLast("*").Trim());
                                         string strTime = null;
                                         sdm.TryUntilElementAttachedToPage(() => strTime = tblGameRow.FindElement(By.XPath(".//td[1]/input[@class='hidKickofTime']")).GetAttribute("value").Trim());
                                         IWebElement tdTeamNames = null;
@@ -302,6 +302,16 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
 
             var candidateBetsWithSamePick = candidateBetsWithLowestTimeDifference
                 .Where(b => b.PickChoice == betRequest.PickChoice && b.PickValue.Eq(betRequest.PickValue)).ToList();
+            if (!candidateBetsWithSamePick.Any() && betRequest.PickValue.Eq(0))
+            {
+                if (betRequest.PickChoice == PickChoice.HomeAsianHandicapAdd)
+                    betRequest.PickChoice = PickChoice.HomeAsianHandicapSubtract;
+                else if (betRequest.PickChoice == PickChoice.AwayAsianHandicapAdd)
+                    betRequest.PickChoice = PickChoice.AwayAsianHandicapSubtract;
+            }
+            candidateBetsWithSamePick = candidateBetsWithLowestTimeDifference
+                .Where(b => b.PickChoice == betRequest.PickChoice && b.PickValue.Eq(betRequest.PickValue)).ToList();
+
             var finalBet = candidateBetsWithSamePick
                 .Where(b => b.HomeCommonWords + b.AwayCommonWords >= 1)
                 .MaxBy(b => b.HomeCommonWords + b.AwayCommonWords);
@@ -343,7 +353,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
             var tableOutstandingBets = sdm.FindElementByXPath("//*[@id='OutstandingBetsContanier']//table[@class='tableOutsanding']");
             var trOutstandingBets = tableOutstandingBets.FindElements(By.XPath(".//tbody/tr[@class='trItem']")).Where(tr => tr.Displayed).ToArray();
             var trPlacedBet = trOutstandingBets.Single(tr => tr
-                .FindElement(By.ClassName("span_homeName_awayName")).Text
+                .FindElement(By.ClassName("span_homeName_awayName")).Text.AfterLast("]")
                 .Trim().EqIgnoreCase($"{finalBet.MatchHomeName} -vs- {finalBet.MatchAwayName}"));
 
             var oddsResp = trPlacedBet.FindElement(By.ClassName("span_odds")).Text.Trim().ToDouble();

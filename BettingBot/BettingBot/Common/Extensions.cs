@@ -289,6 +289,8 @@ namespace BettingBot.Common
 
         public static string UrlToDomain(this string str)
         {
+            if (string.IsNullOrWhiteSpace(str))
+                return null;
             return DomainName.TryParse(new Uri(str).Host, out DomainName completeDomain) ? completeDomain.SLD : "";
         }
 
@@ -1804,7 +1806,7 @@ namespace BettingBot.Common
         public static void ScrollToEnd(this DataGrid gv)
         {
             if (gv.Items.Count > 0)
-                gv.GetScrollViewer().ScrollToEnd();
+                gv.GetScrollViewer()?.ScrollToEnd();
         }
 
         public static void ScrollToStart(this DataGrid gv)
@@ -2136,26 +2138,26 @@ namespace BettingBot.Common
 
         public static string XPath(this IWebElement element, string current = "")
         {
-            var childTag = element.TagName;
-            if (childTag.EqIgnoreCase("html"))
+            var tag = element.TagName;
+            if (tag.EqIgnoreCase("html"))
                 return "/html[1]" + current;
+            var id = element.GetId();
+            if (id != null)
+                return $"//{tag}[@id='{id}']{current}";
             var parentElement = element.FindElement(By.XPath(".."));
             var childrenElements = parentElement.FindElements(By.XPath("*"));
             var count = 0;
             foreach (var childElement in childrenElements)
             {
                 var childElementTag = childElement.TagName;
-                if (childTag.EqIgnoreCase(childElementTag))
+                if (tag.EqIgnoreCase(childElementTag))
                     count++;
                 if (element.Equals(childElement))
                 {
-                    var childElementId = childElement.GetId();
                     var childElementClasses = childElement.GetClasses();
-                    if (childElementId != null)
-                        return $"//{childTag}[@id='{childElementId}']{current}";
                     if (childElementClasses.Any())
-                        return XPath(parentElement, $"/{childTag}[{childElementClasses.Select(c => $"contains(@class, '{c}')").JoinAsString(" and ")}]{current}");
-                    return XPath(parentElement, $"/{childTag}[{count}]{current}");
+                        return XPath(parentElement, $"/{tag}[{childElementClasses.Select(c => $"contains(@class, '{c}')").JoinAsString(" and ")}]{current}");
+                    return XPath(parentElement, $"/{tag}[{count}]{current}");
                 }
             }
             return null;

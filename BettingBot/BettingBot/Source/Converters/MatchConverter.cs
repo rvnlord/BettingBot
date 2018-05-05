@@ -11,6 +11,8 @@ namespace BettingBot.Source.Converters
     {
         public static MatchResult ToMatchResultResponse(string matchResult)
         {
+            if (matchResult == null)
+                return MatchResult.Inconclusive();
             var matchResultStr = matchResult.RemoveHTMLSymbols().Remove(" ");
             if (matchResultStr.Contains("-"))
             {
