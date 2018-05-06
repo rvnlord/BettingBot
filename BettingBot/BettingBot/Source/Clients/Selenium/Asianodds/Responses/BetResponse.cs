@@ -185,7 +185,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                                 HomeCommonWords = homeSameWords.Length,
                                                 AwayCommonWords = awaySameWords.Length,
                                                 TimeDifference = timeDifference,
-                                                XPath = spanBetItem.XPath()
+                                                XPath = spanBetItem.XPath(),
+                                                TimePeriodXPath = $"//div[@id='{divTimePeriodId}']"
                                             };
 
                                             OnInformationSending($"Aktualizacja elementu nr {++resultsNum}: {strDisciplineLocalized}, słowo kluczowe: \"{searchTerm}\", przedział czasowy: \"{localizedTimePeriod}\"...");
@@ -232,7 +233,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                                     if (handicapHome != null)
                                                     {
                                                         candidateBetReq.PickChoice = PickChoice.HomeAsianHandicapSubtract;
-                                                        candidateBetReq.PickValue = -handicapHome;
+                                                        candidateBetReq.PickValue = handicapHome; // -
                                                     }
                                                     else
                                                     {
@@ -245,7 +246,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                                     if (handicapAway != null)
                                                     {
                                                         candidateBetReq.PickChoice = PickChoice.AwayAsianHandicapSubtract;
-                                                        candidateBetReq.PickValue = -handicapAway;
+                                                        candidateBetReq.PickValue = handicapAway; // -
                                                     }
                                                     else
                                                     {
@@ -298,7 +299,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
 
             OnInformationSending($"Filtrowanie potencjalnych zakładów {candidateBetsDistinct.Count}...");
             
-            var candidateBetsWithLowestTimeDifference = candidateBetsDistinct.GroupBy(b => b.TimeDifference).MinBy(b => b.Key).ToList();
+            var candidateBetsWithLowestTimeDifference = candidateBetsDistinct.Where(b => b.TimeDifference < TimeSpan.FromDays(2)).ToList();
 
             var candidateBetsWithSamePick = candidateBetsWithLowestTimeDifference
                 .Where(b => b.PickChoice == betRequest.PickChoice && b.PickValue.Eq(betRequest.PickValue)).ToList();
@@ -322,6 +323,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
 
             OnInformationSending("Zawieranie zakładu...");
 
+            var divFinalTimePeriod = sdm.FindElementByXPath(finalBet.TimePeriodXPath);
+            divFinalTimePeriod.Click();
             txtSearchMatch.Clear();
             txtSearchMatch.SendKeys(finalBet.Keyword);
             sdm.Wait.Until(d => IsSearchInProgress());
@@ -385,9 +388,9 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
             if (strSplit.Length == 2)
             {
                 var goalsFromTo = strSplit.Select(x => x.ToDouble()).ToArray();
-                return goalsFromTo[1] + (goalsFromTo[1] - goalsFromTo[0]) / 2;
+                return goalsFromTo[0] + (goalsFromTo[1] - goalsFromTo[0]) / 2;
             }
-            throw new AsianoddsException("Nie można pobrać progu liczbowego dla zakłądu");
+            throw new AsianoddsException("Nie można pobrać progu liczbowego dla zakładu");
         }
 
         public override string ToString()

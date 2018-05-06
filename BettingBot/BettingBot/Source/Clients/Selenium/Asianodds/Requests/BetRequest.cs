@@ -23,7 +23,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Requests
         public int AwayCommonWords { get; set; }
         public TimeSpan TimeDifference { get; set; }
         public string XPath { get; set; }
-        
+        public string TimePeriodXPath { get; set; }
+
         public override bool Equals(object obj)
         {
             if (!(obj is BetRequest)) return false;

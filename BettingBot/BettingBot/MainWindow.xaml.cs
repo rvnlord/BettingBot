@@ -1571,32 +1571,41 @@ namespace BettingBot
 
         private async void cmGvSentBets_Click(object sender, ContextMenuClickEventArgs e)
         {
-            switch (e.ClickedItem.Text)
+            try
             {
-                case "Odśwież ze strony brokera":
+                switch (e.ClickedItem.Text)
                 {
-                    throw new NotImplementedException();
+                    case "Odśwież ze strony brokera":
+                    {
 
-                    var headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
+                        throw new NotImplementedException();
 
-                    await AsyncWithLoader(gridData, () =>
-                    { // TODO:
-                        
-                        //var dm = new DataManager();
+                        //var headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
 
-                        //var login = dm.GetLoginByWebsite("https://www.asianodds88.com/");
-                        //if (login == null) throw new NullReferenceException("Brak loginu dla żądanej strony");
+                        //await AsyncWithLoader(gridData, () =>
+                        //{ // TODO:
 
-                        //var asianodds = new AsianoddsClient(login.Name, login.Password, headlessMode)
-                        //    .ReceiveInfoWith<AsianoddsClient>(client_InformationReceived);
-                        //var placedBets = asianodds.GetPlacedBets();
-                        //dm.UpsertMyBets(placedBets.ToDbBets());
-                        //_ocSentBets.ReplaceAll(dm.GetMyBets().ToSentBetsGvVM());
-                        //CalculateBets();
-                    });
+                        //    //var dm = new DataManager();
 
-                    break;
+                        //    //var login = dm.GetLoginByWebsite("https://www.asianodds88.com/");
+                        //    //if (login == null) throw new NullReferenceException("Brak loginu dla żądanej strony");
+
+                        //    //var asianodds = new AsianoddsClient(login.Name, login.Password, headlessMode)
+                        //    //    .ReceiveInfoWith<AsianoddsClient>(client_InformationReceived);
+                        //    //var placedBets = asianodds.GetPlacedBets();
+                        //    //dm.UpsertMyBets(placedBets.ToDbBets());
+                        //    //_ocSentBets.ReplaceAll(dm.GetMyBets().ToSentBetsGvVM());
+                        //    //CalculateBets();
+                        //});
+
+                        break;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
         }
 
@@ -2598,7 +2607,7 @@ namespace BettingBot
                     var asianodds = new AsianoddsClient(login.Name, login.Password, headlessMode)
                         .ReceiveInfoWith<AsianoddsClient>(client_InformationReceived);
                     var betResponse = asianodds.MakeBet(betRequest);
-                    dm.UpsertMyBet(betResponse.ToDbBet());
+                    dm.AddMyBet(betResponse.ToDbBet());
                     CalculateBets();
                 });
                 _ocSentBets.ReplaceAll(dm.GetMyBets().ToSentBetsGvVM());

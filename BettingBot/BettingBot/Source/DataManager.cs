@@ -60,7 +60,7 @@ namespace BettingBot.Source
             return true;
         }
 
-        public virtual void UpsertBets(DbTipster tipster, List<DbBet> bets)
+        public virtual void UpsertBets(DbTipster tipster, List<DbBet> bets, bool addOnly = false)
         {
             OnInformationSending("Zapisywanie zakładów...");
             
@@ -92,37 +92,60 @@ namespace BettingBot.Source
                 bet.Pick = null; // nie dodawaj do bazy właściwości z innych tabel
             }
 
-            var minDate = bets.Select(b => b.OriginalDate).Min(); // min d z nowych, zawiera wszystkie z tą datą
-            _db.Bets.RemoveBy(b => b.OriginalDate >= minDate && b.TipsterId == tipsterId);
+            if (!addOnly)
+            {
+                var minDate = bets.Select(b => b.OriginalDate).Min(); // min d z nowych, zawiera wszystkie z tą datą
+                _db.Bets.RemoveBy(b => b.OriginalDate >= minDate && b.TipsterId == tipsterId);
 
-            var plusOneDay = minDate.AddDays(1);
-            var minusOneDay = minDate.AddDays(-1);
-            var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay && b.TipsterId == tipsterId).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
-            var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
-            _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
-            
-            _db.Bets.AddRange(bets.Distinct()); 
+                var plusOneDay = minDate.AddDays(1);
+                var minusOneDay = minDate.AddDays(-1);
+                var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay && b.TipsterId == tipsterId).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
+                var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
+                _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
+
+                _db.Bets.AddRange(bets.Distinct());
                 // 1. jeśli obstawiono 2x ten sam mecz, ale tip jest ukryty to powstanie duplikat, możemy go odrzucić, bo kiedy poznamy zakład, to i tak obydwa mecze zostaną załadowane.
                 // 2. bug hintwise mecze o tym samym czasie mogą być posortowane w dowolnej kolejności, czyli np na początku jednej strony i na końcu nastepnej mogą wystąpić te same, optymalnie poskakac po stronach pagera tam i z powrotem kilka razy
+            }
 
             _db.SaveChanges();
             
             OnInformationSending("Zapisano zakłady");
         }
 
-        public void UpsertBet(DbTipster tipster, DbBet bet)
+        public void UpsertBet(DbTipster tipster, DbBet bet, bool addOnly = false)
         {
-            UpsertBets(tipster, new[] { bet }.ToList());
+            UpsertBets(tipster, new[] { bet }.ToList(), addOnly);
         }
 
-        public void UpsertMyBets(List<DbBet> bets)
+        public void UpsertMyBets(List<DbBet> bets, bool addOnly = false)
         {
-            UpsertBets(DbTipster.Me(), bets);
+            UpsertBets(DbTipster.Me(), bets, addOnly);
         }
 
-        public void UpsertMyBet(DbBet bet)
+        public void UpsertMyBet(DbBet bet, bool addOnly = false)
         {
-            UpsertBet(DbTipster.Me(), bet);
+            UpsertBet(DbTipster.Me(), bet, addOnly);
+        }
+
+        public void AddBets(DbTipster tipster, List<DbBet> bets)
+        {
+            UpsertBets(tipster, bets, true);
+        }
+
+        public void AddMyBets(List<DbBet> bets)
+        {
+            UpsertMyBets(bets, true);
+        }
+
+        public void AddBet(DbTipster tipster, DbBet bet)
+        {
+            UpsertBet(tipster, bet, true);
+        }
+
+        public void AddMyBet(DbBet bet)
+        {
+            UpsertMyBet(bet, true);
         }
 
         public virtual List<DbTipster> GetTipstersExceptDefault()

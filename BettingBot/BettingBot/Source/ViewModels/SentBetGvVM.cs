@@ -68,5 +68,6 @@ namespace BettingBot.Source.ViewModels
                 ? "-"
                 : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " zł";
         public string DateString => LocalTimestamp.Rfc1123.ToString("dd-MM-yyyy HH:mm");
+        public string OddsString => Odds <= 0 ? "" : $"{Odds:0.000}";
     }
 }
