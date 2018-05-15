@@ -355,10 +355,14 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
             
             var tableOutstandingBets = sdm.FindElementByXPath("//*[@id='OutstandingBetsContanier']//table[@class='tableOutsanding']");
             var trOutstandingBets = tableOutstandingBets.FindElements(By.XPath(".//tbody/tr[@class='trItem']")).Where(tr => tr.Displayed).ToArray();
-            var trPlacedBet = trOutstandingBets.Single(tr => tr
+
+            IWebElement getTrPlacedBet() => trOutstandingBets.SingleOrDefault(tr => tr
                 .FindElement(By.ClassName("span_homeName_awayName")).Text.AfterLast("]")
                 .Trim().EqIgnoreCase($"{finalBet.MatchHomeName} -vs- {finalBet.MatchAwayName}"));
 
+            IWebElement trPlacedBet = null;
+            sdm.Wait.Until(d => (trPlacedBet = getTrPlacedBet()) != null);
+            
             var oddsResp = trPlacedBet.FindElement(By.ClassName("span_odds")).Text.Trim().ToDouble();
             var stakeResp = trPlacedBet.FindElement(By.ClassName("spanStake_Currency")).Text.BeforeFirst("EUR").Trim().ToDouble();
             

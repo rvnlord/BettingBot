@@ -4,17 +4,19 @@
                     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                     xmlns:converters="http://metro.mahapps.com/winfx/xaml/shared">
 
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.DataGrid.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.ContextMenu.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.Label.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.TextBox.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.CheckBox.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.RadioButton.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.Buttons.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.ComboBox.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.ListBox.xaml" />
-    </ResourceDictionary.MergedDictionaries>
+    <SolidColorBrush x:Key="MouseOverBlueBrush" Color="#FF000096" />
+    <SolidColorBrush x:Key="DefaultBlueBrush" Color="#FF000040" />
+    <SolidColorBrush x:Key="DefaultWindowBrush" Color="#FF1E1E1E" />
+
+    <Style x:Key="MyCleanWindowStyle" 
+           TargetType="{x:Type mah:MetroWindow}" 
+           BasedOn="{StaticResource CleanWindowStyleKey}">
+        <Setter Property="TitleCharacterCasing" Value="Normal"/>
+        <Setter Property="IconEdgeMode" Value="Aliased"/>
+        <Setter Property="TitleAlignment" Value="-10,0,0,0"/>
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="WindowTitleBrush" Value="{StaticResource DefaultBlueBrush}"></Setter>
+    </Style>
 
     <LinearGradientBrush x:Key="HeaderRowBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FF000096" Offset="0.0" />
@@ -123,6 +125,14 @@
         <Setter Property="mah:ControlsHelper.ContentCharacterCasing" Value="Normal" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="MyClearButtonStyle" BasedOn="{StaticResource ChromelessButtonStyle}" TargetType="{x:Type ButtonBase}">
+        <Setter Property="mah:ControlsHelper.ContentCharacterCasing" Value="Normal" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="30" />
     </Style>
 
 

@@ -9,30 +9,62 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:common="clr-namespace:BettingBot.Common"
-    Icon="./Resources/Icons/Icon.png"
     x:Class="BettingBot.MainWindow"
     mc:Ignorable="d"
-    Title="Zakłady" 
+    Title="Bot i Symulator Zakładów" 
     Height="1500" Width="2000" 
     WindowStartupLocation="CenterScreen" 
     Padding="10" Margin="0" 
-    Background="#FF1E1E1E" 
+    Background="{StaticResource DefaultWindowBrush}" 
     SizeToContent="WidthAndHeight" 
-    ResizeMode="CanMinimize" 
+    ResizeMode="CanMinimize"
     
     GlowBrush="{DynamicResource AccentColorBrush}" 
     Closing="MainWindow_Closing" 
     SnapsToDevicePixels="True"
-    mah:ControlsHelper.ContentCharacterCasing="Normal">
+    mah:ControlsHelper.ContentCharacterCasing="Normal"
+    Style="{StaticResource MyCleanWindowStyle}"
+    UseNoneWindowStyle="True"
+    WindowStyle="None">
+
+    <mah:MetroWindow.IconTemplate>
+        <DataTemplate>
+            <Grid Width="{TemplateBinding Width}"
+                  Height="{TemplateBinding Height}"
+                  Margin="5"
+                  Background="Transparent"
+                  RenderOptions.EdgeMode="Aliased"
+                  RenderOptions.BitmapScalingMode="HighQuality">
+                <Image Source="./Resources/Icons/Icon.png"></Image>
+            </Grid>
+        </DataTemplate>
+    </mah:MetroWindow.IconTemplate>
 
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
-            <Button x:Name="btnMinimizeToTray" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Tray" Click="btnMinimizeToTray_Click" />
+            <Button x:Name="btnMinimizeToTray2" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Tray" Click="btnMinimizeToTray_Click" MouseEnter="btnMinimizeToTray_MouseEnter" MouseLeave="btnMinimizeToTray_MouseLeave" />
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
 
-    <Grid x:Name="gridOuter" Background="Transparent" Margin="10" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-        <Grid x:Name="gridMain" Background="Transparent" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <StackPanel x:Name="gridOuter" Background="Transparent" Margin="0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+        <Grid x:Name="gridTitleBar" Margin="0" Height="30" Background="{StaticResource DefaultWindowBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Top" MouseDown="gridTitleBar_MouseDown" MouseEnter="gridTitleBar_MouseEnter" MouseLeave="gridTitleBar_MouseLeave">
+            <Grid Width="20"
+                  Height="20"
+                  Margin="5"
+                  Background="Transparent"
+                  RenderOptions.EdgeMode="Aliased"
+                  RenderOptions.BitmapScalingMode="HighQuality"
+                  VerticalAlignment="Center" HorizontalAlignment="Left">
+                <Image Source="./Resources/Icons/Icon.png"></Image>
+            </Grid>
+            <Label x:Name="lblWindowTitle" FontSize="12" Content="Bot i Symulator Zakładów" HorizontalAlignment="Left" Margin="30,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
+            <Button x:Name="btnMinimizeToTray" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Tray" Click="btnMinimizeToTray_Click" MouseEnter="btnMinimizeToTray_MouseEnter" MouseLeave="btnMinimizeToTray_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,60,0" />
+            <Button x:Name="btnMinimize" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern WindowMinimize}" ToolTip="Minimalizuj" Click="btnMinimize_Click" MouseEnter="btnMinimize_MouseEnter" MouseLeave="btnMinimize_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" />
+            <Button x:Name="btnClose" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern Close}" ToolTip="Zamknij" Click="btnClose_Click" MouseEnter="btnClose_MouseEnter" MouseLeave="btnClose_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" />
+        </Grid>
+        
+        <Grid x:Name="gridMain" Background="Transparent" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
 
             <StackPanel x:Name="spMenuWithContent" Orientation="Horizontal">
                 <StackPanel x:Name="spMenu" Orientation="Vertical">
@@ -91,7 +123,15 @@
                     </mah:Tile>
                 </StackPanel>
                 <Grid x:Name="gridContent">
-                    <Button x:Name="btnTEST" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="TEST" HorizontalAlignment="Left" Margin="420,0,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnTEST_Click" Visibility="Hidden" />
+                    <Button x:Name="btnTEST" ContextMenuService.ShowOnDisabled="True" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="TEST" HorizontalAlignment="Left" Margin="420,0,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnTEST_Click" Visibility="Hidden" IsEnabled="False">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Item 1"/>
+                                <MenuItem Header="Item 2"/>
+                                <MenuItem Header="Item 3"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                     <mah:MetroAnimatedTabControl x:Name="matcMain"  Margin="0,0,0,0" Padding="0" BorderThickness="0" Background="Transparent">
                         <mah:MetroTabItem>
 
@@ -578,5 +618,5 @@
             </StackPanel>
 
         </Grid>
-    </Grid>
+    </StackPanel>
 </mah:MetroWindow>

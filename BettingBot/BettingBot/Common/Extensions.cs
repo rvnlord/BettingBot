@@ -260,7 +260,7 @@ namespace BettingBot.Common
 
         public static bool EndsWithAny(this string str, params string[] strings)
         {
-            return strings.Any(str.EndsWith);
+            return strings.Select(s => s.ToLower()).Any(str.ToLower().EndsWith);
         }
         
         public static string RemoveWord(this string str, string word, string separator = " ")
@@ -1913,17 +1913,17 @@ namespace BettingBot.Common
 
         #region Control Extensions
 
-        public static void Highlight(this Control control, Color color)
+        public static void Highlight(this FrameworkElement control, Color color)
         {
             control.AnimateChangeColor(color);
         }
 
-        public static void Unhighlight(this Control control, Color defaultColor)
+        public static void Unhighlight(this FrameworkElement control, Color defaultColor)
         {
             control.AnimateChangeColor(defaultColor);
         }
 
-        private static async void AnimateChangeColor(this Control control, Color color)
+        private static async void AnimateChangeColor(this FrameworkElement control, Color color)
         {
             var colorAni = new ColorAnimation(color, new Duration(TimeSpan.FromMilliseconds(500)));
             await control.AnimateAsync("(Panel.Background).(SolidColorBrush.Color)", colorAni);

@@ -97,6 +97,10 @@ namespace BettingBot
         private readonly List<object> _buttonsAndContextMenus = new List<object>();
         private string[] prevMatchBetAssocSearchTerm = new string[0];
 
+        private Color _mouseOverBlueColor;
+        private Color _defaultBlueColor;
+        private Color _defaultWindowColor;
+
         private Color _mouseOverMainMenuTileColor;
         private Color _defaultMainMenuTileColor;
         private Color _mouseOverMainMenuResizeTileColor;
@@ -137,7 +141,7 @@ namespace BettingBot
         private BettingSystem _bs;
         private TilesMenu _mainMenu;
         private bool _raisingEventImplicitlyFromCode;
-        
+
         #endregion
 
         #region Properties
@@ -180,6 +184,7 @@ namespace BettingBot
 
                     Dispatcher.Invoke(() =>
                     {
+                        SetupWindow();
                         SetupTiles();
                         SetupGrids();
                         SetupTextBoxes();
@@ -328,15 +333,7 @@ namespace BettingBot
             if (!gridMain.HasLoader())
                 actuallyDisabledControls.EnableControls();
         }
-
-        private void btnMinimizeToTray_Click(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-            ShowInTaskbar = false;
-            _notifyIcon.Visible = true;
-            _notifyIcon.ShowBalloonTip(1500);
-        }
-
+        
         private async void btnAddTipster_Click(object sender, RoutedEventArgs e)
         {
             var actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
@@ -635,11 +632,67 @@ namespace BettingBot
             }  
         }
 
+        private void btnMinimizeToTray_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+            ShowInTaskbar = false;
+            _notifyIcon.Visible = true;
+            _notifyIcon.ShowBalloonTip(1500);
+        }
+
+        private void btnMinimizeToTray_MouseEnter(object sender, MouseEventArgs e)
+        {
+            ((Button) sender).Background = new SolidColorBrush(_mouseOverBlueColor);
+            //((Button) sender).Highlight(_mouseOverBlueColor);
+        }
+
+        private void btnMinimizeToTray_MouseLeave(object sender, MouseEventArgs e)
+        {
+            ((Button)sender).Background = Brushes.Transparent;
+            //((Button) sender).Highlight(Colors.Transparent);
+        }
+
+        private void btnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void btnMinimize_MouseEnter(object sender, MouseEventArgs e)
+        {
+            //((Button)sender).Highlight(Color.FromRgb(76, 76, 76));
+            ((Button)sender).Background = new SolidColorBrush(Color.FromRgb(76, 76, 76));
+        }
+
+        private void btnMinimize_MouseLeave(object sender, MouseEventArgs e)
+        {
+            //((Button)sender).Highlight(_defaultWindowColor);
+            ((Button)sender).Background = Brushes.Transparent;
+        }
+
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void btnClose_MouseEnter(object sender, MouseEventArgs e)
+        {
+            //((Button)sender).Highlight(Color.FromRgb(255, 50, 50));
+            ((Button) sender).Background = new SolidColorBrush(Color.FromRgb(76, 76, 76));
+            ((Button) sender).Foreground = Brushes.Black;
+        }
+
+        private void btnClose_MouseLeave(object sender, MouseEventArgs e)
+        {
+            //((Button)sender).Highlight(_defaultWindowColor);
+            ((Button) sender).Background = Brushes.Transparent;
+            ((Button) sender).Foreground = Brushes.White;
+        }
+
         #endregion
 
         #region - TilesMenu Events
 
-        private void tmMainMenu_MenuTIleClick(object sender, MenuTileClickedEventArgs e)
+        private void tmMainMenu_MenuTileClick(object sender, MenuTileClickedEventArgs e)
         {
             var flyouts = gridMain.FindLogicalDescendants<Grid>().Where(fo => fo.Name.EndsWith("Flyout")).ToList();
             var flyout = flyouts.Single(fo => fo.Name.Between("grid", "Flyout") == e.TileClicked.Name.AfterFirst("tl"));
@@ -1190,6 +1243,11 @@ namespace BettingBot
             e.Handled = true;
         }
 
+        private void gvSentBets_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region - - PreviewKeyDown
@@ -1618,6 +1676,21 @@ namespace BettingBot
 
         }
 
+        private void gridTitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
+
+        private void gridTitleBar_MouseEnter(object sender, MouseEventArgs e)
+        {
+            ((Grid) sender).Highlight(_defaultBlueColor);
+        }
+
+        private void gridTitleBar_MouseLeave(object sender, MouseEventArgs e)
+        {
+            ((Grid) sender).Highlight(_defaultWindowColor);
+        }
+
         #endregion
 
         #region - TabControl Events
@@ -1690,6 +1763,13 @@ namespace BettingBot
                 i++;
                 SetupZIndexes(f, i);
             }
+        }
+
+        private void SetupWindow()
+        {
+            _mouseOverBlueColor = ((SolidColorBrush)FindResource("MouseOverBlueBrush")).Color;
+            _defaultBlueColor = ((SolidColorBrush)FindResource("DefaultBlueBrush")).Color;
+            _defaultWindowColor = ((SolidColorBrush)FindResource("DefaultWindowBrush")).Color;
         }
 
         private void SetupDropdowns()
@@ -1874,7 +1954,7 @@ namespace BettingBot
             _mainMenu = spMenu.TilesMenu(false, 150, 
                 _mouseOverMainMenuTileColor, _defaultMainMenuTileColor, 
                 _mouseOverMainMenuResizeTileColor, _defaultMainMenuResizeTileColor);
-            _mainMenu.MenuTileClick += tmMainMenu_MenuTIleClick;
+            _mainMenu.MenuTileClick += tmMainMenu_MenuTileClick;
 
             _defaultFlyoutHeaderTileColor = ((SolidColorBrush) FindResource("DefaultFlyoutHeaderTileBrush")).Color;
             _mouseOverFlyoutHeaderTileColor = ((SolidColorBrush) FindResource("MouseOverFlyoutHeaderTileBrush")).Color;
@@ -2698,11 +2778,6 @@ namespace BettingBot
         #endregion
 
         #endregion
-
-        private void gvSentBets_Sorting(object sender, DataGridSortingEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     #region Enums

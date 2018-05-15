@@ -102,12 +102,11 @@ namespace BettingBot.Source
                 var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay && b.TipsterId == tipsterId).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
                 var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
                 _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
-
-                _db.Bets.AddRange(bets.Distinct());
-                // 1. jeśli obstawiono 2x ten sam mecz, ale tip jest ukryty to powstanie duplikat, możemy go odrzucić, bo kiedy poznamy zakład, to i tak obydwa mecze zostaną załadowane.
-                // 2. bug hintwise mecze o tym samym czasie mogą być posortowane w dowolnej kolejności, czyli np na początku jednej strony i na końcu nastepnej mogą wystąpić te same, optymalnie poskakac po stronach pagera tam i z powrotem kilka razy
             }
 
+            _db.Bets.AddRange(bets.Distinct());
+                // 1. jeśli obstawiono 2x ten sam mecz, ale tip jest ukryty to powstanie duplikat, możemy go odrzucić, bo kiedy poznamy zakład, to i tak obydwa mecze zostaną załadowane.
+                // 2. bug hintwise mecze o tym samym czasie mogą być posortowane w dowolnej kolejności, czyli np na początku jednej strony i na końcu nastepnej mogą wystąpić te same, optymalnie poskakac po stronach pagera tam i z powrotem kilka razy
             _db.SaveChanges();
             
             OnInformationSending("Zapisano zakłady");

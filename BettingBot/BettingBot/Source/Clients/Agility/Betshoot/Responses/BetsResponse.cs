@@ -54,7 +54,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                 if (hrefAPickTeams != null)
                 {
                     var disciplineLeagueStr = arm.GetHtml(hrefAPickTeams).HtmlRoot().Descendants("p")
-                        .Single(p => p.HasClass("post-byline2")).InnerText.RemoveHTMLSymbols().Split(" - ");
+                        .Single(p => p.InnerText.Trim().EndsWithAny(tipster.Name)).InnerText.RemoveHTMLSymbols().Split(" - ");
                     disciplineStr = disciplineLeagueStr[0];
                     leagueName = disciplineLeagueStr[1];
                 }
