@@ -258,6 +258,16 @@ namespace BettingBot.Common
             return strings.Any(str.StartsWith);
         }
 
+        public static bool StartsWithAnyIgnoreCase(this string str, params string[] strings)
+        {
+            return strings.Select(w => w.ToLower()).Any(str.ToLower().StartsWith);
+        }
+
+        public static bool StartsWithIgnoreCase(this string str, string startWith)
+        {
+            return str.ToLower().StartsWith(startWith.ToLower());
+        }
+
         public static bool EndsWithAny(this string str, params string[] strings)
         {
             return strings.Select(s => s.ToLower()).Any(str.ToLower().EndsWith);
@@ -337,11 +347,6 @@ namespace BettingBot.Common
         public static string ToStringDelimitedBy<T>(this IEnumerable<T> enumerable, string strBetween = "")
         {
             return String.Join(strBetween, enumerable);
-        }
-
-        public static string JoinAsString<T>(this IEnumerable<T> enumerable, string strBetween = "")
-        {
-            return enumerable.ToStringDelimitedBy(strBetween);
         }
 
         public static string ToUrlEncoded(this string str)
@@ -474,6 +479,11 @@ namespace BettingBot.Common
         public static ExtendedTime ToExtendedTime(this double unixTimestamp, TimeZoneKind timeZone = TimeZoneKind.UTC)
         {
             return new ExtendedTime(unixTimestamp, timeZone);
+        }
+
+        public static double Abs(this double d)
+        {
+            return Math.Abs(d);
         }
 
         #endregion
@@ -722,6 +732,11 @@ namespace BettingBot.Common
 
         #region - IEnumerable Extensions
 
+        public static string JoinAsString<T>(this IEnumerable<T> enumerable, string strBetween = "")
+        {
+            return enumerable.ToStringDelimitedBy(strBetween);
+        }
+        
         public static int Index<T>(this IEnumerable<T> en, T el)
         {
             var i = 0;
@@ -1665,10 +1680,10 @@ namespace BettingBot.Common
             return control.Margin.Top;
         }
 
-
-        public static void Refresh(this FrameworkElement control)
+        public static T Refresh<T>(this T control) where T : FrameworkElement
         {
             control.Dispatcher.Invoke(DispatcherPriority.Render, _emptyDelegate);
+            return control;
         }
 
         #endregion
@@ -1806,7 +1821,10 @@ namespace BettingBot.Common
         public static void ScrollToEnd(this DataGrid gv)
         {
             if (gv.Items.Count > 0)
-                gv.GetScrollViewer()?.ScrollToEnd();
+            {
+                var scrollViewer = gv.GetScrollViewer();
+                scrollViewer?.ScrollToEnd();
+            } 
         }
 
         public static void ScrollToStart(this DataGrid gv)
@@ -1822,7 +1840,7 @@ namespace BettingBot.Common
                 var sv = gv.GetScrollViewer();
                 var items = gv.Items.Cast<T>().ToArray();
                 var itemToScrollTo = items.Single(i => Equals(i, item));
-                sv.ScrollToVerticalOffset(items.Index(itemToScrollTo));
+                sv?.ScrollToVerticalOffset(items.Index(itemToScrollTo));
             }
         }
 
@@ -2015,7 +2033,7 @@ namespace BettingBot.Common
 
         #endregion
 
-        #region DataGridTextColumn Extesnions
+        #region DataGridTextColumn Extensions
 
         public static string DataMemberName(this DataGridTextColumn column)
         {
@@ -2180,6 +2198,32 @@ namespace BettingBot.Common
         {
             var id = element.GetAttribute("id");
             return string.IsNullOrWhiteSpace(id) ? null : id;
+        }
+
+        public static bool HasClass(this IWebElement element, string cl)
+        {
+            return element.GetClasses().Any(c => c.EqIgnoreCase(cl));
+        }
+
+        public static void TryClickUntilNotCovered(this IWebElement element)
+        {
+            bool exceptionThrown;
+            do
+            {
+                try
+                {
+                    element.Click();
+                    exceptionThrown = false;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (!ex.Message.ContainsAny("Other element would receive the click"))
+                        throw;
+                    exceptionThrown = true;
+                    Thread.Sleep(250);
+                }
+            } while (exceptionThrown);
+
         }
 
         #endregion

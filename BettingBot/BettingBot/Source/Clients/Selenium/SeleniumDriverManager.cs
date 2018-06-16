@@ -144,6 +144,26 @@ namespace BettingBot.Source.Clients.Selenium
             return _driver.FindElementByName(name);
         }
 
+        public IWebElement FindElementById(string id)
+        {
+            return _driver.FindElementById(id);
+        }
+
+        public IWebElement FindElementByClassName(string className)
+        {
+            return _driver.FindElementByClassName(className);
+        }
+
+        public IWebElement FindElementByTagName(string tag)
+        {
+            return _driver.FindElementByTagName(tag);
+        }
+
+        public IWebElement FindElement(By by)
+        {
+            return _driver.FindElement(by);
+        }
+
         public bool WaitUntilOrTimeout(Func<IWebDriver, bool> waitUntil)
         {
             try

@@ -1704,7 +1704,7 @@ namespace BettingBot
         {
             SelectTabTile((MetroAnimatedTabControl) sender, _defaultDatabaseTabTileColor, _mouseOverDatabaseTabTileColor);
         }
-
+        
         private void matcOptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SelectTabTile((MetroAnimatedTabControl) sender, _defaultOptionsTabTileColor, _mouseOverOptionsTabTileColor);
@@ -1927,8 +1927,8 @@ namespace BettingBot
             var dm = new DataManager();
             _ocLogins.ReplaceAll(dm.GetLogins().ToLoginsGvVM());
             gvLogins.ScrollToEnd();
-            _ocSentBets.ReplaceAll(dm.GetMyBets().ToSentBetsGvVM());
-            gvSentBets.ScrollToEnd();
+
+            RefreshBets(dm);
         }
 
         private void SetupUpDowns()
@@ -2363,6 +2363,7 @@ namespace BettingBot
                 var onlySelected = false;
                 ExtendedTime fromDate = null;
                 var ignoreAutoAssociatingBetsThatWereAlreadyTried = false;
+                var includeMine = false;
                 Dispatcher.Invoke(() =>
                 {
                     headlessMode = cbShowBrowserOnDataLoadingOption.IsChecked != true;
@@ -2371,6 +2372,7 @@ namespace BettingBot
                         : null;
                     onlySelected = cbLoadTipsOnlySelected.IsChecked == true;
                     ignoreAutoAssociatingBetsThatWereAlreadyTried = cbIgnoreAssociatingTried.IsChecked == true;
+                    includeMine = cbLoadTipsMine.IsChecked == true;
                 });
                 
                 foreach (var t in onlySelected ? selectedDbTipsters : dbTipsters)
@@ -2380,6 +2382,7 @@ namespace BettingBot
                     {
                         var tipsResponse = new BetshootClient().ReceiveInfoWith<BetshootClient>(client_InformationReceived)
                             .Tips(t.ToBetshootTipsterResponse(), fromDate);
+                        
                         dm.UpsertBets(tipsResponse.Tipster.ToDbTipster(), tipsResponse.ToDbBets());
                     }
                     else if (domain == strHintwise)
@@ -2396,6 +2399,17 @@ namespace BettingBot
                         throw new Exception($"Nie istnieje loader dla strony: {t.Website.Address}");
                 }
 
+                if (includeMine)
+                {
+                    var login = dm.GetLoginByWebsite("https://www.asianodds88.com/");
+                    if (login == null) throw new NullReferenceException("Brak loginu dla żądanej strony");
+
+                    var asianodds = new AsianoddsClient(login.Name, login.Password, headlessMode)
+                        .ReceiveInfoWith<AsianoddsClient>(client_InformationReceived);
+                    var bets = asianodds.HistoricalBets(fromDate);
+                    dm.UpsertBets(DbTipster.Me(), bets.ToDbBets(), false, true);
+                }
+
                 try
                 {
                     ImportMatchesFromFootballData(dm);
@@ -2407,6 +2421,7 @@ namespace BettingBot
                 
                 dm.AssociateBetsWithFootballDataMatchesAutomatically(ignoreAutoAssociatingBetsThatWereAlreadyTried);
                 CalculateBets();
+                Dispatcher.Invoke(() => RefreshBets(dm));
             }
             finally
             {
@@ -2690,7 +2705,8 @@ namespace BettingBot
                     dm.AddMyBet(betResponse.ToDbBet());
                     CalculateBets();
                 });
-                _ocSentBets.ReplaceAll(dm.GetMyBets().ToSentBetsGvVM());
+
+                RefreshBets(dm);
             }
             catch (Exception ex)
             {
@@ -2701,6 +2717,17 @@ namespace BettingBot
             {
                 SeleniumDriverManager.CloseAllDrivers();
             }
+        }
+
+        private void RefreshBets(DataManager dm)
+        {
+            var originallySelectedTab = matcMain.SelectedItem;
+            matcMain.SelectedItem = tabBets;
+
+            _ocSentBets.ReplaceAll(dm.GetMyBets().ToSentBetsGvVM());
+            gvSentBets.Refresh().ScrollToEnd();
+
+            matcMain.SelectedItem = originallySelectedTab;
         }
 
         #endregion
@@ -2760,6 +2787,7 @@ namespace BettingBot
 
                 new CbState("DataLoadingLoadTipsFromDate", cbLoadTipsFromDate),
                 new CbState("DataLoadingLoadTipsOnlySelected", cbLoadTipsOnlySelected),
+                new CbState("DataLoadingLoadTipsIncludeMine", cbLoadTipsMine),
                 new GvSelectionState("DataLoadingSelectedTipsters", gvTipsters),
 
                 new TilesOrderState("MainMenuTabOrder", _mainMenu, _mainMenu.TilesOrder),

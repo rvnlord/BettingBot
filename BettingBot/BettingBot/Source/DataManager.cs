@@ -60,7 +60,7 @@ namespace BettingBot.Source
             return true;
         }
 
-        public virtual void UpsertBets(DbTipster tipster, List<DbBet> bets, bool addOnly = false)
+        public virtual void UpsertBets(DbTipster tipster, List<DbBet> bets, bool addOnly = false, bool dontRemoveTwoDaysPeriod = false)
         {
             OnInformationSending("Zapisywanie zakładów...");
             
@@ -97,11 +97,14 @@ namespace BettingBot.Source
                 var minDate = bets.Select(b => b.OriginalDate).Min(); // min d z nowych, zawiera wszystkie z tą datą
                 _db.Bets.RemoveBy(b => b.OriginalDate >= minDate && b.TipsterId == tipsterId);
 
-                var plusOneDay = minDate.AddDays(1);
-                var minusOneDay = minDate.AddDays(-1);
-                var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay && b.TipsterId == tipsterId).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
-                var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
-                _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
+                if (!dontRemoveTwoDaysPeriod)
+                {
+                    var plusOneDay = minDate.AddDays(1);
+                    var minusOneDay = minDate.AddDays(-1);
+                    var twoDaysBets = _db.Bets.Where(b => b.OriginalDate < plusOneDay && b.OriginalDate > minusOneDay && b.TipsterId == tipsterId).ToList(); // bez between, bo musi być przetłumaczalne na Linq to Entities
+                    var sameMatchesInTwoDays = twoDaysBets.Where(b => twoDaysBets.Any(tdb => tdb.EqualsWoOriginalDate(b))).ToList();
+                    _db.Bets.RemoveRange(sameMatchesInTwoDays); // fix dla niespodziewanej zmiany strefy czasowej przez hintwise
+                } // TODO: czy to na pewno działa poprawnie dla hintwise
             }
 
             _db.Bets.AddRange(bets.Distinct());

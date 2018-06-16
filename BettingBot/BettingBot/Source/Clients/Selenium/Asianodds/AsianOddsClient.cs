@@ -30,6 +30,13 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds
                 .Parse(sdm.ToAosdm(), betRequest, _timeZone, this));
         }
 
+        public BetsResponse HistoricalBets(ExtendedTime fromDate)
+        {
+            return GetPrivate(sdm => new BetsResponse()
+                .ReceiveInfoWith<BetsResponse>(Response_InformationSent)
+                .Parse(sdm.ToAosdm(), fromDate, _timeZone));
+        }
+
         protected T GetPrivate<T>(NavigateToResponse<T> navigator) where T : ResponseBase
         {
             return Get(QueryType.Private, null, navigator);
@@ -67,13 +74,16 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds
             _aosdm.NavigateTo(loginUrl);
             loginUrl = _aosdm.Url; // dokładny adres logowania,
 
-            var txtUsername = _aosdm.FindElementByXPath("//*[@id='ctl00_txtUserID']");
-            var txtPassword = _aosdm.FindElementByXPath("//*[@id='ctl00_txtPass']");
-            var btnLogin = _aosdm.FindElementByXPath("//*[@id='btnDoLogin']");
+            void login()
+            {
+                var txtUsername = _aosdm.FindElementByXPath("//*[@id='ctl00_txtUserID']");
+                var txtPassword = _aosdm.FindElementByXPath("//*[@id='ctl00_txtPass']");
+                var btnLogin = _aosdm.FindElementByXPath("//*[@id='btnDoLogin']");
 
-            txtUsername.SendKeys(_login);
-            txtPassword.SendKeys(_password);
-            btnLogin.Click();
+                txtUsername.SendKeys(_login);
+                txtPassword.SendKeys(_password);
+                btnLogin.Click();
+            };
 
             var loginIncorrect = false;
             bool isLoginIncorrect()
@@ -91,8 +101,21 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds
                 return loginCorrect;
             }
 
-            _aosdm.Wait.Until(d => isLoginIncorrect() || isLoginCorrect());
-
+            bool waitForLoginTimedOut;
+            do
+            {
+                try
+                {
+                    login();
+                    _aosdm.Wait.Until(d => isLoginIncorrect() || isLoginCorrect());
+                    waitForLoginTimedOut = false;
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    waitForLoginTimedOut = true;
+                }
+            } while (waitForLoginTimedOut);
+            
             if (loginIncorrect)
                 throw new AsianoddsException("Niepoprawne dane logowania");
             

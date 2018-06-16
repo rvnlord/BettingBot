@@ -246,7 +246,8 @@ namespace BettingBot.Source.Converters
                 OriginalHomeName = betResponse.MatchHomeName,
                 OriginalAwayName = betResponse.MatchAwayName,
                 OriginalLeagueName = betResponse.LeagueName,
-                OriginalDiscipline = betResponse.Discipline.ToIntN()
+                OriginalDiscipline = betResponse.Discipline.ToIntN(),
+                OriginalMatchResultString = $"{betResponse.HomeScore} - {betResponse.AwayScore}"
             };
         }
 
@@ -265,7 +266,9 @@ namespace BettingBot.Source.Converters
                 HomeName = dbBet.OriginalHomeName,
                 AwayName = dbBet.OriginalAwayName,
                 LeagueName = dbBet.OriginalLeagueName,
-                Discipline = dbBet.OriginalDiscipline.ToEnum<DisciplineType>()
+                Discipline = dbBet.OriginalDiscipline.ToEnum<DisciplineType>(),
+                HomeScore = dbBet.OriginalMatchResultString.BeforeFirst("-").Trim().ToIntN(),
+                AwayScore = dbBet.OriginalMatchResultString.AfterFirst("-").Trim().ToIntN()
             };
         }
     }

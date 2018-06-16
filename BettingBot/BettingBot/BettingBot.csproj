@@ -201,6 +201,7 @@
     <Compile Include="Source\Clients\Selenium\Asianodds\Requests\BetRequest.cs" />
     <Compile Include="Source\Clients\Selenium\Asianodds\Responses\AsianoddsResponse.cs" />
     <Compile Include="Source\Clients\Selenium\Asianodds\Responses\BetResponse.cs" />
+    <Compile Include="Source\Clients\Selenium\Asianodds\Responses\BetsResponse.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseException.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseSeleniumDriverManager.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\Responses\BetResponse.cs" />

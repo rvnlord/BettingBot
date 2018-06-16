@@ -36,6 +36,8 @@ namespace BettingBot.Source.ViewModels
         public DisciplineType? Discipline { get => _discipline; set => SetPropertyAndNotify(ref _discipline, value, nameof(Discipline)); }
         public double Profit { get => _profit; set => SetPropertyAndNotify(ref _profit, value, nameof(Profit)); }
         public double Budget { get => _budget; set => SetPropertyAndNotify(ref _budget, value, nameof(Budget)); }
+        public int? HomeScore { get; set; }
+        public int? AwayScore { get; set; }
 
         public int Nr { get => _nr; set => SetPropertyAndNotify(ref _nr, value, nameof(Nr)); }
 
@@ -69,5 +71,17 @@ namespace BettingBot.Source.ViewModels
                 : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " zł";
         public string DateString => LocalTimestamp.Rfc1123.ToString("dd-MM-yyyy HH:mm");
         public string OddsString => Odds <= 0 ? "" : $"{Odds:0.000}";
+        public string MatchResultString
+        {
+            get
+            {
+                if (BetResult == BetResult.Pending)
+                    return "";
+                if (BetResult == BetResult.Canceled && HomeScore == null && AwayScore == null)
+                    return "-";
+
+                return $"{HomeScore} - {AwayScore}";
+            }
+        }
     }
 }

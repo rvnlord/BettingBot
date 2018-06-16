@@ -133,7 +133,7 @@
                         </Button.ContextMenu>
                     </Button>
                     <mah:MetroAnimatedTabControl x:Name="matcMain"  Margin="0,0,0,0" Padding="0" BorderThickness="0" Background="Transparent">
-                        <mah:MetroTabItem>
+                        <mah:MetroTabItem x:Name="tabSimulations">
 
                             <mah:MetroTabItem.Header>
                                 <mah:Tile x:Name="tlSimulationsMainGridTab" Style="{StaticResource MainGridTabTile}">
@@ -204,7 +204,7 @@
                             </mah:MetroTabItem.Content>
 
                         </mah:MetroTabItem>
-                        <mah:MetroTabItem>
+                        <mah:MetroTabItem  x:Name="tabBets">
                             <mah:MetroTabItem.Header>
                                 <mah:Tile x:Name="tlBetsMainGridTab" Style="{StaticResource MainGridTabTile}">
                                     <mah:Tile.ContentTemplate>
@@ -387,9 +387,9 @@
                                                         <DataGridTextColumn IsReadOnly="True" Header="Link" Binding="{Binding Link}" Width="*" CellStyle="{StaticResource LeftAlignedCellStyle}" />
                                                     </DataGrid.Columns>
                                                 </DataGrid>
-                                                <Button x:Name="btnDownloadTips" Content="Wczytaj porady" Style="{DynamicResource MyAccentedSquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="150" Click="btnDownloadTips_Click" TabIndex="1" Margin="0,340,0,0" />
-                                                <CheckBox x:Name="cbLoadTipsFromDate" Height="30" Width="110" Content="tylko od daty:" HorizontalAlignment="Left" Margin="155,340,0,0" VerticalAlignment="Top" Checked="cbLoadTipsFromDate_Checked" Unchecked="cbLoadTipsFromDate_Unchecked" />
-                                                <DatePicker x:Name="dpLoadTipsFromDate" mah:TextBoxHelper.Watermark="do daty..." SelectedDateFormat="Short" HorizontalAlignment="Left" Margin="270,339,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False">
+                                                <Button x:Name="btnDownloadTips" Content="Wczytaj porady" Style="{DynamicResource MyAccentedSquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="120" Click="btnDownloadTips_Click" TabIndex="1" Margin="0,340,0,0" />
+                                                <CheckBox x:Name="cbLoadTipsFromDate" Height="30" Width="110" Content="tylko od daty:" HorizontalAlignment="Left" Margin="125,340,0,0" VerticalAlignment="Top" Checked="cbLoadTipsFromDate_Checked" Unchecked="cbLoadTipsFromDate_Unchecked" />
+                                                <DatePicker x:Name="dpLoadTipsFromDate" mah:TextBoxHelper.Watermark="do daty..." SelectedDateFormat="Short" HorizontalAlignment="Left" Margin="240,339,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False">
                                                 </DatePicker>
                                                 <Button x:Name="btnSaveLogin" Content="Zapisz Zaznaczony" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="207" Click="btnSaveLogin_Click" TabIndex="1" Margin="0,410,0,0" />
                                                 <Button x:Name="btnAddNewLogin" Content="Dodaj Nowy Login" Style="{DynamicResource MySquareButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="207" Click="btnAddNewLogin_Click" TabIndex="1" Margin="212,410,0,0" />
@@ -400,7 +400,8 @@
                                                         <DataGridTextColumn IsReadOnly="True" Header="Hasło" Binding="{Binding Password}" Width="*"  />
                                                     </DataGrid.Columns>
                                                 </DataGrid>
-                                                <CheckBox x:Name="cbLoadTipsOnlySelected" Height="30" Content="tylko zaznaczone" HorizontalAlignment="Left" Margin="395,339,0,0" VerticalAlignment="Top" />
+                                                <CheckBox x:Name="cbLoadTipsOnlySelected" Height="30" Width="130" Content="tylko zaznaczone" HorizontalAlignment="Left" Margin="365,339,0,0" VerticalAlignment="Top" />
+                                                <CheckBox x:Name="cbLoadTipsMine" Height="30" Width="70" Content="+ moje" HorizontalAlignment="Left" Margin="500,339,0,0" VerticalAlignment="Top" />
                                             </Grid>
                                         </mah:MetroTabItem.Content>
                                     </mah:MetroTabItem>

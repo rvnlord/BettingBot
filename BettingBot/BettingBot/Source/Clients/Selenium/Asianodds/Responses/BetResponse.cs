@@ -32,6 +32,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
         public double Stake { get; set; }
         public double Odds { get; set; }
         public int? MatchId { get; set; }
+        public int? HomeScore { get; set; }
+        public int? AwayScore { get; set; }
 
         public BetResponse Parse(AsianoddsSeleniumDriverManager sdm, BetRequest betRequest, TimeZoneKind tz, AsianoddsClient ao)
         {
@@ -175,8 +177,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                                             {
                                                 Discipline = discipline,
                                                 Date = time,
-                                                MatchHomeName = homeName,
-                                                MatchAwayName = awayName,
+                                                MatchHomeName = homeName.Split(" ").Select(w => w.Length > 0 ? w.Take(1).ToUpper() + w.Skip(1).ToLower() : w).JoinAsString(" "),
+                                                MatchAwayName = awayName.Split(" ").Select(w => w.Length > 0 ? w.Take(1).ToUpper() + w.Skip(1).ToLower() : w).JoinAsString(" "),
                                                 LeagueName = league,
 
                                                 MatchId = betRequest.MatchId,

@@ -73,9 +73,9 @@ namespace BettingBot.Common.UtilityClasses
             InitializeTilesMenu(menuTiles, resizeTile, isFullSize, resizeValue, mouseOverColor, mouseOutColor, resizeMouseOverColor, resizeMouseOutColor);
         }
 
-        private void InitializeTilesMenu(Tile[] menuTIles, Tile resizeTile, bool isFullSize, int resizeValue, Color mouseOverColor, Color mouseOutColor, Color resizeMouseOverColor, Color resizeMouseOutColor)
+        private void InitializeTilesMenu(Tile[] menuTiles, Tile resizeTile, bool isFullSize, int resizeValue, Color mouseOverColor, Color mouseOutColor, Color resizeMouseOverColor, Color resizeMouseOutColor)
         {
-            MenuTiles = menuTIles;
+            MenuTiles = menuTiles;
             ResizeTile = resizeTile;
             MouseOverColor = mouseOverColor;
             MouseOutColor = mouseOutColor;
@@ -88,7 +88,7 @@ namespace BettingBot.Common.UtilityClasses
             ResizeValue = resizeValue;
             if (IsFullSize)
                 DefaultTileWidth -= ResizeValue;
-            _spMenu = menuTIles.First().FindLogicalAncestor<StackPanel>();
+            _spMenu = menuTiles.First().FindLogicalAncestor<StackPanel>();
             foreach (var tl in MenuTiles)
             {
                 tl.Background = new SolidColorBrush(mouseOutColor);

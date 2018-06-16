@@ -33,7 +33,7 @@
         <Setter Property="mah:ControlsHelper.ContentCharacterCasing" Value="Normal"/>
         <Setter Property="Background" Value="{StaticResource HeaderRowBrush}" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="Blue"/>
+        <Setter Property="Foreground" Value="White"/>
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -340,7 +340,7 @@
     <!-- Flyout Header Tile -->
     
     <SolidColorBrush x:Key="MouseOverFlyoutHeaderTileBrush" Color="#FF000096" />
-    <SolidColorBrush x:Key="DefaultFlyoutHeaderTileBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="DefaultFlyoutHeaderTileBrush" Color="#FF000030" />
     <SolidColorBrush x:Key="DefaultFlyoutHeaderIconBrush" Color="#FF000000" />
 
     <Style x:Key="FlyoutHeaderTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
