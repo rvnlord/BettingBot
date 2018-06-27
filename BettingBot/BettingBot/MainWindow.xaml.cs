@@ -205,7 +205,7 @@ namespace BettingBot
                         RunOptionsDependentAdjustments();
                     });
 
-                    CalculateBets();
+                    CalculateAndBindBets();
                 });
             }
             catch (Exception ex)
@@ -287,7 +287,7 @@ namespace BettingBot
             {
                 actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
                 gridCalculationsFlyout.ShowLoader();
-                await Task.Run(() => CalculateBets());
+                await Task.Run(() => CalculateAndBindBets());
 
             }
             catch (Exception ex)
@@ -575,7 +575,7 @@ namespace BettingBot
             AsyncWithLoader(gridData, () =>
             {
                 new DataManager().AssociateBetWithMatchById(betId, matchId);
-                CalculateBets();
+                CalculateAndBindBets();
             });
 
             var betToSelect = _ocBetsToDisplayGvVM.Single(b => b.Id == betId);
@@ -592,7 +592,7 @@ namespace BettingBot
             AsyncWithLoader(gridData, () =>
             {
                 new DataManager().RemoveMatchIdFromBetById(betId);
-                CalculateBets();
+                CalculateAndBindBets();
             });
 
             var betToSelect = _ocBetsToDisplayGvVM.Single(b => b.Id == betId);
@@ -630,6 +630,65 @@ namespace BettingBot
                 await AsyncWithLoader(gridData, () => allMatches = dm.GetMatches().ToMatchesToAssociateGvVM());
                 _ocMatchesToAssociate.ReplaceAll(allMatches);
             }  
+        }
+
+        private async void btnStakeNewCalculator_Click(object sender, RoutedEventArgs e)
+        {
+            List<object> actuallyDisabledControls = null;
+            try
+            {
+                actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
+                gridCalculatorContent.ShowLoader();
+                await Task.Run(() =>
+                {
+                    var tbs = CreateBettingSystem();
+                    var stakeNew = Dispatcher.Invoke(() => txtStakeNew.Text);
+                    var oddsN = stakeNew.Remove(" ").Split(",").Select(x => x.ToDoubleN()).ToArray();
+                    if (oddsN.Any(x => x == null))
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            txtStakeNewResult.Text = "Niepoprawny ciąg wejściowy (kursy oddzielone ',')";
+                        });
+                        return;
+                    }
+                    
+                    tbs.ApplyFilters();
+
+                    var odds = oddsN.Select(x => x.ToDouble()).ToArray();
+                    var localNow = ExtendedTime.LocalNow;
+                    foreach (var odd in odds)
+                    {
+                        tbs.FilteredBets.Add(new BetToDisplayGvVM
+                        {
+                            LocalTimestamp = localNow,
+                            BetResult = BetResult.Pending,
+                            Odds = odd
+                        });
+                    }
+
+                    tbs.ApplyStaking();
+
+                    var newBets = tbs.Bets.TakeLast(odds.Length).Reverse().ToArray();
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        txtStakeNewResult.Text = newBets.Select((x, i) => $"{i + 1}: {x.Odds:0.000} - {x.Stake:0.##} zł").JoinAsString("\n");
+                    });
+                });
+
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
+            }
+            finally
+            {
+                gridCalculatorContent.HideLoader();
+                if (!gridMain.HasLoader())
+                    actuallyDisabledControls.EnableControls();
+            }
         }
 
         private void btnMinimizeToTray_Click(object sender, RoutedEventArgs e)
@@ -882,7 +941,7 @@ namespace BettingBot
             (sender as TextBox)?.ResetValue();
             _raisingEventImplicitlyFromCode = false;
         }
-
+        
         #endregion
 
         #region - NumeriUpDown Events
@@ -1293,7 +1352,7 @@ namespace BettingBot
                             Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(newSelectedIds));
                             
                             if (_ocBetsToDisplayGvVM.Any(bet => deletedTipsters.Any(dt => dt.Name.EqIgnoreCase(bet.TipsterName) && dt.Link.UrlToDomain().EqIgnoreCase(bet.TipsterWebsite))))
-                                CalculateBets();
+                                CalculateAndBindBets();
                         }
                     });
                 }
@@ -1603,7 +1662,7 @@ namespace BettingBot
 
                         Dispatcher.Invoke(() => txtNotes.Text = text);
                         if (Dispatcher.Invoke(() => cbWithoutMatchesFromNotesFilter.IsChecked == true))
-                            CalculateBets();
+                            CalculateAndBindBets();
                     });
 
                     break;
@@ -1618,7 +1677,7 @@ namespace BettingBot
                             var db = new LocalDbContext();
                             db.Bets.RemoveByMany(b => b.Id, selectedBets.Select(b => b.Id));
                             db.SaveChanges();
-                            CalculateBets();
+                            CalculateAndBindBets();
                         }
                     });
 
@@ -2420,7 +2479,7 @@ namespace BettingBot
                 }
                 
                 dm.AssociateBetsWithFootballDataMatchesAutomatically(ignoreAutoAssociatingBetsThatWereAlreadyTried);
-                CalculateBets();
+                CalculateAndBindBets();
                 Dispatcher.Invoke(() => RefreshBets(dm));
             }
             finally
@@ -2503,11 +2562,85 @@ namespace BettingBot
             }
         }
 
-        private void CalculateBets()
+        private void CalculateAndBindBets()
+        {
+            var bs = CreateBettingSystem();
+
+            bs.ApplyFilters();
+            bs.ApplyStaking();
+
+            Dispatcher.Invoke(() =>
+            {
+                _raisingEventImplicitlyFromCode = true; // zapobiegnij wywołaniu gvData_SelectionChanged podczas przeładowania zakładów
+                
+                _ocBetsToDisplayGvVM.ReplaceAll(bs.Bets);
+                gvData.ScrollToEnd();
+                _ocAggregatedWinLoseStatisticsGvVM.ReplaceAll(new AggregatedWinLoseStatisticsGvVM(bs.LosesCounter, bs.WinsCounter));
+                _ocProfitByPeriodStatistics.ReplaceAll(new ProfitByPeriodStatisticsGvVM(bs.Bets, ddlProfitByPeriodStatistics.SelectedEnumValue<Period>()));
+                gvProfitByPeriodStatistics.ScrollToEnd();
+
+                _raisingEventImplicitlyFromCode = false;
+            });
+
+            if (bs.Bets.Any())
+            {
+                var maxStakeBet = bs.Bets.MaxBy(b => b.Stake);
+                var minBudgetBet = bs.Bets.MinBy(b => b.Budget);
+                var maxBudgetBet = bs.Bets.MaxBy(b => b.Budget);
+                var minBudgetInclStakeBet = bs.Bets.MinBy(b => b.BudgetBeforeResult);
+                var losesInRow = bs.LosesCounter.Any(c => c.Value > 0) ? bs.LosesCounter.MaxBy(c => c.Value).ToString() : "-";
+                var winsInRow = bs.WinsCounter.Any(c => c.Value > 0) ? bs.WinsCounter.MaxBy(c => c.Value).ToString() : "-";
+
+                var lostOUfromWonBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2));
+
+                var wonOUfromLostBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore > 2));
+
+                var wonBTTSwithOU = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2));
+
+                var gs = new GeneralStatisticsGvVM();
+                gs.Add(new GeneralStatisticGvVM("Maksymalna stawka:", $"{maxStakeBet.Stake:0.00} zł ({maxStakeBet.Nr})"));
+                gs.Add(new GeneralStatisticGvVM("Najwyższy budżet:", $"{maxBudgetBet.Budget:0.00} zł ({maxBudgetBet.Nr})"));
+                gs.Add(new GeneralStatisticGvVM("Najniższy budżet:", $"{minBudgetBet.Budget:0.00} zł ({minBudgetBet.Nr})"));
+                gs.Add(new GeneralStatisticGvVM("Najniższy budżet po odjęciu stawki:", $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} zł ({minBudgetInclStakeBet.Nr})"));
+                gs.Add(new GeneralStatisticGvVM("Porażki z rzędu:", $"{losesInRow}"));
+                gs.Add(new GeneralStatisticGvVM("Zwycięstwa z rzędu:", $"{winsInRow}"));
+                gs.Add(new GeneralStatisticGvVM("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == BetResult.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == BetResult.Pending && b.LocalTimestamp.Rfc1123.ToDMY() == DateTime.Now.ToDMY())}]"));
+                gs.Add(new GeneralStatisticGvVM("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
+                if (lostOUfromWonBTTS + wonBTTSwithOU != 0)
+                    gs.Add(new GeneralStatisticGvVM("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
+                
+                Dispatcher.Invoke(() =>
+                {
+                    _ocGeneralStatistics.ReplaceAll(gs.ToList());
+                    
+                    var flyouts = gridMain.FindLogicalDescendants<Grid>().Where(fo => fo.Name.EndsWith("Flyout")).ToList();
+                    var otherFlyouts = flyouts.Except(gridStatisticsFlyout);
+
+                    if (cbShowStatisticsOnEvaluateOption.IsChecked == true)
+                    {
+                        foreach (var ofo in otherFlyouts)
+                            ofo.SlideHide();
+                        gridStatisticsFlyout.SlideShow();
+                        _mainMenu.SelectedTile = tlStatistics;
+                    }
+                        
+                });
+            }
+
+            _bs = bs;
+        }
+
+        private BettingSystem CreateBettingSystem()
         {
             var dm = new DataManager();
-            var stakingTypeOnLose = (StakingTypeOnLose) Dispatcher.Invoke(() => ddlStakingTypeOnLose.SelectedValue);
-            var stakingTypeOnWin = (StakingTypeOnWin) Dispatcher.Invoke(() => ddlStakingTypeOnWin.SelectedValue);
+            var stakingTypeOnLose = (StakingTypeOnLose)Dispatcher.Invoke(() => ddlStakingTypeOnLose.SelectedValue);
+            var stakingTypeOnWin = (StakingTypeOnWin)Dispatcher.Invoke(() => ddlStakingTypeOnWin.SelectedValue);
 
             var betsByDate = dm.GetBets().ToBetsToDisplayGvVM();
 
@@ -2522,9 +2655,9 @@ namespace BettingBot
             var stakeDecrease = Dispatcher.Invoke(() => numStakeDecrease.Value ?? 0);
             var loseCoeff = Dispatcher.Invoke(() => numCoeffOnLose.Value ?? 1);
             var winCoeff = Dispatcher.Invoke(() => numCoeffOnWin.Value ?? 1);
-            var loseCondition = (LoseCondition) Dispatcher.Invoke(() => ddlLoseCondition.SelectedValue);
+            var loseCondition = (LoseCondition)Dispatcher.Invoke(() => ddlLoseCondition.SelectedValue);
             var maxStake = Dispatcher.Invoke(() => numMaxStake.Value ?? 0);
-            var resetStake = (BasicStake) Dispatcher.Invoke(() => ddlBasicStake.SelectedValue) == BasicStake.Base;
+            var resetStake = (BasicStake)Dispatcher.Invoke(() => ddlBasicStake.SelectedValue) == BasicStake.Base;
 
             if (bets.Count == 0) throw new Exception("W bazie danych nie ma żadnych zakładów");
             if (stakeIncrease > budgetIncreaseRef) throw new Exception("Stawka nie może rosnąć szybciej niż budżet");
@@ -2615,75 +2748,8 @@ namespace BettingBot
                 loseCondition,
                 maxStake,
                 resetStake);
-
-            bs.ApplyFilters();
-            bs.ApplyStaking();
             
-            Dispatcher.Invoke(() =>
-            {
-                _raisingEventImplicitlyFromCode = true; // zapobiegnij wywołaniu gvData_SelectionChanged podczas przeładowania zakładów
-                
-                _ocBetsToDisplayGvVM.ReplaceAll(bs.Bets);
-                gvData.ScrollToEnd();
-                _ocAggregatedWinLoseStatisticsGvVM.ReplaceAll(new AggregatedWinLoseStatisticsGvVM(bs.LosesCounter, bs.WinsCounter));
-                _ocProfitByPeriodStatistics.ReplaceAll(new ProfitByPeriodStatisticsGvVM(bs.Bets, ddlProfitByPeriodStatistics.SelectedEnumValue<Period>()));
-                gvProfitByPeriodStatistics.ScrollToEnd();
-
-                _raisingEventImplicitlyFromCode = false;
-            });
-
-            if (bs.Bets.Any())
-            {
-                var maxStakeBet = bs.Bets.MaxBy(b => b.Stake);
-                var minBudgetBet = bs.Bets.MinBy(b => b.Budget);
-                var maxBudgetBet = bs.Bets.MaxBy(b => b.Budget);
-                var minBudgetInclStakeBet = bs.Bets.MinBy(b => b.BudgetBeforeResult);
-                var losesInRow = bs.LosesCounter.Any(c => c.Value > 0) ? bs.LosesCounter.MaxBy(c => c.Value).ToString() : "-";
-                var winsInRow = bs.WinsCounter.Any(c => c.Value > 0) ? bs.WinsCounter.MaxBy(c => c.Value).ToString() : "-";
-
-                var lostOUfromWonBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
-                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2 ||
-                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2));
-
-                var wonOUfromLostBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
-                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
-                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore > 2));
-
-                var wonBTTSwithOU = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
-                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
-                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2));
-
-                var gs = new GeneralStatisticsGvVM();
-                gs.Add(new GeneralStatisticGvVM("Maksymalna stawka:", $"{maxStakeBet.Stake:0.00} zł ({maxStakeBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Najwyższy budżet:", $"{maxBudgetBet.Budget:0.00} zł ({maxBudgetBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Najniższy budżet:", $"{minBudgetBet.Budget:0.00} zł ({minBudgetBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Najniższy budżet po odjęciu stawki:", $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} zł ({minBudgetInclStakeBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Porażki z rzędu:", $"{losesInRow}"));
-                gs.Add(new GeneralStatisticGvVM("Zwycięstwa z rzędu:", $"{winsInRow}"));
-                gs.Add(new GeneralStatisticGvVM("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == BetResult.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == BetResult.Pending && b.LocalTimestamp.Rfc1123.ToDMY() == DateTime.Now.ToDMY())}]"));
-                gs.Add(new GeneralStatisticGvVM("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
-                if (lostOUfromWonBTTS + wonBTTSwithOU != 0)
-                    gs.Add(new GeneralStatisticGvVM("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
-                
-                Dispatcher.Invoke(() =>
-                {
-                    _ocGeneralStatistics.ReplaceAll(gs.ToList());
-                    
-                    var flyouts = gridMain.FindLogicalDescendants<Grid>().Where(fo => fo.Name.EndsWith("Flyout")).ToList();
-                    var otherFlyouts = flyouts.Except(gridStatisticsFlyout);
-
-                    if (cbShowStatisticsOnEvaluateOption.IsChecked == true)
-                    {
-                        foreach (var ofo in otherFlyouts)
-                            ofo.SlideHide();
-                        gridStatisticsFlyout.SlideShow();
-                        _mainMenu.SelectedTile = tlStatistics;
-                    }
-                        
-                });
-            }
-
-            _bs = bs;
+            return bs;
         }
 
         private async Task MakeBet()
@@ -2703,7 +2769,7 @@ namespace BettingBot
                         .ReceiveInfoWith<AsianoddsClient>(client_InformationReceived);
                     var betResponse = asianodds.MakeBet(betRequest);
                     dm.AddMyBet(betResponse.ToDbBet());
-                    CalculateBets();
+                    CalculateAndBindBets();
                 });
 
                 RefreshBets(dm);

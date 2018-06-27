@@ -306,6 +306,7 @@ namespace BettingBot.Common
 
         public static string AfterFirst(this string str, string substring)
         {
+            if (str == null) return null;
             if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
@@ -318,6 +319,7 @@ namespace BettingBot.Common
 
         public static string BeforeFirst(this string str, string substring)
         {
+            if (str == null) return null;
             if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).First();
             return str;
@@ -325,6 +327,7 @@ namespace BettingBot.Common
 
         public static string AfterLast(this string str, string substring)
         {
+            if (str == null) return null;
             if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).Last();
             return str;
@@ -332,6 +335,7 @@ namespace BettingBot.Common
 
         public static string BeforeLast(this string str, string substring)
         {
+            if (str == null) return null;
             if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);

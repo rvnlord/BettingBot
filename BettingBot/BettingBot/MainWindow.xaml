@@ -598,17 +598,20 @@
 
                             <Grid Margin="0,60,0,0">
 
-                                <Label x:Name="lblDoubleChance" Content="Podwójna szansa:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
+                                <Label x:Name="lblDoubleChance" Content="Podwójna szansa:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Width="113"/>
                                 <mah:NumericUpDown x:Name="numCalculatorStake" HorizontalAlignment="Left" Margin="33,70,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="5" />
                                 <mah:NumericUpDown x:Name="numCalculatorOdds1" HorizontalAlignment="Left" Margin="118,0,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N3}" Minimum="0" Maximum="1000" Value="1" />
                                 <mah:NumericUpDown x:Name="numCalculatorOdds2" HorizontalAlignment="Left" Margin="203,0,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N3}" Minimum="0" Maximum="1000" Value="1" />
                                 <mah:NumericUpDown x:Name="numCalculatorOdds3" HorizontalAlignment="Left" Margin="288,0,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N3}" Minimum="0" Maximum="1000" Value="0" />
-
                                 <TextBox x:Name="txtCalculatorResult" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Wyniki..."  TextWrapping="Wrap" VerticalAlignment="Top" Width="250" FontFamily="Segoe UI" Height="105" TabIndex="2" AcceptsReturn="True" Margin="118,35,0,0" IsReadOnly="True">
                                 </TextBox>
                                 <Button x:Name="btnCalculatorCalculate" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="Oblicz" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="75" Click="btnCalculatorCalculate_Click" TabIndex="1" Margin="118,145,0,0" />
                                 <mah:NumericUpDown x:Name="numCalculatorMinStake" HorizontalAlignment="Left" Margin="33,35,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="0" />
 
+                                <Label x:Name="lblStakeNew" Content="Stawkuj nowe:" HorizontalAlignment="Left" Margin="0,215,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Width="113"/>
+                                <TextBox x:Name="txtStakeNew" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Kursy oddzielone ','"  TextWrapping="Wrap" VerticalAlignment="Top" Width="250" FontFamily="Segoe UI" Height="105" TabIndex="2" AcceptsReturn="True" Margin="118,215,0,0" IsReadOnly="False" />
+                                <TextBox x:Name="txtStakeNewResult" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Wyniki"  TextWrapping="Wrap" VerticalAlignment="Top" Width="250" FontFamily="Segoe UI" Height="105" TabIndex="2" AcceptsReturn="True" Margin="118,325,0,0" IsReadOnly="True"/>
+                                <Button x:Name="btnStakeNewCalculator" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="Oblicz" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="75" Click="btnStakeNewCalculator_Click" TabIndex="1" Margin="118,435,0,0" />
                             </Grid>
 
                         </Grid>

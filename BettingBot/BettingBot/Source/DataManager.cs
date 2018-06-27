@@ -348,7 +348,9 @@ namespace BettingBot.Source
                 return;
             }
 
-            var matchesToAdd = newMatches.Distinct().ToArray();
+            var matchesToAdd = newMatches.Distinct().Where(m => m.HomeId != m.AwayId).ToArray();
+                // fix dla Unique (PRIMARY KEY) Constraint failed, ponieważ baza Football-Data może zwrócić tymczasowy mecz
+                // o takim samym id jak istniejący gdzie obie drużyny są takie same (null)
             var newMatchIds = matchesToAdd.Select(m => m.Id).ToArray();
             var matchesToRemoveOriginal = _db.Matches.Include(m => m.Bets).Where(m => newMatchIds.Contains(m.Id)).ToList();
             var matchesToRemove = matchesToRemoveOriginal.CopyCollectionWithoutNavigationProperties();
@@ -373,6 +375,7 @@ namespace BettingBot.Source
                 }
             }
                 // fix dla Unique (PRIMARY KEY) Constraint failed, ponieważ baza Football-Data potrafi zwrócić dwa mecze o tym samym Id
+                //jeden jest już w bazie z takim samym id jak dodawany
                 // matches.Where(m => matches.Any(om => om.Id == m.Id && m != om)).ToArray()
                 // [0]: {22-04-2018 13:00 107 () - 450 () - 456 ()
                 // [1]: {23-04-2018 18:45 107 () - 450 () - 456 ()
@@ -380,7 +383,7 @@ namespace BettingBot.Source
             _db.Bets.RemoveRange(betsToRemoveOriginal);
             _db.Matches.RemoveRange(matchesToRemoveOriginal);
             _db.SaveChanges();
-
+            
             foreach (var m in matches)
                 m.Bets = bets.Where(b => b.MatchId == m.Id).ToList();
             _db.Matches.AddRange(matches);
