@@ -71,8 +71,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
                     var bet = new BetResponse();
                     var spanTeams = trBet.FindElement(By.ClassName("span_homeName_awayName"));
                     var homeAway = spanTeams.Text.AfterFirst("]").Trim().Split(" -VS- ");
-                    var home = homeAway[0];
-                    var away = homeAway[1];
+                    var home = homeAway[0].BeforeFirst(" - ");
+                    var away = homeAway[1].BeforeFirst(" - ");
                     var spanDate = trBet.FindElement(By.ClassName("spanDate"));
                     var strTime = spanDate.Text.Trim();
                     var spanLeague = trBet.FindElement(By.ClassName("span_leagueName"));

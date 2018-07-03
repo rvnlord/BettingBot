@@ -89,10 +89,14 @@
         <Setter Property="FontSize" Value="14" />
     </Style>
 
+    <ContextMenu x:Key="emptyContextMenu" Width="0" Height="0" Visibility="Collapsed">
+    </ContextMenu>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MetroTextBox}">
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
     </Style>
 
     <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource MetroRadioButton}">
@@ -139,6 +143,7 @@
     <Style TargetType="{x:Type mah:NumericUpDown}">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="HideUpDownButtons" Value="True" />
+        <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
     </Style>
 
     <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MetroComboBox}">
@@ -151,12 +156,17 @@
         <Setter Property="FontSize" Value="14" />
     </Style>
 
-    <Style TargetType="{x:Type DatePicker}"
-           BasedOn="{StaticResource {x:Type DatePicker}}">
+    <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource MetroDatePicker}">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+        <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
     </Style>
 
+    <Style TargetType="{x:Type DatePickerTextBox}" BasedOn="{StaticResource MetroDatePickerTextBox}">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+        <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
+    </Style>
 
     <Style x:Key="MenuItemContainerStyle" TargetType="MenuItem" BasedOn="{StaticResource MetroMenuItem}">
         <Setter Property="Header" Value="{Binding Text}"/>
