@@ -106,7 +106,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses
                     var pickStr = tdHistPredRowCells[3].Text.BeforeFirst("(").RemoveHTMLSymbols().Trim();
                     var rawMatchResultStr = tdHistPredRowCells[4].Text.RemoveHTMLSymbols().Trim();
                     var betResult = tdHistPredRowCells[5].Text.BeforeFirst("(").RemoveHTMLSymbols().Trim().ToLower() == "win"
-                        ? BetResult.Win : BetResult.Lose;
+                        ? BetResult.Won : BetResult.Lost;
                     var odds = tdHistPredRowCells[3].Text.Between("(", ")").RemoveHTMLSymbols().Trim().ToDouble();
 
                     var newBet = new BetResponse

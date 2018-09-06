@@ -59,11 +59,12 @@
                 <Image Source="./Resources/Icons/Icon.png"></Image>
             </Grid>
             <Label x:Name="lblWindowTitle" FontSize="12" Content="Bot i Symulator Zakładów" HorizontalAlignment="Left" Margin="30,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-            <Button x:Name="btnMinimizeToTray" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Tray" Click="btnMinimizeToTray_Click" MouseEnter="btnMinimizeToTray_MouseEnter" MouseLeave="btnMinimizeToTray_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,60,0" />
+            <Label x:Name="lblVersion" FontSize="12" Content="v0.28-alpha" HorizontalAlignment="Right" Margin="0,0,95,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
+            <Button x:Name="btnMinimizeToTray" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Zrzuć na pasek powiadomień" Click="btnMinimizeToTray_Click" MouseEnter="btnMinimizeToTray_MouseEnter" MouseLeave="btnMinimizeToTray_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,60,0" />
             <Button x:Name="btnMinimize" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern WindowMinimize}" ToolTip="Minimalizuj" Click="btnMinimize_Click" MouseEnter="btnMinimize_MouseEnter" MouseLeave="btnMinimize_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" />
             <Button x:Name="btnClose" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern Close}" ToolTip="Zamknij" Click="btnClose_Click" MouseEnter="btnClose_MouseEnter" MouseLeave="btnClose_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" />
         </Grid>
-        
+
         <Grid x:Name="gridMain" Background="Transparent" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
 
             <StackPanel x:Name="spMenuWithContent" Orientation="Horizontal">
@@ -139,7 +140,7 @@
                                 <mah:Tile x:Name="tlSimulationsMainGridTab" Style="{StaticResource MainGridTabTile}">
                                     <mah:Tile.ContentTemplate>
                                         <DataTemplate>
-                                            <Grid>
+                                            <Grid Name="grid">
                                                 <iconPacks:PackIconModern Kind="Shuffle" Style="{StaticResource MainGridTabIcon}" />
                                                 <TextBlock Text="Symulacje" Style="{StaticResource MainGridTabTextblock}" />
                                             </Grid>
@@ -163,8 +164,8 @@
                                                             <DataGridTextColumn IsReadOnly="True" Header="Na wyjeżdzie" Binding="{Binding MatchAwayName}" Width="*" CellStyle="{StaticResource LeftAlignedCellStyle}" />
                                                         </DataGrid.Columns>
                                                     </DataGrid>
-                                                    <Label x:Name="lblAssociateWithMatch" Content="Powiąż z:" Width="60" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
-                                                    <TextBox x:Name="txtSearchMatchToAssociate" Tag="Mecz do powiązania z zakładem..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="430" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="65,30,0,0" />
+                                                    <Label x:Name="lblAssociateWithMatch" Content="Powiąż z:" Width="100" HorizontalAlignment="Left" Margin="0,30,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
+                                                    <TextBox x:Name="txtSearchMatchToAssociate" Tag="Mecz do powiązania z zakładem..." HorizontalAlignment="Left" TextWrapping="NoWrap" VerticalAlignment="Top" Width="390" FontFamily="Segoe UI" Height="30" TabIndex="103" AcceptsReturn="False" Margin="105,30,0,0" />
                                                     <Button x:Name="btnSearchMatchToAssociateWithBet" Style="{DynamicResource MySquareButtonStyle}" Content="Szukaj" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="100" TabIndex="1" Margin="500,30,0,0" Click="btnSearchMatchToAssociateWithBet_Click" />
                                                     <DataGrid x:Name="gvMatchesToAssociate" ClipboardCopyMode="None" SnapsToDevicePixels="True" HorizontalAlignment="Left" Margin="0,65,0,0" VerticalAlignment="Top" AutoGenerateColumns="False" Width="600" Height="200" MaxHeight="200" AllowDrop="True" SelectionMode="Extended" Background="Transparent" BorderThickness="0" CanUserDeleteRows="false" CanUserAddRows="false" CanUserSortColumns="false" HorizontalScrollBarVisibility="Disabled" HeadersVisibility="None">
                                                         <DataGrid.Columns>
@@ -259,10 +260,10 @@
 
                             <Grid Margin="0,60,0,0">
                                 <Label x:Name="lblInitialStake" Content="Stawka początkowa:" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
-                                <mah:NumericUpDown x:Name="numInitialStake" HorizontalAlignment="Left" Margin="333,35,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" TabIndex="0" Value="100" />
+                                <mah:NumericUpDown x:Name="numInitialStake" HorizontalAlignment="Left" Margin="333,35,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="1000" TabIndex="0" Value="100" />
                                 <ComboBox x:Name="ddlStakingTypeOnLose" HorizontalAlignment="Left" Margin="147,105,0,0" VerticalAlignment="Top" Width="181" Height="30" />
                                 <Label x:Name="lblBudget" Content="Budżet:" HorizontalAlignment="Left" Margin="0,70,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numBudget" HorizontalAlignment="Left" Margin="333,70,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" Minimum="0" Maximum="10000" StringFormat="{}{0:N2} zł" TabIndex="0" Value="1000" />
+                                <mah:NumericUpDown x:Name="numBudget" HorizontalAlignment="Left" Margin="333,70,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" Minimum="0" Maximum="10000" StringFormat="{}{0:N2} €" TabIndex="0" Value="1000" />
 
                                 <Button x:Name="btnClearDatabase" Style="{DynamicResource MySquareButtonStyle}" Content="Wyczyść bazę" HorizontalAlignment="Left" Margin="236,350,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnClearDatabase_Click" />
                                 <Label x:Name="lblAdditionalField" Content="" HorizontalAlignment="Left" Margin="0,179,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
@@ -271,9 +272,9 @@
                                 <Button x:Name="btnGet" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="Oblicz" HorizontalAlignment="Left" Margin="358,350,0,0" VerticalAlignment="Top" Height="30" Width="75" Click="btnCalculate_Click" mah:ControlsHelper.ContentCharacterCasing="Normal"/>
                                 <Label x:Name="lblOnLose" Content="Przy porażce" HorizontalAlignment="Left" Margin="0,105,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <Label x:Name="lblIfBudget" Content="Przy budżecie &gt; o" HorizontalAlignment="Left" Margin="0,175,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numBudgetIncrease" HorizontalAlignment="Left" Margin="147,175,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="10000" Value="100" />
+                                <mah:NumericUpDown x:Name="numBudgetIncrease" HorizontalAlignment="Left" Margin="147,175,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="10000" Value="100" />
                                 <Label x:Name="lblStakeAdd" Content="zwiększ stawkę o" HorizontalAlignment="Left" Margin="232,175,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numStakeIncrease" HorizontalAlignment="Left" Margin="353,176,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="10" />
+                                <mah:NumericUpDown x:Name="numStakeIncrease" HorizontalAlignment="Left" Margin="353,176,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="1000" Value="10" />
                                 <Label x:Name="lblNotes" Content="Notatki:" HorizontalAlignment="Left" Margin="0,385,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <TextBox x:Name="txtNotes" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Notatki..."  TextWrapping="Wrap" VerticalAlignment="Top" Width="377" FontFamily="Segoe UI" Height="150" TabIndex="2" AcceptsReturn="True" Margin="56,384,0,0" IsReadOnly="True">
                                 </TextBox>
@@ -283,21 +284,21 @@
                                 <Label x:Name="lblLoseCondition" Content="Warunek porażki:" HorizontalAlignment="Left" Margin="0,245,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <ComboBox x:Name="ddlLoseCondition" HorizontalAlignment="Left" Margin="216,245,0,0" VerticalAlignment="Top" Width="217" Height="30" />
                                 <Label x:Name="lblMaxStake" Content="Maksymalna stawka:" HorizontalAlignment="Left" Margin="0,315,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numMaxStake" HorizontalAlignment="Left" Margin="333,315,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="100000" TabIndex="0" Value="1000" />
+                                <mah:NumericUpDown x:Name="numMaxStake" HorizontalAlignment="Left" Margin="333,315,0,0" VerticalAlignment="Top" Width="100" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="100000" TabIndex="0" Value="1000" />
                                 <Label x:Name="lblBasicStake" Content="Stawka podstawowa do obliczeń:" HorizontalAlignment="Left" Margin="0,280,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
                                 <ComboBox x:Name="ddlBasicStake" HorizontalAlignment="Left" Margin="216,280,0,0" VerticalAlignment="Top" Width="217" Height="30" />
                                 <Label x:Name="lblIfBudgetLowerThan" Content="Przy budżecie &lt; o" HorizontalAlignment="Left" Margin="0,210,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numBudgetDecrease" HorizontalAlignment="Left" Margin="147,210,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="10000" Value="100" />
+                                <mah:NumericUpDown x:Name="numBudgetDecrease" HorizontalAlignment="Left" Margin="147,210,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="10000" Value="100" />
                                 <Label x:Name="lblStakeSubtract" Content="zmniejsz stawkę o" HorizontalAlignment="Left" Margin="232,211,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numStakeDecrease" HorizontalAlignment="Left" Margin="353,211,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="10" />
+                                <mah:NumericUpDown x:Name="numStakeDecrease" HorizontalAlignment="Left" Margin="353,211,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="1000" Value="10" />
 
                                 <CheckBox x:Name="cbLHOddsByPeriodFilter" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,35,0,0" VerticalAlignment="Top" Checked="cbLHOddsByPeriodFilter_Checked" Unchecked="cbLHOddsByPeriodFilter_Unchecked"/>
                                 <RadioButton x:Name="rbHighestOddsByPeriod" Height="30" GroupName="LHS" Content="Najwyższy" HorizontalAlignment="Left" Margin="466,35,0,0" VerticalAlignment="Top" IsEnabled="False" IsChecked="True" />
                                 <RadioButton x:Name="rbLowestOddsByPeriod" GroupName="LHS" Height="30" Content="Najniższy" HorizontalAlignment="Left" Margin="562,35,0,0" VerticalAlignment="Top" IsEnabled="False"/>
                                 <RadioButton x:Name="rbSumOddsByPeriod" GroupName="LHS" Height="30" Content="Sumuj" HorizontalAlignment="Left" Margin="652,35,0,0" VerticalAlignment="Top" IsEnabled="False"/>
                                 <Label x:Name="lblLHOddsByPeriodOdds" Content="kurs co" HorizontalAlignment="Left" Margin="722,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-                                <mah:NumericUpDown x:Name="numLHOddsPeriodInDays" IsEnabled="False" HorizontalAlignment="Left" Margin="773,35,0,0" VerticalAlignment="Top" Height="30" NumericInputMode="Numbers" Minimum="1" Maximum="30" Value="1" Width="60" />
-                                <Label x:Name="lblLHOddsPeriodInDays" Content="dni" HorizontalAlignment="Left" Margin="838,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
+                                <mah:NumericUpDown x:Name="numLHOddsPeriodInDays" IsEnabled="False" HorizontalAlignment="Left" Margin="793,35,0,0" VerticalAlignment="Top" Height="30" NumericInputMode="Numbers" Minimum="1" Maximum="30" Value="1" Width="60" />
+                                <Label x:Name="lblLHOddsPeriodInDays" Content="dni" HorizontalAlignment="Left" Margin="858,35,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
 
                                 <CheckBox x:Name="cbOddsLesserGreaterThan" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,70,0,0" VerticalAlignment="Top" Checked="cbOddsLesserGreaterThan_Checked" Unchecked="cbOddsLesserGreaterThan_Unchecked"/>
                                 <Label x:Name="lblOddsLesserGreaterThan" Content="kurs" HorizontalAlignment="Left" Margin="466,70,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
@@ -328,7 +329,7 @@
 
                                 <Label x:Name="lblPick" Content="Typ:" HorizontalAlignment="Left" Margin="466,280,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" />
                                 <CheckBox x:Name="cbPick" Padding="0,0,0,0" Height="30" Content="" HorizontalAlignment="Left" Margin="443,280,0,0" VerticalAlignment="Top" Checked="cbPick_Checked" Unchecked="cbPick_Unchecked"/>
-                                <ListBox x:Name="mddlPickTypes" Margin="497,280,0,0" SelectionMode="Multiple" VerticalAlignment="Top" HorizontalAlignment="Left" Width="234" Height="100" IsEnabled="False">
+                                <ListBox x:Name="mddlPickTypes" Margin="518,280,0,0" SelectionMode="Multiple" VerticalAlignment="Top" HorizontalAlignment="Left" Width="248" Height="100" IsEnabled="False">
                                 </ListBox>
 
                                 <CheckBox x:Name="cbWithoutMatchesFromNotesFilter" Height="30" Content="Bez meczy z notatek" HorizontalAlignment="Left" Margin="443,384,0,0" VerticalAlignment="Top" />
@@ -421,7 +422,7 @@
 
                                         <mah:MetroTabItem.Content>
                                             <Grid>
-                                                <TextBlock FontSize="30" Text="(niezaimplementowane)" />
+                                                <TextBlock x:Name="tbUnimplemented1" FontSize="30" Text="(niezaimplementowane)" />
                                             </Grid>
                                         </mah:MetroTabItem.Content>
                                     </mah:MetroTabItem>
@@ -525,6 +526,8 @@
 
                                         <mah:MetroTabItem.Content>
                                             <Grid>
+                                                <Label x:Name="lblLanguage" Content="Język:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Foreground="Blue" FontWeight="Bold"/>
+                                                <ComboBox x:Name="ddlLanguage" Margin="178,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" Height="30"></ComboBox>
                                             </Grid>
                                         </mah:MetroTabItem.Content>
                                     </mah:MetroTabItem>
@@ -599,14 +602,14 @@
                             <Grid Margin="0,60,0,0">
 
                                 <Label x:Name="lblDoubleChance" Content="Podwójna szansa:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Width="113"/>
-                                <mah:NumericUpDown x:Name="numCalculatorStake" HorizontalAlignment="Left" Margin="33,70,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="5" />
+                                <mah:NumericUpDown x:Name="numCalculatorStake" HorizontalAlignment="Left" Margin="33,70,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="1000" Value="5" />
                                 <mah:NumericUpDown x:Name="numCalculatorOdds1" HorizontalAlignment="Left" Margin="118,0,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N3}" Minimum="0" Maximum="1000" Value="1" />
                                 <mah:NumericUpDown x:Name="numCalculatorOdds2" HorizontalAlignment="Left" Margin="203,0,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N3}" Minimum="0" Maximum="1000" Value="1" />
                                 <mah:NumericUpDown x:Name="numCalculatorOdds3" HorizontalAlignment="Left" Margin="288,0,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N3}" Minimum="0" Maximum="1000" Value="0" />
                                 <TextBox x:Name="txtCalculatorResult" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Wyniki..."  TextWrapping="Wrap" VerticalAlignment="Top" Width="250" FontFamily="Segoe UI" Height="105" TabIndex="2" AcceptsReturn="True" Margin="118,35,0,0" IsReadOnly="True">
                                 </TextBox>
                                 <Button x:Name="btnCalculatorCalculate" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="Oblicz" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="75" Click="btnCalculatorCalculate_Click" TabIndex="1" Margin="118,145,0,0" />
-                                <mah:NumericUpDown x:Name="numCalculatorMinStake" HorizontalAlignment="Left" Margin="33,35,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} zł" Minimum="0" Maximum="1000" Value="0" />
+                                <mah:NumericUpDown x:Name="numCalculatorMinStake" HorizontalAlignment="Left" Margin="33,35,0,0" VerticalAlignment="Top" Width="80" Height="30" NumericInputMode="Decimal" StringFormat="{}{0:N2} €" Minimum="0" Maximum="1000" Value="0" />
 
                                 <Label x:Name="lblStakeNew" Content="Stawkuj nowe:" HorizontalAlignment="Left" Margin="0,215,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center" Width="113"/>
                                 <TextBox x:Name="txtStakeNew" VerticalContentAlignment="Top" HorizontalAlignment="Left" Tag="Kursy oddzielone ','"  TextWrapping="Wrap" VerticalAlignment="Top" Width="250" FontFamily="Segoe UI" Height="105" TabIndex="2" AcceptsReturn="True" Margin="118,215,0,0" IsReadOnly="False" />

@@ -18,7 +18,7 @@ namespace BettingBot.Source.ViewModels
         {
             get
             {
-                var profitStr = $"{Profit:0.00} zł";
+                var profitStr = $"{Profit:0.00} €";
                 if (profitStr.Contains("-"))
                     profitStr = profitStr.Insert(profitStr.IndexOf("-", StringComparison.Ordinal) + 1, " ");
                 return profitStr;

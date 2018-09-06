@@ -27,9 +27,11 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
             
             var i = 0;
 
+            var brpLs = LocalizationManager.GetLoaderBetshootResponseParseLocalizedStrings();
+
             foreach (var spanBp in spanBettingPicks)
             {
-                OnInformationSending($"Wczytywanie zakładów ({++i} z {spanBettingPicks.Length})...");
+                OnInformationSending($"{brpLs[0][0]} ({++i} {brpLs[0][1]} {spanBettingPicks.Length})..."); // ($"Wczytywanie zakładów ({++i} z {spanBettingPicks.Length})...");
                 var strDate = spanBp.Descendants()
                     .Single(x => x.HasClass("bettingpickdate"))
                     .InnerText;
@@ -78,7 +80,7 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                 newBets.Add(newBet);
             }
 
-            OnInformationSending("Wczytano zakłady");
+            OnInformationSending(brpLs[1][0]);
 
             Tipster = tipster;
             Bets = newBets;

@@ -30,7 +30,7 @@ namespace BettingBot.Source.Converters
         public static string TipsterDomainTypeToString(DomainType tipsterDomainType)
         {
             return tipsterDomainType == DomainType.Custom 
-                ? "Pełny Adres" : tipsterDomainType.ConvertToString();
+                ? "Pełny adres" : tipsterDomainType.ConvertToString();
         }
 
         public static BetshootTipsterResponse ToBetshootTipsterResponse(DbTipster dbTipster)
@@ -60,7 +60,7 @@ namespace BettingBot.Source.Converters
                 Id = dbTipster.Id,
                 Name = dbTipster.Name,
                 Link = dbTipster.Link,
-                WebsiteAddress = dbTipster.Website?.Address, // VM nie powinien posiadać typów złożonych
+                WebsiteAddress = dbTipster.Website?.Address, // VM nie powinien posiadać typów €ożonych
                 WebsiteLoginName = dbTipster.Website?.Login?.Name,
                 WebsiteLoginPassword = dbTipster.Website?.Login?.Password
             };

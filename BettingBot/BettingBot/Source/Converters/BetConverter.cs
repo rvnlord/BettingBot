@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using BettingBot.Common;
 using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
 using BettingBot.Source.Clients.Selenium.Asianodds.Responses;
@@ -16,11 +17,11 @@ namespace BettingBot.Source.Converters
             if (mResultClass == null) throw new ArgumentNullException(nameof(mResultClass));
             BetResult betResult;
             if (mResultClass.EqIgnoreCase("morange"))
-                betResult = BetResult.Canceled;
+                betResult = BetResult.Cancelled;
             else if (mResultClass.EqIgnoreCase("mgreen"))
-                betResult = (stake * odds - stake).Eq(profit.ToDouble()) ? BetResult.Win : BetResult.HalfWon;
+                betResult = (stake * odds - stake).Eq(profit.ToDouble()) ? BetResult.Won : BetResult.HalfWon;
             else if (mResultClass.EqIgnoreCase("mred"))
-                betResult = (-profit.ToDouble()).Eq(stake) ? BetResult.Lose : BetResult.HalfLost;
+                betResult = (-profit.ToDouble()).Eq(stake) ? BetResult.Lost : BetResult.HalfLost;
             else if (mResultClass.EqIgnoreCase("munits2"))
                 betResult = BetResult.Pending;
             else throw new Exception("Błąd Parsowania");
@@ -145,23 +146,10 @@ namespace BettingBot.Source.Converters
 
         public static string BetResultToLocalizedString(BetResult betResult)
         {
-            switch (betResult)
-            {
-                case BetResult.Win:
-                    return "Wygrana";
-                case BetResult.Lose:
-                    return "Przegrana";
-                case BetResult.Canceled:
-                    return "Anulowano";
-                case BetResult.HalfLost:
-                    return "-1/2";
-                case BetResult.HalfWon:
-                    return "+1/2";
-                case BetResult.Pending:
-                    return "Oczekuje";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            var dm = new DataManager();
+            var localizedStrings = dm.GetLocalizedStrings(LocalizationManager.Language);
+            var localBetResult = localizedStrings.Single(ls => ls.Key.AfterFirst("_") == "BetResult_" + betResult.EnumToString()).Value;
+            return localBetResult;
         }
 
         public static DbBet CopyWithoutNavigationProperties(DbBet dbBet)
@@ -260,7 +248,7 @@ namespace BettingBot.Source.Converters
                 BetResult = dbBet.BetResult.ToEnum<BetResult>(),
                 MatchId = dbBet.MatchId,
                 Odds = dbBet.Odds,
-                Stake = dbBet.OriginalStake.ToDouble() * 4, // TODO: z API do walut
+                Stake = dbBet.OriginalStake.ToDouble() * 1, // TODO: z API do walut
                 PickChoice = dbBet.Pick.Choice,
                 PickValue = dbBet.Pick.Value,
                 HomeName = dbBet.OriginalHomeName,
@@ -275,9 +263,9 @@ namespace BettingBot.Source.Converters
 
     public enum BetResult
     {
-        Lose = 0,
-        Win = 1,
-        Canceled = 2,
+        Lost = 0,
+        Won = 1,
+        Cancelled = 2,
         HalfLost = 3,
         HalfWon = 4,
         Pending = 5

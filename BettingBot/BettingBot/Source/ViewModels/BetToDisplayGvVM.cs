@@ -60,19 +60,19 @@ namespace BettingBot.Source.ViewModels
         
         public string TipsterString => _tipsterName.EqIgnoreCase("my") ? "Ja" :  $"{_tipsterName} ({_tipsterWebsite.Take(1)})";
         public string OddsString => Odds <= 0 ? "" : $"{Odds:0.00}";
-        public string StakeString => (Stake < 0 ? "-" + $"{Stake:0.##}".Substring(1) : $"{Stake:0.##}") + " zł";
+        public string StakeString => (Stake < 0 ? "-" + $"{Stake:0.##}".Substring(1) : $"{Stake:0.##}") + " €";
         public string ProfitString => BetResult == BetResult.Pending 
             ? "" 
             : Profit < 0 
-                ? ("-" + $"{Profit:0.##}".Substring(1) + " zł") 
+                ? ("-" + $"{Profit:0.##}".Substring(1) + " €") 
                 : Profit > 0 
-                    ? ("+" + $"{Profit:0.##}" + " zł")
+                    ? ("+" + $"{Profit:0.##}" + " €")
                     : "-";
         public string BudgetString => BetResult == BetResult.Pending 
             ? "" 
             : Profit.Eq(0)
                 ? "-"
-                : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " zł";
+                : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " €";
         public string DateString => LocalTimestamp.Rfc1123.ToString("dd-MM-yyyy HH:mm");
 
         public string MatchResultString
@@ -81,7 +81,7 @@ namespace BettingBot.Source.ViewModels
             {
                 if (BetResult == BetResult.Pending)
                     return "";
-                if (BetResult == BetResult.Canceled && _matchHomeScore == null && _matchAwayScore == null)
+                if (BetResult == BetResult.Cancelled && _matchHomeScore == null && _matchAwayScore == null)
                     return "-";
 
                 return $"{_matchHomeScore} - {_matchAwayScore}";
@@ -132,9 +132,9 @@ namespace BettingBot.Source.ViewModels
         {
             BudgetBeforeResult = budget - currStake;
 
-            if (BetResult == BetResult.Lose)
+            if (BetResult == BetResult.Lost)
                 Profit = -currStake;
-            else if (BetResult == BetResult.Canceled || BetResult == BetResult.Pending)
+            else if (BetResult == BetResult.Cancelled || BetResult == BetResult.Pending)
                 Profit = 0;
             else if (BetResult == BetResult.HalfLost)
                 Profit = -currStake / 2;

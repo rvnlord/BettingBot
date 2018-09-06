@@ -154,6 +154,11 @@ namespace BettingBot.Common.UtilityClasses
             Items.WhereByMany(i => i.Text, items).ForEach(i => i.Disable());
         }
 
+        public void Disable(params int[] itemIds)
+        {
+            Items.WhereByMany(Items.Index, itemIds).ForEach(i => i.Disable());
+        }
+
         public void DisableAll()
         {
             Items.ForEach(i => i.Disable());
@@ -162,7 +167,7 @@ namespace BettingBot.Common.UtilityClasses
         private void MenuItem_Click(object sender, ContextMenuItemClickEventArgs e)
         {
             ContextMenusManager.CloseAll();
-            OnContextMenuClicking(new ContextMenuClickEventArgs(e.Item));
+            OnContextMenuClicking(new ContextMenuClickEventArgs(e.Item, Items.Index(e.Item)));
         }
 
         public bool IsHovered()
@@ -190,7 +195,12 @@ namespace BettingBot.Common.UtilityClasses
     public class ContextMenuClickEventArgs
     {
         public ContextMenuItem ClickedItem { get; }
-        public ContextMenuClickEventArgs(ContextMenuItem item) => ClickedItem = item;
+        public int ClickedIndex { get; }
+        public ContextMenuClickEventArgs(ContextMenuItem item, int index)
+        {
+            ClickedItem = item;
+            ClickedIndex = index;
+        }
     }
 
     public delegate void ContextMenuOpenEventHandler(object sender, ContextMenuOpenEventArgs e);

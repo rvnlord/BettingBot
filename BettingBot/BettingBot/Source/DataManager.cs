@@ -375,10 +375,14 @@ namespace BettingBot.Source
                 }
             }
                 // fix dla Unique (PRIMARY KEY) Constraint failed, ponieważ baza Football-Data potrafi zwrócić dwa mecze o tym samym Id
-                //jeden jest już w bazie z takim samym id jak dodawany
+                // jeden jest już w bazie z takim samym id jak dodawany
                 // matches.Where(m => matches.Any(om => om.Id == m.Id && m != om)).ToArray()
                 // [0]: {22-04-2018 13:00 107 () - 450 () - 456 ()
                 // [1]: {23-04-2018 18:45 107 () - 450 () - 456 ()
+
+            matches = matches.Where(m => m.HomeId != m.AwayId).ToList();
+                // fix dla Unique (PRIMARY KEY) Constraint failed, ponieważ baza Football-Data potrafi zwrócić sztuczny mecz gdzie obie drużyny
+                // mają takie same sztuczne id w dwóch różnych godzinach
 
             _db.Bets.RemoveRange(betsToRemoveOriginal);
             _db.Matches.RemoveRange(matchesToRemoveOriginal);
@@ -689,5 +693,12 @@ namespace BettingBot.Source
         //{
         //    WithDisabledConstraints(() => _db.SaveChanges());
         //}
+
+        public List<DbLocalizedString> GetLocalizedStrings(Lang language)
+        {
+            var strLang = $"{language.EnumToString().Take(3).ToUpper()}_";
+            var db = new LocalDbContext();
+            return db.LocalizedStrings.Where(ls => ls.Key.StartsWith(strLang)).ToList();
+        }
     }
 }

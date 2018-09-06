@@ -56,19 +56,19 @@ namespace BettingBot.Source.ViewModels
             }
         }
         public string BetResultString => BetConverter.BetResultToLocalizedString(BetResult);
-        public string StakeString => (Stake < 0 ? "-" + $"{Stake:0.##}".Substring(1) : $"{Stake:0.##}") + " zł";
+        public string StakeString => (Stake < 0 ? "-" + $"{Stake:0.##}".Substring(1) : $"{Stake:0.##}") + " €";
         public string ProfitString => BetResult == BetResult.Pending
             ? ""
             : Profit < 0
-                ? ("-" + $"{Profit:0.##}".Substring(1) + " zł")
+                ? ("-" + $"{Profit:0.##}".Substring(1) + " €")
                 : Profit > 0
-                    ? ("+" + $"{Profit:0.##}" + " zł")
+                    ? ("+" + $"{Profit:0.##}" + " €")
                     : "-";
         public string BudgetString => BetResult == BetResult.Pending
             ? ""
             : Profit.Eq(0)
                 ? "-"
-                : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " zł";
+                : (Budget < 0 ? "-" + $"{Budget:0.##}".Substring(1) : $"{Budget:0.##}") + " €";
         public string DateString => LocalTimestamp.Rfc1123.ToString("dd-MM-yyyy HH:mm");
         public string OddsString => Odds <= 0 ? "" : $"{Odds:0.000}";
         public string MatchResultString
@@ -77,7 +77,7 @@ namespace BettingBot.Source.ViewModels
             {
                 if (BetResult == BetResult.Pending)
                     return "";
-                if (BetResult == BetResult.Canceled && HomeScore == null && AwayScore == null)
+                if (BetResult == BetResult.Cancelled && HomeScore == null && AwayScore == null)
                     return "-";
 
                 return $"{HomeScore} - {AwayScore}";

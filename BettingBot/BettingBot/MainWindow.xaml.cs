@@ -199,10 +199,12 @@ namespace BettingBot
                         actuallyDisabledControls = _buttonsAndContextMenus.DisableControls(); // tutaj dopiero zainicjalizowane są grupy
 
                         SetupZIndexes(this);
-
+                        
                         UpdateGuiWithNewTipsters();
                         LoadOptions();
                         RunOptionsDependentAdjustments();
+                        LocalizationManager.Initialize(this, ddlLanguage.SelectedEnumValue<Lang>());
+                        LocalizationManager.Localize();
                     });
 
                     CalculateAndBindBets();
@@ -342,12 +344,12 @@ namespace BettingBot
             try
             {
                 var newTipstersCount = 0;
-                var selectedTipsterIdsDdl = mddlTipsters.SelectedCustomIds();
+                var selectedTipsterIdsDdl = mddlTipsters.SelectedIds();
                 await Task.Run(() =>
                 {
                     DownloadTipsterToDb();
                     newTipstersCount = UpdateGuiWithNewTipsters();
-                    Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(selectedTipsterIdsDdl));
+                    Dispatcher.Invoke(() => mddlTipsters.SelectByIds(selectedTipsterIdsDdl));
                 });
                 if (newTipstersCount <= 0)
                     await this.ShowMessageAsync("Wystąpił Błąd", "Tipster znajduje się już w bazie danych");
@@ -429,8 +431,8 @@ namespace BettingBot
             var sb = new StringBuilder();
             for (var i = 0; i < odds.Length; i++)
                 if (calcSurebet || i < 2)
-                    sb.Append($"{i + 1}: {odds[i]:0.000} x {stake[i]:0.00} zł = {odds[i] * stake[i]:0.00} zł\n");
-            sb.Append($"Ogółem: {totalOdds:0.000} x {totalStake:0.00} zł = {totalOdds * totalStake:0.00} zł");
+                    sb.Append($"{i + 1}: {odds[i]:0.000} x {stake[i]:0.00} € = {odds[i] * stake[i]:0.00} €\n");
+            sb.Append($"Ogółem: {totalOdds:0.000} x {totalStake:0.00} € = {totalOdds * totalStake:0.00} €");
             txtCalculatorResult.Text = sb.ToString();
         }
 
@@ -646,22 +648,19 @@ namespace BettingBot
                     var oddsN = stakeNew.Remove(" ").Split(",").Select(x => x.ToDoubleN()).ToArray();
                     if (oddsN.Any(x => x == null))
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            txtStakeNewResult.Text = "Niepoprawny ciąg wejściowy (kursy oddzielone ',')";
-                        });
+                        Dispatcher.Invoke(() => txtStakeNewResult.Text = "Niepoprawny ciąg wejściowy (kursy oddzielone ',')");
                         return;
                     }
                     
                     tbs.ApplyFilters();
 
                     var odds = oddsN.Select(x => x.ToDouble()).ToArray();
-                    var localNow = ExtendedTime.LocalNow;
+                    var nextDate = tbs.FilteredBets.Select(b => b.LocalTimestamp).Max() + TimeSpan.FromDays(1);
                     foreach (var odd in odds)
                     {
                         tbs.FilteredBets.Add(new BetToDisplayGvVM
                         {
-                            LocalTimestamp = localNow,
+                            LocalTimestamp = nextDate,
                             BetResult = BetResult.Pending,
                             Odds = odd
                         });
@@ -671,10 +670,8 @@ namespace BettingBot
 
                     var newBets = tbs.Bets.TakeLast(odds.Length).Reverse().ToArray();
 
-                    Dispatcher.Invoke(() =>
-                    {
-                        txtStakeNewResult.Text = newBets.Select((x, i) => $"{i + 1}: {x.Odds:0.000} - {x.Stake:0.##} zł").JoinAsString("\n");
-                    });
+                    Dispatcher.Invoke(() => txtStakeNewResult.Text = newBets.Select((x, i) 
+                        => $"{i + 1}: {x.Odds:0.000} - {x.Stake:0.##} €").JoinAsString("\n"));
                 });
 
             }
@@ -977,9 +974,37 @@ namespace BettingBot
 
         private void ddlProfitByPeriodStatistics_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_bs == null) return;
+            if (_bs == null || ddlProfitByPeriodStatistics.SelectedItem == null) return;
             _ocProfitByPeriodStatistics.ReplaceAll(new ProfitByPeriodStatisticsGvVM(_bs.Bets, ddlProfitByPeriodStatistics.SelectedEnumValue<Period>()));
             gvProfitByPeriodStatistics.ScrollToEnd();
+        }
+
+        private async void ddlLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            List<object> actuallyDisabledControls = null;
+            try
+            {
+                actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
+                ddlLanguage.IsEnabled = false;
+                gridMain.ShowLoader();
+                LocalizationManager.Initialize(this, ddlLanguage.SelectedEnumValue<Lang>());
+                LocalizationManager.Localize();
+                await Task.Run(() => CalculateAndBindBets());
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
+            }
+            finally
+            {
+                gridMain.HideLoader();
+                if (!gridMain.HasLoader())
+                {
+                    ddlLanguage.IsEnabled = true;
+                    actuallyDisabledControls.EnableControls();
+                }
+            }
         }
 
         #endregion
@@ -1341,7 +1366,7 @@ namespace BettingBot
                         var dm = new DataManager();
                         if (deletedTipsters.Any())
                         {
-                            var selectedTipsterIdsDdl = Dispatcher.Invoke(() => mddlTipsters.SelectedCustomIds());
+                            var selectedTipsterIdsDdl = Dispatcher.Invoke(() => mddlTipsters.SelectedIds());
                             var idsToDelete = deletedTipsters.Select(t => t.Id).ToArray();
                             var newSelectedIds = selectedTipsterIdsDdl.Except(idsToDelete);
 
@@ -1349,7 +1374,7 @@ namespace BettingBot
 
                             UpdateGuiWithNewTipsters();
 
-                            Dispatcher.Invoke(() => mddlTipsters.SelectByCustomIds(newSelectedIds));
+                            Dispatcher.Invoke(() => mddlTipsters.SelectByIds(newSelectedIds));
                             
                             if (_ocBetsToDisplayGvVM.Any(bet => deletedTipsters.Any(dt => dt.Name.EqIgnoreCase(bet.TipsterName) && dt.Link.UrlToDomain().EqIgnoreCase(bet.TipsterWebsite))))
                                 CalculateAndBindBets();
@@ -1533,18 +1558,18 @@ namespace BettingBot
             var ddlitems = mddlTipsters.Items.Cast<DdlItem>();
             var idsExceptMine = ddlitems.Where(i => i.Index != -1).Select(i => i.Index);
             mddlTipsters.UnselectAll();
-            switch (e.ClickedItem.Text)
+            switch (e.ClickedIndex)
             {
-                case "Tylko moje":
-                    mddlTipsters.SelectByCustomId(-1);
+                case 0: // "Tylko moje":
+                    mddlTipsters.SelectById(-1);
                     break;
-                case "Tylko pozostałe":
-                    mddlTipsters.SelectByCustomIds(idsExceptMine);
+                case 1: // "Tylko pozostałe":
+                    mddlTipsters.SelectByIds(idsExceptMine);
                     break;
-                case "Wszystkie":
+                case 2: // "Wszystkie":
                     mddlTipsters.SelectAll();
                     break;
-                case "Żaden":
+                case 3: // "Żaden":
                     mddlTipsters.UnselectAll();
                     break;
             }
@@ -1554,12 +1579,12 @@ namespace BettingBot
         private void cmMddlPickTypes_Click(object sender, ContextMenuClickEventArgs e)
         {
             mddlPickTypes.UnselectAll();
-            switch (e.ClickedItem.Text)
+            switch (e.ClickedIndex)
             {
-                case "Wszystkie":
+                case 0: // "Wszystkie":
                     mddlPickTypes.SelectAll();
                     break;
-                case "Żaden":
+                case 1: // "Żaden":
                     mddlPickTypes.UnselectAll();
                     break;
             }
@@ -1571,15 +1596,15 @@ namespace BettingBot
             var cm = (BettingBot.Common.UtilityClasses.ContextMenu) sender;
             var dp = (DatePicker) cm.Control;
 
-            switch (e.ClickedItem.Text)
+            switch (e.ClickedIndex)
             {
-                case "Kopiuj":
+                case 0: // "Kopiuj":
                     ClipboardWrapper.TrySetText(dp.SelectedDate != null ? dp.SelectedDate?.ToString("dd-MM-yyyy") : "");
                     break;
-                case "Wyczyść":
+                case 1: // "Wyczyść":
                     dp.SelectedDate = null;
                     break;
-                case "Dzisiejsza data":
+                case 2: // "Dzisiejsza data":
                     dp.SelectedDate = DateTime.Now.ToDMY();
                     break;
             }
@@ -1591,12 +1616,12 @@ namespace BettingBot
             var cm = (ContextMenu) sender;
             var txt = (TextBox) cm.Control;
 
-            switch (e.ClickedItem.Text)
+            switch (e.ClickedIndex)
             {
-                case "Kopiuj":
+                case 0: // "Kopiuj":
                     ClipboardWrapper.TrySetText(txt.Text ?? "");
                     break;
-                case "Wyczyść":
+                case 1: // "Wyczyść":
                     txt.ResetValue(true);
                     break;
             }
@@ -1607,20 +1632,20 @@ namespace BettingBot
             var selectedBets = _ocSelectedBetsToDisplayGvVM.Cast<BetToDisplayGvVM>().ToArray();
             var matchesStr = string.Join("\n", selectedBets.Select(b => $"{b.MatchHomeName} - {b.MatchAwayName}: {b.PickString}"));
             var searchTerm = selectedBets.FirstOrDefault()?.MatchHomeName.Split(' ').FirstOrDefault(w => w.Length > 3) ?? "";
-            
-            switch (e.ClickedItem.Text)
+
+            switch (e.ClickedIndex)
             {
-                case "Znajdź i postaw zakład":
+                case 0: // "Znajdź i postaw zakład":
                 {
                     await MakeBet();
                     break;
                 }
-                case "Powiąż ręcznie z meczem":
+                case 1: // "Powiąż ręcznie z meczem":
                 {
                     ShowMatchBetManualAssociationPrompt();
                     break;
                 }
-                case "Kopiuj do wyszukiwania":
+                case 2: // "Kopiuj do wyszukiwania":
                 {
                     await AsyncWithLoader(gridData, async () =>
                     {
@@ -1631,7 +1656,7 @@ namespace BettingBot
 
                     break;
                 }
-                case "Kopiuj całość":
+                case 3: // "Kopiuj całość":
                 {
                     await AsyncWithLoader(gridData, async () =>
                     {
@@ -1642,7 +1667,7 @@ namespace BettingBot
 
                     break;
                 }
-                case "Do notatek":
+                case 4: // "Do notatek":
                 {
                     await AsyncWithLoader(gridData, () =>
                     {
@@ -1667,11 +1692,11 @@ namespace BettingBot
 
                     break;
                 }
-                case "Usuń z bazy":
+                case 5: // "Usuń z bazy":
                 {
-                    await AsyncWithLoader(gridData, async () =>
+                    var result = await Dispatcher.Invoke(async () => await this.ShowMessageAsync("Usuwanie z bazy danych", $"Czy na pewno chcesz usunąć wybrane rekordy? ({selectedBets.Length})", MessageDialogStyle.AffirmativeAndNegative));
+                    await AsyncWithLoader(gridData, () =>
                     {
-                        var result = await Dispatcher.Invoke(async () => await this.ShowMessageAsync("Usuwanie z bazy danych", $"Czy na pewno chcesz usunąć wybrane rekordy? ({selectedBets.Length})", MessageDialogStyle.AffirmativeAndNegative));
                         if (result == MessageDialogResult.Affirmative)
                         {
                             var db = new LocalDbContext();
@@ -1690,9 +1715,9 @@ namespace BettingBot
         {
             try
             {
-                switch (e.ClickedItem.Text)
+                switch (e.ClickedIndex)
                 {
-                    case "Odśwież ze strony brokera":
+                    case 0: // "Odśwież ze strony brokera":
                     {
 
                         throw new NotImplementedException();
@@ -1850,7 +1875,7 @@ namespace BettingBot
                 new DdlItem((int) StakingTypeOnLose.UsePercentOfBudget, "użyj % budżetu")
             };
             
-            ddlStakingTypeOnLose.SelectByIndex(-1);
+            ddlStakingTypeOnLose.SelectById(-1);
             ddlStakingTypeOnLose.SelectionChanged += ddlStakingTypeOnLose_SelectionChanged;
 
             ddlStakingTypeOnWin.ItemsSource = new List<DdlItem>
@@ -1863,7 +1888,7 @@ namespace BettingBot
                 new DdlItem((int) StakingTypeOnWin.UsePercentOfBudget, "użyj % budżetu")
             };
             
-            ddlStakingTypeOnWin.SelectByIndex(-1);
+            ddlStakingTypeOnWin.SelectById(-1);
             ddlStakingTypeOnWin.SelectionChanged += ddlStakingTypeOnWin_SelectionChanged;
 
             ddlOddsLesserGreaterThan.ItemsSource = new List<DdlItem>
@@ -1872,7 +1897,7 @@ namespace BettingBot
                 new DdlItem((int) OddsLesserGreaterThanFilterChoice.LesserThan, "<="),
             };
             
-            ddlOddsLesserGreaterThan.SelectByIndex(-1);
+            ddlOddsLesserGreaterThan.SelectById(-1);
 
             ddlLoseCondition.ItemsSource = new List<DdlItem>
             {
@@ -1880,7 +1905,7 @@ namespace BettingBot
                 new DdlItem((int) LoseCondition.BudgetLowerThanMax, "Budżet niższy od największego"),
             };
             
-            ddlLoseCondition.SelectByIndex(-1);
+            ddlLoseCondition.SelectById(-1);
 
             ddlBasicStake.ItemsSource = new List<DdlItem>
             {
@@ -1888,7 +1913,7 @@ namespace BettingBot
                 new DdlItem((int) BasicStake.Previous, "poprzednia"),
             };
             
-            ddlBasicStake.SelectByIndex(-1);
+            ddlBasicStake.SelectById(-1);
 
             ddlProfitByPeriodStatistics.ItemsSource = new List<DdlItem>
             {
@@ -1897,7 +1922,7 @@ namespace BettingBot
                 new DdlItem((int) Period.Day, "Zysk dzienny"),
             };
             
-            ddlProfitByPeriodStatistics.SelectByIndex(-1);
+            ddlProfitByPeriodStatistics.SelectById(-1);
             ddlProfitByPeriodStatistics.SelectionChanged += ddlProfitByPeriodStatistics_SelectionChanged;
 
             var ddlPickTypes = EnumUtils.EnumToDdlItems<PickChoice>(PickConverter.PickChoiceToString);
@@ -1906,7 +1931,16 @@ namespace BettingBot
 
             var ddlTipsterDomains = EnumUtils.EnumToDdlItems<DomainType>(TipsterConverter.TipsterDomainTypeToString);
             ddlTipsterDomain.ItemsSource = ddlTipsterDomains;
-            ddlTipsterDomain.Select(ddlTipsterDomains.First());
+            ddlTipsterDomain.SelectByItem(ddlTipsterDomains.First());
+
+            var ddlLanguages = new List<DdlItem>
+            {
+                new DdlItem((int)Lang.Polish, "Polski"),
+                new DdlItem((int)Lang.English, "English")
+            };
+            ddlLanguage.ItemsSource = ddlLanguages;
+            ddlLanguage.SelectByItem(ddlLanguages.First());
+            // add ddlLanguage_SelectionChanged; after options
         }
 
         private void SetupGrids()
@@ -2086,6 +2120,7 @@ namespace BettingBot
                 this.CenterOnScreen();
             if (_ocSelectedTipsters.Any())
                 gvTipsters.ScrollTo(_ocSelectedTipsters.First());
+            ddlLanguage.SelectionChanged += ddlLanguage_SelectionChanged;
         }
 
         private void InitializeControlGroups()
@@ -2200,10 +2235,10 @@ namespace BettingBot
             {
                 var selectedBet = selectedBets.Single();
                 if (selectedBet.BetResult != BetResult.Pending)
-                    cm.Disable("Znajdź i postaw zakład");
+                    cm.Disable(0);
             }
             if (selectedBets.Length >= 2)
-                cm.Disable("Znajdź i postaw zakład", "Powiąż ręcznie z meczem", "Kopiuj do wyszukiwania");
+                cm.Disable(0, 1, 2);
         }
 
         private void ClearGridViews()
@@ -2332,7 +2367,7 @@ namespace BettingBot
         public int UpdateGuiWithNewTipsters()
         {
             var dm = new DataManager();
-            var ddlTipsters = new List<DdlItem> { new DdlItem(-1, "(Moje Zakłady)") };
+            var ddlTipsters = new List<DdlItem> { new DdlItem(-1, "(Moje zakłady)") };
             var tipstersVM = dm.GetTipstersExceptDefault().ToTipstersGvVM();
             ddlTipsters.AddRange(tipstersVM.Select(t => new DdlItem(t.Id, $"{t.Name} ({t.WebsiteAddress})")));
             Dispatcher.Invoke(() => mddlTipsters.ItemsSource = ddlTipsters);
@@ -2354,6 +2389,8 @@ namespace BettingBot
             });
 
             dm.RemoveUnusedWebsites();
+            if (LocalizationManager.IsInitialized) // first reload of tipsters is before localization takes place
+                Dispatcher.Invoke(() => LocalizationManager.LocalizeListBox(mddlTipsters, 0, 1));
             return addedTipsters.Count;
         }
 
@@ -2592,29 +2629,30 @@ namespace BettingBot
                 var winsInRow = bs.WinsCounter.Any(c => c.Value > 0) ? bs.WinsCounter.MaxBy(c => c.Value).ToString() : "-";
 
                 var lostOUfromWonBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
-                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2 ||
-                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2));
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Won && b.MatchHomeScore + b.MatchAwayScore > 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Won && b.MatchHomeScore + b.MatchAwayScore <= 2));
 
                 var wonOUfromLostBTTS = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
-                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
-                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Lose && b.MatchHomeScore + b.MatchAwayScore > 2));
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Lost && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Lost && b.MatchHomeScore + b.MatchAwayScore > 2));
 
                 var wonBTTSwithOU = bs.Bets.Count(b => b.PickChoice == PickChoice.BothToScore && b.BetResult != BetResult.Pending && b.MatchHomeScore != null && b.MatchAwayScore != null &&
-                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
-                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Win && b.MatchHomeScore + b.MatchAwayScore > 2));
+                    (b.PickValue.ToDouble().Eq(0) && b.BetResult == BetResult.Won && b.MatchHomeScore + b.MatchAwayScore <= 2 ||
+                    b.PickValue.ToDouble().Eq(1) && b.BetResult == BetResult.Won && b.MatchHomeScore + b.MatchAwayScore > 2));
 
                 var gs = new GeneralStatisticsGvVM();
-                gs.Add(new GeneralStatisticGvVM("Maksymalna stawka:", $"{maxStakeBet.Stake:0.00} zł ({maxStakeBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Najwyższy budżet:", $"{maxBudgetBet.Budget:0.00} zł ({maxBudgetBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Najniższy budżet:", $"{minBudgetBet.Budget:0.00} zł ({minBudgetBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Najniższy budżet po odjęciu stawki:", $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} zł ({minBudgetInclStakeBet.Nr})"));
-                gs.Add(new GeneralStatisticGvVM("Porażki z rzędu:", $"{losesInRow}"));
-                gs.Add(new GeneralStatisticGvVM("Zwycięstwa z rzędu:", $"{winsInRow}"));
-                gs.Add(new GeneralStatisticGvVM("Nierozstrzygnięte:", $"{bs.Bets.Count(b => b.BetResult == BetResult.Pending)} [dziś: {bs.Bets.Count(b => b.BetResult == BetResult.Pending && b.LocalTimestamp.Rfc1123.ToDMY() == DateTime.Now.ToDMY())}]"));
-                gs.Add(new GeneralStatisticGvVM("BTTS y/n => o/u 2.5 [L - W]:", $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]"));
+                var gsLs = LocalizationManager.GetGeneralStatisticsLocalizedStrings();
+                gs.Add(new GeneralStatisticGvVM(gsLs[0], $"{maxStakeBet.Stake:0.00} € ({maxStakeBet.Nr})")); // "Maksymalna stawka:"
+                gs.Add(new GeneralStatisticGvVM(gsLs[1], $"{maxBudgetBet.Budget:0.00} € ({maxBudgetBet.Nr})")); // "Najwyższy budżet:
+                gs.Add(new GeneralStatisticGvVM(gsLs[2], $"{minBudgetBet.Budget:0.00} € ({minBudgetBet.Nr})")); // "Najniższy budżet:"
+                gs.Add(new GeneralStatisticGvVM(gsLs[3], $"{minBudgetInclStakeBet.BudgetBeforeResult:0.00} € ({minBudgetInclStakeBet.Nr})")); // "Najniższy budżet po odjęciu stawki:"
+                gs.Add(new GeneralStatisticGvVM(gsLs[4], $"{losesInRow}")); // "Porażki z rzędu:"
+                gs.Add(new GeneralStatisticGvVM(gsLs[5], $"{winsInRow}")); // "Zwycięstwa z rzędu:"
+                gs.Add(new GeneralStatisticGvVM(gsLs[6], $"{bs.Bets.Count(b => b.BetResult == BetResult.Pending)} [{bs.Bets.Count(b => b.BetResult == BetResult.Pending && b.LocalTimestamp.Rfc1123.ToDMY() == DateTime.Now.ToDMY())}]")); // "Nierozstrzygnięte:"
+                gs.Add(new GeneralStatisticGvVM(gsLs[7], $"{lostOUfromWonBTTS} - {wonOUfromLostBTTS} [{wonOUfromLostBTTS - lostOUfromWonBTTS}]")); // "BTTS y/n => o/u 2.5 [L - W]:"
                 if (lostOUfromWonBTTS + wonBTTSwithOU != 0)
-                    gs.Add(new GeneralStatisticGvVM("BTTS y/n i o/u 2.5 [L/W]:", $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]"));
-                
+                    gs.Add(new GeneralStatisticGvVM(gsLs[8], $"{lostOUfromWonBTTS} / {wonBTTSwithOU} [{lostOUfromWonBTTS / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}% / {wonBTTSwithOU / (double) (lostOUfromWonBTTS + wonBTTSwithOU) * 100:0.00}%]")); // "BTTS y/n i o/u 2.5 [L/W]:"
+
                 Dispatcher.Invoke(() =>
                 {
                     _ocGeneralStatistics.ReplaceAll(gs.ToList());
@@ -2677,10 +2715,10 @@ namespace BettingBot
             var applyNotesFilter = Dispatcher.Invoke(() => cbWithoutMatchesFromNotesFilter.IsChecked) == true;
 
             var applyPickFilter = Dispatcher.Invoke(() => cbPick.IsChecked) == true;
-            var selectedPickTypes = Dispatcher.Invoke(() => mddlPickTypes.SelectedCustomIds());
+            var selectedPickTypes = Dispatcher.Invoke(() => mddlPickTypes.SelectedIds());
 
             var applyTipsterFilter = Dispatcher.Invoke(() => cbTipster.IsChecked) == true;
-            var selectedMddlTipsterIds = Dispatcher.Invoke(() => mddlTipsters.SelectedCustomIds());
+            var selectedMddlTipsterIds = Dispatcher.Invoke(() => mddlTipsters.SelectedIds());
 
             dm.EnsureDefaultTipsterExists();
 
@@ -2850,6 +2888,7 @@ namespace BettingBot
                 new CbState("ShowBrowserOnDataLoadingOption", cbShowBrowserOnDataLoadingOption),
                 new TextBoxState("FootballDataApiPublicKeyOption", txtFootballDataApiPublicKey),
                 new CbState("IgnoreAutoAssociatingBetsThatWereTriedBefore", cbIgnoreAssociatingTried),
+                new DdlState("LanguageOption", ddlLanguage),
 
                 new CbState("DataLoadingLoadTipsFromDate", cbLoadTipsFromDate),
                 new CbState("DataLoadingLoadTipsOnlySelected", cbLoadTipsOnlySelected),
@@ -2875,7 +2914,7 @@ namespace BettingBot
     }
 
     #region Enums
-
+    
     public enum BasicStake
     {
         Base = -1,

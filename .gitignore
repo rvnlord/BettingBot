@@ -6,6 +6,7 @@ lib/
 *.DotSettings
 *.licx
 *.txt
+*.Designer.cs
 
 # User-specific files
 *.suo
@@ -307,3 +308,4 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+BettingBot/BettingBot/Properties/Resources.Designer.cs

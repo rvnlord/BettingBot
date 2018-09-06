@@ -121,6 +121,8 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
         {
             PickChoice pickChoice;
             var pickValue = strPick.Between("[", "]").ToDoubleN();
+            if (strPick.Contains("..."))
+                strPick = $"{new[] { home, away }.Single(p => p.StartsWithIgnoreCase(strPick.BeforeFirst("...")))}[{pickValue}]";
             if (strPick.StartsWithIgnoreCase(home))
             {
                 if (pickValue < 0)
@@ -164,11 +166,11 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
         private BetResult ParseBetResult(string strStatus)
         {
             if (strStatus.EqAnyIgnoreCase("Won"))
-                return BetResult.Win;
+                return BetResult.Won;
             if (strStatus.EqAnyIgnoreCase("Lost"))
-                return BetResult.Lose;
+                return BetResult.Lost;
             if (strStatus.EqAnyIgnoreCase("Stake returned"))
-                return BetResult.Canceled;
+                return BetResult.Cancelled;
             if (strStatus.EqAnyIgnoreCase("Half won", "Half-won"))
                 return BetResult.HalfWon;
             if (strStatus.EqAnyIgnoreCase("Half lost", "Half-lost"))

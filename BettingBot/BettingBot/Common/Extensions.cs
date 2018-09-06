@@ -38,6 +38,7 @@ using OpenQA.Selenium.Remote;
 using Expression = System.Linq.Expressions.Expression;
 using BettingBot.Common.UtilityClasses;
 using BettingBot.Properties;
+using BettingBot.Source;
 using BettingBot.Source.Clients.Api.FootballData.Responses;
 using BettingBot.Source.Clients.Selenium;
 using BettingBot.Source.Converters;
@@ -74,13 +75,7 @@ namespace BettingBot.Common
         private static readonly Dictionary<FrameworkElement, Storyboard> _storyBoards = new Dictionary<FrameworkElement, Storyboard>();
         private static readonly Dictionary<string, bool> _panelAnimations = new Dictionary<string, bool>();
         private static readonly object _lock = new object();
-        private static readonly Action _emptyDelegate = delegate { };
-
-        public static CultureInfo Culture = new CultureInfo("pl-PL")
-        {
-            NumberFormat = new NumberFormatInfo { NumberDecimalSeparator = "." },
-            DateTimeFormat = { ShortDatePattern = "dd-MM-yyyy" } // nie tworzyć nowego obiektu DateTimeFormat tutaj tylko przypisać jego interesujące nas właściwości, bo nowy obiekt nieokreślone właściwości zainicjalizuje wartościami dla InvariantCulture, czyli angielskie nazwy dni, miesięcy itd.
-        };
+        public static readonly Action EmptyDelegate = delegate { };
 
         #endregion
 
@@ -120,7 +115,7 @@ namespace BettingBot.Common
 
         public static bool HasValueBetween(this string str, string start, string end)
         {
-            return !string.IsNullOrEmpty(str) && !string.IsNullOrEmpty(start) && !string.IsNullOrEmpty(end) &&
+            return !String.IsNullOrEmpty(str) && !String.IsNullOrEmpty(start) && !String.IsNullOrEmpty(end) &&
                 str.Contains(start) &&
                 str.Contains(end) &&
                 str.IndexOf(start, StringComparison.Ordinal) < str.IndexOf(end, StringComparison.Ordinal);
@@ -149,7 +144,7 @@ namespace BettingBot.Common
 
         public static bool IsNullWhiteSpaceOrDefault(this string str, string defVal)
         {
-            return String.IsNullOrWhiteSpace(str) || str == defVal;
+            return string.IsNullOrWhiteSpace(str) || str == defVal;
         }
         
         public static string Remove(this string str, string substring)
@@ -162,9 +157,9 @@ namespace BettingBot.Common
             return substrings.Aggregate(str, (current, substring) => current.Remove(substring));
         }
         
-        public static string[] Split(this string str, string separator, bool includeSeparator = false)
+        public static string[] Split(this string str, string separator, bool includeSeparator = false, StringSplitOptions? options = null)
         {
-            var split = str.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
+            var split = str.Split(new[] { separator }, options ?? StringSplitOptions.RemoveEmptyEntries);
 
             if (includeSeparator)
             {
@@ -203,10 +198,10 @@ namespace BettingBot.Common
                 otherStr = otherStr.ToLower();
             }
             
-            var str1Arr = str.Split(splitBy).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            var str1Arr = str.Split(splitBy).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             if (condition != null)
                 str1Arr = str1Arr.Where(condition).ToArray();
-            var str2Arr = otherStr.Split(splitBy).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            var str2Arr = otherStr.Split(splitBy).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             if (condition != null)
                 str1Arr = str1Arr.Where(condition).ToArray();
             var intersection = str1Arr.Intersect(str2Arr).Where(w => w.Length >= minWordLength);
@@ -299,7 +294,7 @@ namespace BettingBot.Common
 
         public static string UrlToDomain(this string str)
         {
-            if (string.IsNullOrWhiteSpace(str))
+            if (String.IsNullOrWhiteSpace(str))
                 return null;
             return DomainName.TryParse(new Uri(str).Host, out DomainName completeDomain) ? completeDomain.SLD : "";
         }
@@ -307,7 +302,7 @@ namespace BettingBot.Common
         public static string AfterFirst(this string str, string substring)
         {
             if (str == null) return null;
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
                 if (str.StartsWith(substring))
@@ -320,7 +315,7 @@ namespace BettingBot.Common
         public static string BeforeFirst(this string str, string substring)
         {
             if (str == null) return null;
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).First();
             return str;
         }
@@ -328,7 +323,7 @@ namespace BettingBot.Common
         public static string AfterLast(this string str, string substring)
         {
             if (str == null) return null;
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
                 return str.Split(substring).Last();
             return str;
         }
@@ -336,7 +331,7 @@ namespace BettingBot.Common
         public static string BeforeLast(this string str, string substring)
         {
             if (str == null) return null;
-            if (!string.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
             {
                 var split = str.Split(substring);
                 if (str.EndsWith(substring))
@@ -383,7 +378,7 @@ namespace BettingBot.Common
 
         public static bool EqIgnoreCase(this string str, string ostr)
         {
-            return string.Equals(str, ostr, StringComparison.OrdinalIgnoreCase);
+            return String.Equals(str, ostr, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool EqAnyIgnoreCase(this string str, params string[] os)
@@ -526,7 +521,7 @@ namespace BettingBot.Common
 
         public static string MonthName(this DateTime date)
         {
-            return Culture.DateTimeFormat.GetMonthName(date.Month);
+            return LocalizationManager.Culture.DateTimeFormat.GetMonthName(date.Month);
         }
 
         public static DateTime Period(this DateTime date, int periodInDays)
@@ -840,7 +835,7 @@ namespace BettingBot.Common
 
         public static DataGridTextColumn ByDataMemberName(this IEnumerable<DataGridTextColumn> columns, string dataMemberName)
         {
-            return columns.Single(c => string.Equals(c.DataMemberName(), dataMemberName, StringComparison.Ordinal));
+            return columns.Single(c => String.Equals(c.DataMemberName(), dataMemberName, StringComparison.Ordinal));
         }
 
         public static NameValueCollection ToNameValueCollection(this IEnumerable<KeyValuePair<string, string>> en)
@@ -1344,13 +1339,10 @@ namespace BettingBot.Common
             if (depObj == null) yield break;
             foreach (var rawChild in LogicalTreeHelper.GetChildren(depObj))
             {
-                var depObjRawChild = rawChild as DependencyObject;
-                if (depObjRawChild == null) continue;
+                if (!(rawChild is DependencyObject depObjRawChild)) continue;
                 var child = depObjRawChild;
-                var tChild = child as T;
-                if (tChild != null)
+                if (child is T tChild)
                     yield return tChild;
-
                 foreach (var childOfChild in FindLogicalDescendants<T>(child))
                     yield return childOfChild;
             }
@@ -1361,6 +1353,37 @@ namespace BettingBot.Common
             where T2 : DependencyObject
         {
             return ConcatMany(FindLogicalDescendants<T1>(depObj).Cast<Control>(), FindLogicalDescendants<T2>(depObj).Cast<Control>());
+        }
+
+        public static IEnumerable<Visual> FindVisualDescendants(this Visual parent)
+        {
+            if (parent == null)
+                yield break;
+            var count = VisualTreeHelper.GetChildrenCount(parent);
+            for (var i = 0; i < count; i++)
+            {
+                if (!(VisualTreeHelper.GetChild(parent, i) is Visual child))
+                    continue;
+                yield return child;
+                foreach (var grandChild in child.FindVisualDescendants())
+                    yield return grandChild;
+            }
+        }
+
+        public static IEnumerable<T> FindVisualDescendants<T>(this Visual parent) where T : Visual
+        {
+            if (parent == null)
+                yield break;
+            var count = VisualTreeHelper.GetChildrenCount(parent);
+            for (var i = 0; i < count; i++)
+            {
+                if (!(VisualTreeHelper.GetChild(parent, i) is Visual child))
+                    continue;
+                if (child is T tChild)
+                    yield return tChild;
+                foreach (var grandChild in child.FindVisualDescendants<T>())
+                    yield return grandChild;
+            }
         }
 
         public static ScrollViewer GetScrollViewer(this DependencyObject o)
@@ -1686,7 +1709,7 @@ namespace BettingBot.Common
 
         public static T Refresh<T>(this T control) where T : FrameworkElement
         {
-            control.Dispatcher.Invoke(DispatcherPriority.Render, _emptyDelegate);
+            control.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
             return control;
         }
 
@@ -1702,7 +1725,7 @@ namespace BettingBot.Common
                 return;
 
             var placeholder = tag.ToString();
-            if (text != placeholder && !String.IsNullOrWhiteSpace(text) && !force)
+            if (text != placeholder && !string.IsNullOrWhiteSpace(text) && !force)
                 return;
 
             var currBg = ((SolidColorBrush)thisTxtBox.Foreground).Color;
@@ -1729,7 +1752,7 @@ namespace BettingBot.Common
 
             thisTxtBox.FontStyle = FontStyles.Normal;
             thisTxtBox.Foreground = newBrush;
-            thisTxtBox.Text = String.Empty;
+            thisTxtBox.Text = string.Empty;
         }
 
         public static bool IsNullWhitespaceOrTag(this TextBox txt)
@@ -1740,25 +1763,42 @@ namespace BettingBot.Common
         #endregion
 
         #region ComboBox Extensions
-
-        public static void SelectByIndex(this ComboBox rddl, int id)
+        
+        public static void SelectByItem(this ComboBox ddl, DdlItem item)
         {
-            rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Index == id);
+            ddl.SelectedItem = ddl.ItemsSource.Cast<DdlItem>().Single(i => i.Equals(item));
         }
 
-        public static void SelectByText(this ComboBox rddl, string text)
+        public static void SelectById(this ComboBox ddl, int customId)
         {
-            rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Text == text);
+            var item = ddl.ItemsSource.Cast<DdlItem>().Single(i => i.Index == customId);
+            ddl.SelectedItem = item;
         }
 
-        public static void Select(this ComboBox rddl, DdlItem item)
+        public static void SelectByText(this ComboBox ddl, string customText)
         {
-            rddl.SelectedItem = rddl.ItemsSource.Cast<DdlItem>().Single(i => i.Equals(item));
+            var item = ddl.ItemsSource.Cast<DdlItem>().Single(i => i.Text == customText);
+            ddl.SelectedItem = item;
         }
 
-        public static T SelectedEnumValue<T>(this ComboBox rddl)
+        public static DdlItem SelectedItem(this ComboBox ddl)
         {
-            var selectedItem = (DdlItem)rddl.SelectedItem;
+            return (DdlItem) ddl.SelectedItem;
+        }
+
+        public static int SelectedId(this ComboBox ddl)
+        {
+            return ((DdlItem) ddl.SelectedItem).Index;
+        }
+
+        public static string SelectedText(this ComboBox ddl)
+        {
+            return ((DdlItem)ddl.SelectedItem).Text;
+        }
+
+        public static T SelectedEnumValue<T>(this ComboBox ddl)
+        {
+            var selectedItem = (DdlItem)ddl.SelectedItem;
             var enumType = typeof(T);
 
             var value = (Enum)Enum.ToObject(enumType, selectedItem.Index);
@@ -1772,10 +1812,40 @@ namespace BettingBot.Common
 
         #region ListBox Extensions
 
-        public static void SelectByCustomId(this ListBox mddl, int id)
+        public static void SelectById(this ListBox mddl, int id)
         {
             var item = mddl.ItemsSource.Cast<DdlItem>().Single(i => i.Index == id);
             mddl.SelectedItems.Add(item);
+        }
+
+        public static void SelectByIds(this ListBox mddl, IEnumerable<int> ids)
+        {
+            var ddlItems = mddl.ItemsSource.Cast<DdlItem>().Where(i => ids.Any(id => i.Index == id)).ToList();
+            foreach (var item in ddlItems)
+                mddl.SelectedItems.Add(item);
+        }
+
+        public static int[] SelectedIds(this ListBox mddl)
+        {
+            return mddl.SelectedItems.Cast<DdlItem>().Select(i => i.Index).ToArray();
+        }
+
+        public static void SelectByItem(this ListBox mddl, DdlItem ddlItem)
+        {
+            mddl.UnselectAll();
+            mddl.SelectedItems.Add(ddlItem);
+        }
+
+        public static void SelectByItems(this ListBox mddl, DdlItem[] ddlItems)
+        {
+            mddl.UnselectAll();
+            foreach (var item in ddlItems)
+                mddl.SelectedItems.Add(item);
+        }
+
+        public static DdlItem[] SelectedItems(this ListBox mddl)
+        {
+            return mddl.SelectedItems.Cast<DdlItem>().ToArray();
         }
 
         public static void SelectAll(this ListBox mddl)
@@ -1791,18 +1861,6 @@ namespace BettingBot.Common
             var selectedItems = mddl.SelectedItems.IColToArray();
             foreach (var item in selectedItems)
                 mddl.SelectedItems.Remove(item);
-        }
-
-        public static void SelectByCustomIds(this ListBox mddl, IEnumerable<int> ids)
-        {
-            var ddlItems = mddl.ItemsSource.Cast<DdlItem>().Where(i => ids.Any(id => i.Index == id)).ToList();
-            foreach (var item in ddlItems)
-                mddl.SelectedItems.Add(item);
-        }
-
-        public static int[] SelectedCustomIds(this ListBox mddl)
-        {
-            return mddl.SelectedItems.Cast<DdlItem>().Select(i => i.Index).ToArray();
         }
 
         public static void ScrollToStart(this ListBox lv, bool selectLast = false)
@@ -2001,6 +2059,10 @@ namespace BettingBot.Common
                 Name = "prLoader"
             };
 
+            var loaderText = "...";
+            if (LocalizationManager.IsInitialized)
+                loaderText = LocalizationManager.GetGeneralLoaderLocalizedString();
+
             var status = new TextBlock
             {
                 Foreground = Brushes.White,
@@ -2008,7 +2070,7 @@ namespace BettingBot.Common
                 HorizontalAlignment = HorizontalAlignment.Center,
                 FontSize = 18,
                 Margin = new Thickness(0, 125, 0, 0),
-                Text = "Ładowanie...",
+                Text = loaderText, // "Ładowanie..."
                 Name = "prLoaderStatus"
             };
 
@@ -2069,7 +2131,7 @@ namespace BettingBot.Common
         public static string ConvertToString(this Enum en, bool toLower = false, string betweenWords = "")
         {
             var name = Enum.GetName(en.GetType(), en);
-            if (!string.IsNullOrEmpty(betweenWords))
+            if (!String.IsNullOrEmpty(betweenWords))
                 name = Regex.Replace(name ?? "", @"((?<=\p{Ll})\p{Lu})|((?!\A)\p{Lu}(?>\p{Ll}))", $"{betweenWords}$0");
             if (toLower)
                 name = name?.ToLower();
@@ -2140,7 +2202,7 @@ namespace BettingBot.Common
             return (jToken == null) ||
                 (jToken.Type == JTokenType.Array && !jToken.HasValues) ||
                 (jToken.Type == JTokenType.Object && !jToken.HasValues) ||
-                (jToken.Type == JTokenType.String && jToken.ToString() == string.Empty) ||
+                (jToken.Type == JTokenType.String && jToken.ToString() == String.Empty) ||
                 (jToken.Type == JTokenType.Null);
         }
 
@@ -2187,7 +2249,7 @@ namespace BettingBot.Common
 
         public static string[] GetClasses(this IWebElement element)
         {
-            var classes = element.GetAttribute("class").Split(" ").Where(c => !string.IsNullOrWhiteSpace(c)).ToArray();
+            var classes = element.GetAttribute("class").Split(" ").Where(c => !String.IsNullOrWhiteSpace(c)).ToArray();
             return !classes.Any() 
                 ? Enumerable.Empty<string>().ToArray() 
                 : classes;
@@ -2201,7 +2263,7 @@ namespace BettingBot.Common
         public static string GetId(this IWebElement element)
         {
             var id = element.GetAttribute("id");
-            return string.IsNullOrWhiteSpace(id) ? null : id;
+            return String.IsNullOrWhiteSpace(id) ? null : id;
         }
 
         public static bool HasClass(this IWebElement element, string cl)
@@ -2219,7 +2281,7 @@ namespace BettingBot.Common
                     element.Click();
                     exceptionThrown = false;
                 }
-                catch (InvalidOperationException ex)
+                catch (Exception ex) when (ex is InvalidOperationException || ex is WebDriverException)
                 {
                     if (!ex.Message.ContainsAny("Other element would receive the click"))
                         throw;
@@ -2267,7 +2329,7 @@ namespace BettingBot.Common
         {
             string strO = null;
             try { strO = o.ToString(); } catch (Exception) {  }
-            return string.IsNullOrWhiteSpace(strO) ? null : strO;
+            return String.IsNullOrWhiteSpace(strO) ? null : strO;
         }
 
         public static T ToEnum<T>(this object value) where T : struct
@@ -2281,7 +2343,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToInt32(obj);
             if (obj.GetType().IsEnum) return (int) obj;
-            return int.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out int val) ? val : (int?) null;
+            return int.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, LocalizationManager.Culture, out int val) ? val : (int?) null;
         }
 
         public static int ToInt(this object obj)
@@ -2296,7 +2358,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToUInt32(obj);
             if (obj.GetType().IsEnum) return (uint) obj;
-            return UInt32.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out uint val) ? val : (uint?)null;
+            return UInt32.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, LocalizationManager.Culture, out uint val) ? val : (uint?)null;
         }
 
         public static uint ToUInt(this object obj)
@@ -2311,7 +2373,7 @@ namespace BettingBot.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToInt64(obj);
             if (obj.GetType().IsEnum) return (long) obj;
-            return Int64.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, Culture, out long val) ? val : (long?)null;
+            return Int64.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, LocalizationManager.Culture, out long val) ? val : (long?)null;
         }
 
         public static long ToLong(this object obj)
@@ -2331,7 +2393,7 @@ namespace BettingBot.Common
             if (isNegative || strD.StartsWith("+"))
                 strD = strD.Skip(1);
             
-            var parsedVal = double.TryParse(strD, NumberStyles.Any, Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+            var parsedVal = Double.TryParse(strD, NumberStyles.Any, LocalizationManager.Culture, out double tmpvalue) ? tmpvalue : (double?)null;
             if (isNegative)
                 parsedVal = -parsedVal;
             return parsedVal;
@@ -2348,7 +2410,7 @@ namespace BettingBot.Common
         {
             if (obj == null) return null;
             if (obj is bool) return Convert.ToDecimal(obj);
-            return Decimal.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
+            return Decimal.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, LocalizationManager.Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
         }
 
         public static decimal ToDecimal([NotNull] this object obj)
@@ -2392,7 +2454,7 @@ namespace BettingBot.Common
 
         public static ExtendedTime ToExtendedTimeN(this object o, string format = null, TimeZoneKind tz = TimeZoneKind.UTC)
         {
-            if (string.IsNullOrWhiteSpace(o?.ToString()))
+            if (String.IsNullOrWhiteSpace(o?.ToString()))
                 return null;
 
             var parsedDateTime = format != null
@@ -2429,7 +2491,17 @@ namespace BettingBot.Common
         {
             src.GetType().GetField(fieldName)?.SetValue(src, fieldValue);
         }
-        
+
+        public static void AddEventHandlers(this object o, string eventName, List<Delegate> ehs)
+        {
+            EventHelper.AddEventHandlers(o, eventName, ehs);
+        }
+
+        public static List<Delegate> RemoveEventHandlers(this object o, string eventName)
+        {
+            return EventHelper.RemoveEventHandlers(o, eventName);
+        }
+
         #endregion
     }
 }

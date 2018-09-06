@@ -21,7 +21,6 @@ namespace BettingBot.Common.UtilityClasses
             set
             {
                 _contextMenusContainer = value;
-                //_contextMenusContainer.PreviewMouseRightButtonUp += ContextMenusContainer_PreviewMouseRightButtonUp;
                 _contextMenusContainer.PreviewMouseLeftButtonDown += ContextMenusContainer_PreviewMouseLeftButtonDown;
             }
         }
@@ -54,42 +53,6 @@ namespace BettingBot.Common.UtilityClasses
             var f = (FrameworkElement) s;
             ContextMenus[f].Open();
         }
-
-        //private static void ContextMenusContainer_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        //{
-        //    var cmCon = (Panel) sender;
-        //    var mouseHoveredElements = cmCon.FindLogicalDescendants<FrameworkElement>() // TextBox, RadDatePicker, RadGridView
-        //        .Where(f =>
-        //            f.GetType() != typeof(Grid) && f.GetType() != typeof(MetroAnimatedTabControl) &&
-        //            (f.FindLogicalAncestor<Grid>() == null || f.FindLogicalAncestor<Grid>().IsVisible) &&
-        //            (f.FindLogicalAncestor<MetroTabItem>() == null || f.FindLogicalAncestor<MetroTabItem>().IsSelected) &&
-        //            f.FindLogicalAncestor<StackPanel>(sp => sp.Name.EndsWith("ContextMenu")) == null &&
-        //            f.HasClientRectangle(cmCon) && f.ClientRectangle(cmCon).Contains(e.GetPosition(cmCon)) &&
-        //            f.IsVisible && f.Opacity > 0).ToList();
-
-        //    mouseHoveredElements = mouseHoveredElements.GroupBy(Panel.GetZIndex).MaxBy(g => g.Key).ToList();
-        //    if (!mouseHoveredElements.Any())
-        //        CloseAll();
-
-        //    if (mouseHoveredElements.Any(f => f.FindLogicalAncestor<Grid>(anc => anc.Name.EndsWith("Flyout")) != null))
-        //        mouseHoveredElements.RemoveBy(f => f.FindLogicalAncestor<Grid>(anc => anc.Name.EndsWith("Flyout")) == null);
-
-        //    if (mouseHoveredElements.Count > 1)
-        //    {
-        //        var message =
-        //            "Występuje wiele elementów do wyświetlenia menu kontekstowego (conajmniej dwa mają jednakowe ZIndeksy):\n" +
-        //            string.Join("\n", mouseHoveredElements.Select(el => $"({el.ZIndex()}: {el.Name})"));
-        //        Debug.Print(message);
-        //    }
-
-        //    foreach (var c in mouseHoveredElements)
-        //    {
-        //        e.Handled = true;
-        //        CloseAll(cm => !cm.IsHovered());
-        //        if (c.HasContextMenu() && c.IsWithinBounds(cmCon) && !c.ContextMenu().IsHovered())
-        //            c.ContextMenu().Open();
-        //    }
-        //}
 
         private static void ContextMenusContainer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {

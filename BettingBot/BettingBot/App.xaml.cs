@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 using BettingBot.Common;
+using BettingBot.Source;
 
 namespace BettingBot
 {
@@ -16,12 +17,7 @@ namespace BettingBot
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            var culture = Extensions.Culture;
-
-            Thread.CurrentThread.CurrentCulture = culture;
-            Thread.CurrentThread.CurrentUICulture = culture;
-            CultureInfo.DefaultThreadCurrentCulture = culture;
-            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            LocalizationManager.SetCulture();
 
             FrameworkElement.LanguageProperty.OverrideMetadata(
                 typeof(FrameworkElement),

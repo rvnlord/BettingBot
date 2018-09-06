@@ -83,7 +83,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds
                 txtUsername.SendKeys(_login);
                 txtPassword.SendKeys(_password);
                 btnLogin.Click();
-            };
+            }
 
             var loginIncorrect = false;
             bool isLoginIncorrect()

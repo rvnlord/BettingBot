@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using BettingBot.Common;
 using BettingBot.Source.DbContext.Models;
 
@@ -26,10 +27,12 @@ namespace BettingBot.Source.Converters
                 return DisciplineType.Basketball;
             if (disciplineStr.EqIgnoreCase("Tennis"))
                 return DisciplineType.Tennis;
-            if (disciplineStr.EqIgnoreCase("Hockey"))
+            if (disciplineStr.EqAnyIgnoreCase("Hockey", "Ice Hockey"))
                 return DisciplineType.Hockey;
             if (disciplineStr.EqIgnoreCase("Baseball"))
                 return DisciplineType.Baseball;
+            if (disciplineStr.EqIgnoreCase("Handball"))
+                return DisciplineType.Handball;
             throw new InvalidCastException("Nie można przekonwertować wartości string na poprawną dyscyplinę");
         }
 
@@ -37,18 +40,8 @@ namespace BettingBot.Source.Converters
         {
             if (discipline == null)
                 return null;
-            if (discipline == DisciplineType.Football)
-                return "Piłka nożna";
-            if (discipline == DisciplineType.Basketball)
-                return "Koszykówka";
-            if (discipline == DisciplineType.Tennis)
-                return "Tenis";
-            if (discipline == DisciplineType.Hockey)
-                return "Hokej";
-            if (discipline == DisciplineType.Baseball)
-                return "Baseball";
-
-            throw new InvalidCastException("Nie można przekonwertować wartości string na poprawną dyscyplinę");
+            
+            return LocalizationManager.GetDisciplineTypeLocalizedString(discipline);
         }
 
         public static DbDiscipline CopyWithoutNavigationProperties(DbDiscipline dbDiscipline)
@@ -67,6 +60,7 @@ namespace BettingBot.Source.Converters
         Basketball = 1,
         Tennis = 2,
         Hockey = 3,
-        Baseball = 4
+        Baseball = 4,
+        Handball
     }
 }

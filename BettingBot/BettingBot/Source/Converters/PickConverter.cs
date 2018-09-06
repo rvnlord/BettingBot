@@ -8,6 +8,7 @@ using ArrayUtils = BettingBot.Common.ArrayUtils;
 using StringUtils = BettingBot.Common.StringUtils;
 using BettingBot.Source.Clients.Selenium.Hintwise.Responses;
 using System;
+using System.Data.Entity.Infrastructure;
 using BettingBot.Source.Clients.Responses;
 
 namespace BettingBot.Source.Converters

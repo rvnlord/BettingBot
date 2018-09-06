@@ -103,23 +103,22 @@ namespace BettingBot.Common.UtilityClasses
 
     public class DdlState : ControlState
     {
-        public Selector Rddl { get; set; }
+        public Selector Ddl { get; set; }
 
         public DdlState(string key, Selector rddl) : base(key)
         {
-            Rddl = rddl;
+            Ddl = rddl;
         }
 
         public override void Load(DbSet<DbOption> dbOptions)
         {
             if (dbOptions.Any(o => o.Key == Key))
-                Rddl.SelectedItem = Rddl.Items.SourceCollection.Cast<DdlItem>().Single(i => i.Index == dbOptions.Single(o => o.Key == Key).Value.ToInt());
-
+                Ddl.SelectedItem = Ddl.Items.SourceCollection.Cast<DdlItem>().Single(i => i.Index == dbOptions.Single(o => o.Key == Key).Value.ToInt());
         }
 
         public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
-            dbOptions.AddOrUpdate(new DbOption(Key, ((DdlItem)Rddl.SelectedItem).Index.ToString()));
+            dbOptions.AddOrUpdate(new DbOption(Key, ((DdlItem)Ddl.SelectedItem).Index.ToString()));
             if (saveInstantly) db.SaveChanges();
         }
     }

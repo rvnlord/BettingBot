@@ -16,17 +16,21 @@ namespace BettingBot.Source.ViewModels.Collections
                 _customList = new List<ProfitByPeriodStatisticGvVM>();
                 return;
             }
-               
+
+            var pbpLs = LocalizationManager.GetProfitByPeriodStatisticsLocalizedStrings();
+            var months = pbpLs.Take(12).ToArray();
+            var week = pbpLs.Skip(12).Take(1).Single();
+            var total = pbpLs.Skip(13).Take(1).Single();
 
             Func<BetToDisplayGvVM, string> groupBySt;
             if (period == Period.Month)
-                groupBySt = b => $"{b.LocalTimestamp.Rfc1123.MonthName()} {b.LocalTimestamp.Rfc1123.Year}";
+                groupBySt = b => $"{months[b.LocalTimestamp.Rfc1123.Month - 1]} {b.LocalTimestamp.Rfc1123.Year}";
             else if (period == Period.Week)
                 groupBySt = b =>
                 {
                     const int i = 7;
                     var p = b.LocalTimestamp.Rfc1123.Period(i);
-                    return $"{Math.Floor(p.DayOfYear / (double) i) + 1} tydzień {p.Year}";
+                    return $"{Math.Floor(p.DayOfYear / (double) i) + 1} {week} {p.Year}";
                 };
             else if (period == Period.Day)
                 groupBySt = b => $"{b.LocalTimestamp.Rfc1123:dd-MM-yyyy}";
@@ -40,8 +44,8 @@ namespace BettingBot.Source.ViewModels.Collections
                     g.Count()))
                 .ToList();
             _customList.Add(new ProfitByPeriodStatisticGvVM(
-                _customList.Select(pbp => pbp.PeriodId).Max() + 1, 
-                "Razem:", 
+                _customList.Select(pbp => pbp.PeriodId).Max() + 1,
+                total, 
                 _customList.Select(pbp => pbp.Profit).Sum(),
                 _customList.Select(pbp => pbp.Count).Sum()));
         }

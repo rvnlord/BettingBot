@@ -321,7 +321,7 @@ namespace BettingBot.Source.Clients.Selenium.Asianodds.Responses
 
             OnInformationSending("Znaleziono zakład");
 
-            var stake = (betRequest.Stake / 4).Round(); // TODO: użyć API do konwersji walut
+            var stake = (betRequest.Stake / 1).Round(); // TODO: użyć API do konwersji walut
 
             OnInformationSending("Zawieranie zakładu...");
 

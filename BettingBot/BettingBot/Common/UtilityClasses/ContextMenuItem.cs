@@ -60,7 +60,7 @@ namespace BettingBot.Common.UtilityClasses
             var dataTemplate = new DataTemplate(typeof(Tile)) { VisualTree = gridFactory };
             _tile = new Tile
             {
-                Name = $"tl{spMenuContainer.Name.AfterFirst("sp")}{Text.Remove(" ")}Item",
+                Name = $"tl{spMenuContainer.Name.AfterFirst("sp")}{Text.RemoveMany(" ", "'")}Item",
                 Background = new SolidColorBrush(_defaultColor),
                 Style = _style,
                 ContentTemplate = dataTemplate,
@@ -94,6 +94,14 @@ namespace BettingBot.Common.UtilityClasses
             _tile = null;
             _style = null;
             _spMenuContainer = null;
+            return this;
+        }
+
+        public ContextMenuItem Recreate()
+        {
+            var cmContainer = _spMenuContainer;
+            Destroy();
+            Create(cmContainer);
             return this;
         }
 

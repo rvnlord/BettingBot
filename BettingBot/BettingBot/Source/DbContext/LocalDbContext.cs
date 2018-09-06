@@ -24,7 +24,8 @@ namespace BettingBot.Source.DbContext
         public virtual DbSet<DbLeague> Leagues { get; set; }
         public virtual DbSet<DbLeagueAlternateName> LeagueAlternateNames { get; set; }
         public virtual DbSet<DbDiscipline> Disciplines { get; set; }
-
+        public virtual DbSet<DbLocalizedString> LocalizedStrings { get; set; }
+        
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             // Bets
@@ -351,6 +352,12 @@ namespace BettingBot.Source.DbContext
             modelBuilder.Entity<DbOption>()
                 .HasKey(e => e.Key)
                 .ToTable("tblOptions");
+
+            // Options
+
+            modelBuilder.Entity<DbLocalizedString>()
+                .HasKey(e => e.Key)
+                .ToTable("tblLocalizedStrings");
         }
     }
 }
