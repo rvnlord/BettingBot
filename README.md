@@ -27,7 +27,7 @@
 
    ![Provide API Key](/Images/2018-09-06_150723.png?raw=true)
 
-### Overview of features implemented so Far:
+### Overview of features implemented so Far
 
 * Betting from GUI according to selected strategy based on tipster's advices from Betshoot and Hintwise websites (though the latter banned its users recently and replaced them by "best" performing random algorithms, which basically is a scam)
 * Statistics and performance analysis with visual feedback
