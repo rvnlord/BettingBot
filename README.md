@@ -59,7 +59,7 @@ TODOs:
 
 ### Afterword
 
-To be perfectly honest, this app is hard to maintain, because it requires a lot of time from developer to constantly improve parsing mechanisms. Even minor change to external website has proven to be able to break functionality of the program (Like when Betshoot layout changed slightly in may 2018). I created this project for my Master's degree which I achieved on 12th June 2018. Since that day I didn't even have time to make decisions regarding my future and yet I still continued to work on this project (it surprisingly gained unexepcted attention). Since 2010 I didn't have vacations or time for myself for many personal reasons and I doubt I will in forseable future. Though, now I really need some time to decide, find decent and stable job. Therefore, work on the application will be suspended until further notice. 
+To be perfectly honest, this app is hard to maintain, because it requires a lot of time from developer to constantly improve parsing mechanisms. Even minor change to external website has proven to be able to break functionality of the program (Like when Betshoot layout changed slightly in may 2018). I created this project for my Master's degree which I achieved on 12th June 2018. Since that day I didn't even have time to make decisions regarding my future and yet I still continued to work on this project (it surprisingly gained unexpected attention). Since 2010 I didn't have vacations or time for myself (for many personal reasons) and I doubt I will in forseable future. Though, now I really need some time to decide and find decent, stable job. Therefore, work on the application will be suspended until further notice. 
 
 
 
