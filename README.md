@@ -11,7 +11,7 @@
 
    ![Change language](/Images/2018-09-06_145434.png?raw=true)
 
-2. Add tipsters, add login to broker website if yuo plan to test betting and download bets data.
+2. Add tipsters, add login to broker's website if you plan to test betting and download bets data.
 
    ![Load data](/Images/2018-09-06_145956.png?raw=true)
 
