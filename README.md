@@ -70,11 +70,11 @@ I would like to thank all of you for your interest in my project and for suggest
 
 Recently someone asked me in an email whether I would continue working on this project if I received enough donations so I could pay my bills with it. I replied that it is a good idea but if you statistically look at donations then you can verify that it isn't really possible. Though to be honest, if I made 320 EUR from donations alone per month I could just dump the freelancing for now and start producing viable commits. It would be exciting because I have always wanted to reinforce betting experience with machine learning, add charts, replace football-data API with something better and fix some really riddiculus bugs.
 
-BTC: 1Gb4iwq18FQDpGug1hxyWC8URBDaQ6qLYr
-ETH: 0x6AA24e9B826CA0c50458C7d95d75A061A4908ee6
-XRP: rMsefHwYUVj3TqgNgSSZVdD5BLtr8amKLa
-NEO: AKHf57YdXze4ew8UV12Q8Tggzf6k8FPKS8
-XMR: 43pTPPf3Eo27yCmf8zfLF7fP5NeGcfMxQJQHGwTRN17jRmETUa7UP4kBUtosUDLLPgU6RoRLrsma5GtyY8P4KobG98JHXu8
+BTC: 1Gb4iwq18FQDpGug1hxyWC8URBDaQ6qLYr  
+ETH: 0x6AA24e9B826CA0c50458C7d95d75A061A4908ee6  
+XRP: rMsefHwYUVj3TqgNgSSZVdD5BLtr8amKLa  
+NEO: AKHf57YdXze4ew8UV12Q8Tggzf6k8FPKS8  
+XMR: 43pTPPf3Eo27yCmf8zfLF7fP5NeGcfMxQJQHGwTRN17jRmETUa7UP4kBUtosUDLLPgU6RoRLrsma5GtyY8P4KobG98JHXu8  
 
 
 
