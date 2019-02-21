@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public static class EventHelper
     {

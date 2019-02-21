@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common.UtilityClasses;
 using MoreLinq;
 
 namespace BettingBot.Source.ViewModels.Collections

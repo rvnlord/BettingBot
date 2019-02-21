@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 using BettingBot.Source.Converters;
 using MoreLinq;
 

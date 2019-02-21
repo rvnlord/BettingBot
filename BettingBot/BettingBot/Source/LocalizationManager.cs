@@ -12,14 +12,15 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
-using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common;
+using BettingBot.Source.Common.UtilityClasses;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels.Collections;
+using BettingBot.Source.WIndows;
 using MahApps.Metro.Controls;
-using ContextMenu = BettingBot.Common.UtilityClasses.ContextMenu;
-using Extensions = BettingBot.Common.Extensions;
+using ContextMenu = BettingBot.Source.Common.UtilityClasses.ContextMenu;
+using Extensions = BettingBot.Source.Common.Extensions;
 
 namespace BettingBot.Source
 {
@@ -81,11 +82,11 @@ namespace BettingBot.Source
 
             LocalizeTile(_wnd.tlSimulationsMainGridTab);
             LocalizeTile(_wnd.tlBetsMainGridTab);
-            LocalizeTile(_wnd.tlCalculations);
-            LocalizeTile(_wnd.tlStatistics);
-            LocalizeTile(_wnd.tlDatabase);
-            LocalizeTile(_wnd.tlOptions);
-            LocalizeTile(_wnd.tlCalculator);
+            LocalizeTile(_wnd.tmMainMenu.MenuTiles.Single(mt => mt.Name == "tlCalculations"));
+            LocalizeTile(_wnd.tmMainMenu.MenuTiles.Single(mt => mt.Name == "tlStatistics"));
+            LocalizeTile(_wnd.tmMainMenu.MenuTiles.Single(mt => mt.Name == "tlDatabase"));
+            LocalizeTile(_wnd.tmMainMenu.MenuTiles.Single(mt => mt.Name == "tlOptions"));
+            LocalizeTile(_wnd.tmMainMenu.MenuTiles.Single(mt => mt.Name == "tlCalculator"));
             LocalizeTile(_wnd.tlGeneralOptionsTab);
             LocalizeTile(_wnd.tlCalculationsOptionsTab);
             LocalizeTile(_wnd.tlDatabaseOptionsTab);
@@ -201,7 +202,7 @@ namespace BettingBot.Source
 
         public static void LocalizeTile(Tile tile)
         {
-            var tb = tile.FindVisualDescendants<TextBlock>().Single(t => !String.IsNullOrWhiteSpace(t.Text));
+            var tb = tile.VisualDescendants<TextBlock>().Single(t => !string.IsNullOrWhiteSpace(t.Text));
             tb.Text = LocalizedStrings.Single(ls => ls.Key.AfterFirst("_") == "Tile_" + tile.Name).Value;
         }
 

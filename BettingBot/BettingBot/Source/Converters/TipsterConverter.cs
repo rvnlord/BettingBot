@@ -1,6 +1,7 @@
-﻿using BettingBot.Common;
+﻿using BettingBot.Source.Common;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
+using BettingBot.Source.WIndows;
 using BetshootTipsterResponse = BettingBot.Source.Clients.Agility.Betshoot.Responses.TipsterResponse;
 using HintwiseTipsterResponse = BettingBot.Source.Clients.Selenium.Hintwise.Responses.TipsterResponse;
 

@@ -1,7 +1,7 @@
 ﻿using System;
-using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
 using BettingBot.Source.Clients.Agility.Betshoot;
+using BettingBot.Source.Common;
+using BettingBot.Source.Common.UtilityClasses;
 using RestSharp;
 
 namespace BettingBot.Source.Clients.Agility

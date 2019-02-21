@@ -1,6 +1,6 @@
-﻿using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
-using BettingBot.Source.Clients.Agility.Betshoot.Responses;
+﻿using BettingBot.Source.Clients.Agility.Betshoot.Responses;
+using BettingBot.Source.Common;
+using BettingBot.Source.Common.UtilityClasses;
 
 namespace BettingBot.Source.Clients.Agility.Betshoot
 {

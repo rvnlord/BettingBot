@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class CustomNameValueCollection
     {

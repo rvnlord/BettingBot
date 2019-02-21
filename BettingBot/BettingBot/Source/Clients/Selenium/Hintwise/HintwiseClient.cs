@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
 using BettingBot.Source.Clients.Selenium.Hintwise.Responses;
+using BettingBot.Source.Common;
+using BettingBot.Source.Common.UtilityClasses;
 
 namespace BettingBot.Source.Clients.Selenium.Hintwise
 {

@@ -63,10 +63,6 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="EQATEC.Analytics.Monitor, Version=3.2.1.0, Culture=neutral, PublicKeyToken=213c7c68adb58a17, processorArchitecture=MSIL">
-      <HintPath>..\lib\RCWPF\2017.2.503.45.NoXaml\EQATEC.Analytics.Monitor.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.7.2.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>..\packages\HtmlAgilityPack.1.7.2\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
@@ -162,19 +158,31 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Common\AutomapperConfiguration.cs" />
-    <Compile Include="Common\UtilityClasses\ActionStatus.cs" />
-    <Compile Include="Common\UtilityClasses\ApiFlag.cs" />
-    <Compile Include="Common\UtilityClasses\ApiFlags.cs" />
-    <Compile Include="Common\UtilityClasses\ContextMenu.cs" />
-    <Compile Include="Common\UtilityClasses\ContextMenuItem.cs" />
-    <Compile Include="Common\UtilityClasses\ContextMenusManager.cs" />
-    <Compile Include="Common\UtilityClasses\EventHelper.cs" />
-    <Compile Include="Common\UtilityClasses\ExtendedTime.cs" />
-    <Compile Include="Common\UtilityClasses\Parameter.cs" />
-    <Compile Include="Common\UtilityClasses\Parameters.cs" />
-    <Compile Include="Common\UtilityClasses\TilesMenu.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Common\AutomapperConfiguration.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ActionStatus.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ApiFlag.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ApiFlags.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ContextMenu.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ContextMenuItem.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ContextMenusManager.cs" />
+    <Compile Include="Source\Common\UtilityClasses\EventHelper.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ExtendedTime.cs" />
+    <Compile Include="Source\Common\UtilityClasses\Parameter.cs" />
+    <Compile Include="Source\Common\UtilityClasses\Parameters.cs" />
+    <Compile Include="Source\Controls\TilesMenu.xaml.cs">
+      <DependentUpon>TilesMenu.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Controls\TilesMenuOption.xaml.cs">
+      <DependentUpon>TilesMenuOption.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Controls\TilesMenuOptions.cs" />
+    <Compile Include="Source\Controls\UserControlWithNotifyProperty.cs" />
+    <Compile Include="Source\WIndows\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Source\Clients\Agility\AgilityRestManager.cs" />
@@ -242,25 +250,25 @@
     <Compile Include="Source\ViewModels\BaseVM.cs" />
     <Compile Include="Source\ViewModels\AggregatedWinLoseStatisticGvVM.cs" />
     <Compile Include="Source\ViewModels\BetToDisplayGvVM.cs" />
-    <Compile Include="Common\UtilityClasses\BrowserSession.cs" />
-    <Compile Include="Common\UtilityClasses\ClipboardWrapper.cs" />
+    <Compile Include="Source\Common\UtilityClasses\BrowserSession.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ClipboardWrapper.cs" />
     <Compile Include="Source\ViewModels\SentBetGvVM.cs" />
-    <Compile Include="Common\UtilityClasses\CustomList.cs" />
-    <Compile Include="Common\UtilityClasses\CustomNameValueCollection.cs" />
+    <Compile Include="Source\Common\UtilityClasses\CustomList.cs" />
+    <Compile Include="Source\Common\UtilityClasses\CustomNameValueCollection.cs" />
     <Compile Include="Source\DataFilter.cs" />
     <Compile Include="Source\Clients\Agility\Betshoot\BetshootClient.cs" />
-    <Compile Include="Common\UtilityClasses\DdlItem.cs" />
-    <Compile Include="Common\Extensions.cs" />
+    <Compile Include="Source\Common\UtilityClasses\DdlItem.cs" />
+    <Compile Include="Source\Common\Extensions.cs" />
     <Compile Include="Source\Clients\Selenium\Hintwise\HintwiseClient.cs" />
     <Compile Include="Source\ViewModels\Collections\GeneralStatisticsGvVM.cs" />
-    <Compile Include="Common\Helpers.cs" />
+    <Compile Include="Source\Common\Helpers.cs" />
     <Compile Include="Source\Clients\Selenium\SeleniumClient.cs" />
     <Compile Include="Source\DbContext\LocalDbContext.cs" />
-    <Compile Include="Common\UtilityClasses\CustomMenuItem.cs" />
+    <Compile Include="Source\Common\UtilityClasses\CustomMenuItem.cs" />
     <Compile Include="Source\DbContext\Models\DbOption.cs" />
     <Compile Include="Source\DbContext\Models\DbPick.cs" />
     <Compile Include="Source\ViewModels\GeneralStatisticGvVM.cs" />
-    <Compile Include="Common\UtilityClasses\INotifyPropertyChangedUtils.cs" />
+    <Compile Include="Source\Common\UtilityClasses\INotifyPropertyChangedUtils.cs" />
     <Compile Include="Source\ViewModels\Collections\ProfitByPeriodStatisticsGvVM.cs" />
     <Compile Include="Source\Clients\Selenium\SeleniumDriverManager.cs" />
     <Compile Include="Source\Clients\Selenium\Asianodds\AsianOddsClient.cs" />
@@ -269,12 +277,12 @@
     <Compile Include="Source\ViewModels\MatchToAssociateGvVM.cs" />
     <Compile Include="Source\ViewModels\ProfitByPeriodStatisticGvVM.cs" />
     <Compile Include="Source\ViewModels\TipsterGvVM.cs" />
-    <Compile Include="Common\Utilities.cs" />
-    <Compile Include="Common\UtilityClasses\RepCounter.cs" />
+    <Compile Include="Source\Common\Utilities.cs" />
+    <Compile Include="Source\Common\UtilityClasses\RepCounter.cs" />
     <Compile Include="Source\StakingManager.cs" />
     <Compile Include="Source\DbContext\Models\DbLogin.cs" />
     <Compile Include="Source\ViewModels\LoginGvVM.cs" />
-    <Compile Include="Common\UtilityClasses\ViewState.cs" />
+    <Compile Include="Source\Common\UtilityClasses\ViewState.cs" />
     <Compile Include="Source\DbContext\Models\DbWebsite.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="App.xaml.cs">
@@ -284,7 +292,15 @@
     <Compile Include="Source\ViewModels\WebsiteGvVM.cs" />
     <Compile Include="Themes\DarkBlend\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\DarkBlend\TreeViewItemExtensions.cs" />
-    <Page Include="MainWindow.xaml">
+    <Page Include="Source\Controls\TilesMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Source\Controls\TilesMenuOption.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Source\WIndows\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -301,11 +317,6 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -317,9 +328,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <Content Include="Data\database.sqlite">
+    <None Include="Data\database.sqlite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

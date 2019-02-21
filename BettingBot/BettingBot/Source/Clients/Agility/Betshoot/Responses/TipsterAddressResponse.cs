@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 using MoreLinq;
 
 namespace BettingBot.Source.Clients.Agility.Betshoot.Responses

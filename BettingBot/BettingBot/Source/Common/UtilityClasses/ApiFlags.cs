@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class ApiFlags : IEnumerable<ApiFlag>
     {

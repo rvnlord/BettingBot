@@ -6,13 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common.UtilityClasses;
 using Point = System.Windows.Point;
-using DPoint = System.Drawing.Point;
 using Size = System.Windows.Size;
 using DSize = System.Drawing.Size;
 
-namespace BettingBot.Common
+namespace BettingBot.Source.Common
 {
     public static class StringUtils
     {
@@ -155,7 +154,7 @@ namespace BettingBot.Common
             foreach (var item in e.AddedItems)
                 collection.Add(item);
 
-            var wnd = gridView.FindLogicalAncestor<Window>();
+            var wnd = gridView.LogicalAncestor<Window>();
             var handler = wnd.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == $"{gridView.Name}_SelectionChanged");
             handler?.Invoke(wnd, new object[] { gridView, e });
         }

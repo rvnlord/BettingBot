@@ -5,10 +5,11 @@ using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using BettingBot.Source.Controls;
 using BettingBot.Source.DbContext.Models;
 using MahApps.Metro.Controls;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class ViewState
     {
@@ -19,13 +20,13 @@ namespace BettingBot.Common.UtilityClasses
             ControlStates = controlStates;
         }
 
-        public void Load(DbContext db, DbSet<DbOption> dbOptions)
+        public void Load(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions)
         {
             foreach (var cs in ControlStates)
                 cs.Load(dbOptions);
         }
 
-        public void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveEachControlInstantly = false)
+        public void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveEachControlInstantly = false)
         {
             foreach (var cs in ControlStates)
                 cs.Save(db, dbOptions, saveEachControlInstantly);
@@ -43,7 +44,7 @@ namespace BettingBot.Common.UtilityClasses
         }
 
         public abstract void Load(DbSet<DbOption> dbOptions);
-        public abstract void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false);
+        public abstract void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false);
     }
 
     public class TextBoxState : ControlState
@@ -68,7 +69,7 @@ namespace BettingBot.Common.UtilityClasses
             }
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             const string defaultValue = "";
             if (TxtB.Tag != null && TxtB.Tag.ToString() == TxtB.Text)
@@ -94,7 +95,7 @@ namespace BettingBot.Common.UtilityClasses
                 Num.Value = dbOptions.Single(o => o.Key == Key).Value.ToDouble();
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, Num.Value.ToString()));
             if (saveInstantly) db.SaveChanges();
@@ -116,7 +117,7 @@ namespace BettingBot.Common.UtilityClasses
                 Ddl.SelectedItem = Ddl.Items.SourceCollection.Cast<DdlItem>().Single(i => i.Index == dbOptions.Single(o => o.Key == Key).Value.ToInt());
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, ((DdlItem)Ddl.SelectedItem).Index.ToString()));
             if (saveInstantly) db.SaveChanges();
@@ -144,7 +145,7 @@ namespace BettingBot.Common.UtilityClasses
             }
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, string.Join(",", Mddl.SelectedItems.Cast<DdlItem>().Select(item => item.Index))));
             if (saveInstantly) db.SaveChanges();
@@ -166,7 +167,7 @@ namespace BettingBot.Common.UtilityClasses
                 Cb.IsChecked = dbOptions.Single(o => o.Key == Key).Value.ToBool();
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, (Cb.IsChecked == true).ToInt().ToString()));
             if (saveInstantly) db.SaveChanges();
@@ -188,7 +189,7 @@ namespace BettingBot.Common.UtilityClasses
                 Rbs[dbOptions.Single(o => o.Key == Key).Value.ToInt()].IsChecked = true;
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, Rbs.Select((rb, i) =>
                 new
@@ -218,7 +219,7 @@ namespace BettingBot.Common.UtilityClasses
             }
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, Dp.SelectedDate != null ? Dp.SelectedDate.ToString() : null));
             if (saveInstantly) db.SaveChanges();
@@ -251,7 +252,7 @@ namespace BettingBot.Common.UtilityClasses
             }
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, string.Join(",", Gv.SelectedItems.IColToArray().Select(i => i.GetType().GetProperty(ByProperty)?.GetValue(i, null)).OrderBy(id => id))));
             if (saveInstantly) db.SaveChanges();
@@ -274,12 +275,13 @@ namespace BettingBot.Common.UtilityClasses
             if (!dbOptions.Any(o => o.Key == Key)) return;
             var val = dbOptions.Single(o => o.Key == Key).Value;
             var valSplit = val.Split(",");
-            if (valSplit.Any(x => !x.EqualsAny(TilesMenu.MenuTiles.Select(t => t.Name).ToArray()))) return;
+            var menuTiles = TilesMenu.MenuTiles;
+            if (valSplit.Any(x => !x.EqualsAny(menuTiles.Select(t => t.Name).ToArray()))) return;
 
             TilesMenu.Reorder(valSplit);
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             dbOptions.AddOrUpdate(new DbOption(Key, TabOrder.JoinAsString(",")));
             if (saveInstantly) db.SaveChanges();
@@ -294,7 +296,7 @@ namespace BettingBot.Common.UtilityClasses
         {
             TilesMenu = tilesMenu;
         }
-        
+
         public override void Load(DbSet<DbOption> dbOptions)
         {
             if (!dbOptions.Any(o => o.Key == Key)) return;
@@ -305,12 +307,12 @@ namespace BettingBot.Common.UtilityClasses
             var isExtended = valSplit[0].ToBool();
 
             if (isExtended)
-                TilesMenu.Extend();
+                TilesMenu.Expand();
             else
                 TilesMenu.Shrink();
         }
 
-        public override void Save(DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
+        public override void Save(System.Data.Entity.DbContext db, DbSet<DbOption> dbOptions, bool saveInstantly = false)
         {
             var isExtended = TilesMenu.IsFullSize;
             dbOptions.AddOrUpdate(new DbOption(Key, isExtended.ToString()));

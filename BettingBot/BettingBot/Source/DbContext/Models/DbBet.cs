@@ -1,5 +1,5 @@
 ﻿using System;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 using BettingBot.Source.Converters;
 using BettingBot.Source.ViewModels;
 

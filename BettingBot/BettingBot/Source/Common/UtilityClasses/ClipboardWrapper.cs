@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public static class ClipboardWrapper
     {

@@ -8,13 +8,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
 using System.Data.Entity.ModelConfiguration.Configuration;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -23,7 +21,6 @@ using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Forms.VisualStyles;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -31,36 +28,33 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml;
 using AutoMapper;
-using DomainParser.Library;
-using MoreLinq;
-using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.Remote;
-using Expression = System.Linq.Expressions.Expression;
-using BettingBot.Common.UtilityClasses;
 using BettingBot.Properties;
-using BettingBot.Source;
 using BettingBot.Source.Clients.Api.FootballData.Responses;
-using BettingBot.Source.Clients.Selenium;
+using BettingBot.Source.Common.UtilityClasses;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
+using DomainParser.Library;
 using HtmlAgilityPack;
-using Convert = System.Convert;
-using CustomMenuItem = BettingBot.Common.UtilityClasses.CustomMenuItem;
 using MahApps.Metro.Controls;
+using MahApps.Metro.IconPacks;
+using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Remote;
 using RestSharp;
-using ContextMenu = BettingBot.Common.UtilityClasses.ContextMenu;
+using Expression = System.Linq.Expressions.Expression;
+using Convert = System.Convert;
+using ContextMenu = BettingBot.Source.Common.UtilityClasses.ContextMenu;
 using Point = System.Windows.Point;
 using DPoint = System.Drawing.Point;
 using Size = System.Windows.Size;
 using DSize = System.Drawing.Size;
-using Parameter = BettingBot.Common.UtilityClasses.Parameter;
+using Parameter = BettingBot.Source.Common.UtilityClasses.Parameter;
 using VerticalAlignment = System.Windows.VerticalAlignment;
 
-namespace BettingBot.Common
+namespace BettingBot.Source.Common
 {
     public static class Extensions
     {
@@ -803,7 +797,7 @@ namespace BettingBot.Common
                     var cm = (ContextMenu) c;
                     if (cm.IsOpen())
                     {
-                        var wnd = cm.Control.FindLogicalAncestor<Window>();
+                        var wnd = cm.Control.LogicalAncestor<Window>();
                         var handler = wnd.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == $"cm{cm.Control.Name.Take(1).ToUpper()}{cm.Control.Name.Skip(1)}_Open");
                         handler?.Invoke(wnd, new object[] { cm, new ContextMenuOpenEventArgs(cm) });
                     }
@@ -821,11 +815,6 @@ namespace BettingBot.Common
         {
             var arr = en.ToArray();
             return arr.All(el => Equals(el, arr.First()));
-        }
-
-        public static TilesMenu TilesMenu(this Panel spMenu, bool isFullSize, int resizeValue, Color mouseOverColor, Color mouseOutColor, Color resizeMouseOverColor, Color resizeMouseOutColor)
-        {
-            return new TilesMenu(spMenu, isFullSize, resizeValue, mouseOverColor, mouseOutColor, resizeMouseOverColor, resizeMouseOutColor);
         }
 
         public static void Highlight<T>(this IEnumerable<T> controls, Color color) where T : Control
@@ -1001,6 +990,11 @@ namespace BettingBot.Common
         {
             return en.ExceptBy(el.ToEnumerable(), selector);
         }
+        
+        public static void DetachFromParent(this IEnumerable<FrameworkElement> controls)
+        {
+            controls.ForEach(c => c.DetachFromParent());
+        }
 
         #endregion
 
@@ -1173,6 +1167,24 @@ namespace BettingBot.Common
                 collection.RemoveAt(0);
         }
 
+        public static void PrepandAllBefore(this UIElementCollection existingUiElements, IEnumerable<UIElement> newUiElements, UIElement existingUiElement)
+        {
+            existingUiElements.Remove(existingUiElement);
+            foreach (var newUiElement in newUiElements)
+                existingUiElements.Add(newUiElement);
+            existingUiElements.Add(existingUiElement);
+        }
+
+        public static void PrepandAllBefore(this UIElementCollection existingUiElements, IEnumerable<UIElement> newUiElements, IEnumerable<UIElement> beforeUiElements)
+        {
+            var arrBeforeUiElements = beforeUiElements.ToArray();
+            existingUiElements.RemoveRange(arrBeforeUiElements);
+            foreach (var newUiElement in newUiElements)
+                existingUiElements.Add(newUiElement);
+            existingUiElements.AddRange(arrBeforeUiElements);
+        }
+
+
         #endregion
 
         #region - Dictionary Extensions;
@@ -1334,7 +1346,7 @@ namespace BettingBot.Common
 
         #region DependencyObject
 
-        public static IEnumerable<T> FindLogicalDescendants<T>(this DependencyObject depObj) where T : DependencyObject
+        public static IEnumerable<T> LogicalDescendants<T>(this DependencyObject depObj) where T : DependencyObject
         {
             if (depObj == null) yield break;
             foreach (var rawChild in LogicalTreeHelper.GetChildren(depObj))
@@ -1343,19 +1355,19 @@ namespace BettingBot.Common
                 var child = depObjRawChild;
                 if (child is T tChild)
                     yield return tChild;
-                foreach (var childOfChild in FindLogicalDescendants<T>(child))
+                foreach (var childOfChild in LogicalDescendants<T>(child))
                     yield return childOfChild;
             }
         }
-        
-        public static IEnumerable<Control> FindLogicalDescendants<T1, T2>(this DependencyObject depObj)
+
+        public static IEnumerable<Control> LogicalDescendants<T1, T2>(this DependencyObject depObj)
             where T1 : DependencyObject
             where T2 : DependencyObject
         {
-            return ConcatMany(FindLogicalDescendants<T1>(depObj).Cast<Control>(), FindLogicalDescendants<T2>(depObj).Cast<Control>());
+            return ConcatMany(LogicalDescendants<T1>(depObj).Cast<Control>(), LogicalDescendants<T2>(depObj).Cast<Control>());
         }
 
-        public static IEnumerable<Visual> FindVisualDescendants(this Visual parent)
+        public static IEnumerable<Visual> VisualDescendants(this Visual parent)
         {
             if (parent == null)
                 yield break;
@@ -1365,12 +1377,12 @@ namespace BettingBot.Common
                 if (!(VisualTreeHelper.GetChild(parent, i) is Visual child))
                     continue;
                 yield return child;
-                foreach (var grandChild in child.FindVisualDescendants())
+                foreach (var grandChild in child.VisualDescendants())
                     yield return grandChild;
             }
         }
 
-        public static IEnumerable<T> FindVisualDescendants<T>(this Visual parent) where T : Visual
+        public static IEnumerable<T> VisualDescendants<T>(this Visual parent) where T : Visual
         {
             if (parent == null)
                 yield break;
@@ -1381,7 +1393,7 @@ namespace BettingBot.Common
                     continue;
                 if (child is T tChild)
                     yield return tChild;
-                foreach (var grandChild in child.FindVisualDescendants<T>())
+                foreach (var grandChild in child.VisualDescendants<T>())
                     yield return grandChild;
             }
         }
@@ -1403,7 +1415,7 @@ namespace BettingBot.Common
             return null;
         }
 
-        public static T FindLogicalAncestor<T>(this DependencyObject child) where T : DependencyObject
+        public static T LogicalAncestor<T>(this DependencyObject child) where T : DependencyObject
         {
             while (true)
             {
@@ -1414,7 +1426,7 @@ namespace BettingBot.Common
             }
         }
 
-        public static T FindLogicalAncestor<T>(this DependencyObject child, Func<T, bool> condition) where T : DependencyObject
+        public static T LogicalAncestor<T>(this DependencyObject child, Func<T, bool> condition) where T : DependencyObject
         {
             while (true)
             {
@@ -1441,7 +1453,7 @@ namespace BettingBot.Common
         {
             return !VisualTreeHelper.GetDescendantBounds(el).IsEmpty;
         }
-
+        
         public static bool IsWithinBounds(this FrameworkElement element, FrameworkElement container)
         {
             if (!element.IsVisible)
@@ -1564,7 +1576,7 @@ namespace BettingBot.Common
         {
             lock (_lock)
             {
-                var parentGrid = c.FindLogicalAncestor<Grid>();
+                var parentGrid = c.LogicalAncestor<Grid>();
                 return parentGrid.Children.OfType<Grid>().Any(grid => grid.Name == "gridSlide" + c.Name);
             }
         }
@@ -1573,7 +1585,7 @@ namespace BettingBot.Common
         {
             lock (_lock)
             {
-                var parentGrid = c.FindLogicalAncestor<Grid>();
+                var parentGrid = c.LogicalAncestor<Grid>();
                 return parentGrid.Children.OfType<Grid>().Single(grid => grid.Name == "gridSlide" + c.Name);
             }
         }
@@ -1602,7 +1614,7 @@ namespace BettingBot.Common
         {
             lock (_lock)
             {
-                var parentGrid = c.FindLogicalAncestor<Grid>();
+                var parentGrid = c.LogicalAncestor<Grid>();
                 parentGrid.Children.Add(slideGrid);
                 return slideGrid;
             }
@@ -1617,7 +1629,7 @@ namespace BettingBot.Common
         {
             lock (_lock)
             {
-                var parentGrid = c.FindLogicalAncestor<Grid>();
+                var parentGrid = c.LogicalAncestor<Grid>();
                 var slideGrid = parentGrid.Children.OfType<Grid>().SingleOrDefault(grid => grid.Name == "gridSlide" + c.Name);
                 if (slideGrid != null)
                     parentGrid.Children.Remove(slideGrid);
@@ -1711,6 +1723,11 @@ namespace BettingBot.Common
         {
             control.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
             return control;
+        }
+
+        public static void DetachFromParent(this FrameworkElement control)
+        {
+            ((Panel)control.Parent).Children.Remove(control);
         }
 
         #endregion
@@ -2050,7 +2067,7 @@ namespace BettingBot.Common
 
             var loader = new ProgressRing
             {
-                Foreground = (Brush)control.FindLogicalAncestor<Window>().FindResource("AccentColorBrush"),
+                Foreground = (Brush)control.LogicalAncestor<Window>().FindResource("AccentColorBrush"),
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Width = 80,
@@ -2074,7 +2091,7 @@ namespace BettingBot.Common
                 Name = "prLoaderStatus"
             };
 
-            var zIndex = control.FindLogicalDescendants<FrameworkElement>().Concat(control).MaxBy(Panel.GetZIndex).ZIndex();
+            var zIndex = control.LogicalDescendants<FrameworkElement>().Concat(control).MaxBy(Panel.GetZIndex).ZIndex();
             Panel.SetZIndex(rect, zIndex + 1);
             Panel.SetZIndex(loader, zIndex + 1);
             Panel.SetZIndex(status, zIndex + 1);
@@ -2084,9 +2101,9 @@ namespace BettingBot.Common
 
         public static void HideLoader(this Panel control)
         {
-            var loaders = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoader").ToArray();
-            var loaderContainers = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderContainer").ToArray();
-            var loaderStatuses = control.FindLogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderStatus").ToArray();
+            var loaders = control.LogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoader").ToArray();
+            var loaderContainers = control.LogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderContainer").ToArray();
+            var loaderStatuses = control.LogicalDescendants<FrameworkElement>().Where(c => c.Name == "prLoaderStatus").ToArray();
             var loaderParts = ArrayUtils.ConcatMany(loaders, loaderContainers, loaderStatuses);
 
             loaderParts.ForEach(lp => control.Children.Remove(lp));
@@ -2094,7 +2111,35 @@ namespace BettingBot.Common
 
         public static bool HasLoader(this Panel control)
         {
-            return control.FindLogicalDescendants<Rectangle>().Any(r => r.Name == "prLoaderContainer");
+            return control.LogicalDescendants<Rectangle>().Any(r => r.Name == "prLoaderContainer");
+        }
+
+        #endregion
+
+        #region Tile Extensions
+
+        public static string MenuTileDescription(this Tile tile)
+        {
+            var originalTb = tile.VisualDescendants<TextBlock>().First();
+            return originalTb.Text;
+        }
+
+        public static void MenuTileDescription(this Tile tile, string description)
+        {
+            var originalTb = tile.VisualDescendants<TextBlock>().First();
+            originalTb.Text = description;
+        }
+
+        public static PackIconModernKind MenuTileIcon(this Tile tile)
+        {
+            var originalIcon = tile.VisualDescendants<PackIconModern>().First();
+            return originalIcon.Kind;
+        }
+
+        public static void MenuTileIcon(this Tile tile, PackIconModernKind icon)
+        {
+            var originalIcon = tile.VisualDescendants<PackIconModern>().First();
+            originalIcon.Kind = icon;
         }
 
         #endregion

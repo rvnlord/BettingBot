@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
-using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common;
+using BettingBot.Source.Common.UtilityClasses;
 using BettingBot.Source.Converters;
 
 namespace BettingBot.Source.ViewModels

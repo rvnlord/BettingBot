@@ -2,7 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-                    xmlns:converters="http://metro.mahapps.com/winfx/xaml/shared">
+                    xmlns:converters="http://metro.mahapps.com/winfx/xaml/shared"
+                    xmlns:controls="clr-namespace:BettingBot.Source.Controls">
+
+    <!--#region Window-->
 
     <SolidColorBrush x:Key="MouseOverBlueBrush" Color="#FF000096" />
     <SolidColorBrush x:Key="DefaultBlueBrush" Color="#FF000040" />
@@ -17,6 +20,10 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="WindowTitleBrush" Value="{StaticResource DefaultBlueBrush}"></Setter>
     </Style>
+
+    <!--#endregion-->
+
+    <!--#region DataGrid-->
 
     <LinearGradientBrush x:Key="HeaderRowBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FF000096" Offset="0.0" />
@@ -84,13 +91,25 @@
         </Style.Setters>
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region Label-->
+
     <Style TargetType="{x:Type Label}" BasedOn="{StaticResource MetroLabel}">
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region Contextmenu (Default Unused)-->
+
     <ContextMenu x:Key="emptyContextMenu" Width="0" Height="0" Visibility="Collapsed">
     </ContextMenu>
+
+    <!--#endregion-->
+
+    <!--#region TextBox-->
 
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MetroTextBox}">
         <Setter Property="Padding" Value="0" />
@@ -98,6 +117,10 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
     </Style>
+
+    <!--#endregion-->
+
+    <!--#region RadioButton-->
 
     <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource MetroRadioButton}">
         <Setter Property="Padding" Value="6,0,0,0" />
@@ -109,6 +132,10 @@
         <Setter Property="MinHeight" Value="0" />
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region CheckBox-->
+
     <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource MetroCheckBox}">
         <Setter Property="Padding" Value="6,0,0,0" />
         <Setter Property="HorizontalAlignment" Value="Left" />
@@ -119,12 +146,16 @@
         <Setter Property="MinHeight" Value="0" />
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region Button-->
+
     <Style x:Key="MySquareButtonStyle" BasedOn="{StaticResource SquareButtonStyle}" TargetType="{x:Type ButtonBase}">
         <Setter Property="mah:ControlsHelper.ContentCharacterCasing" Value="Normal" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="14" />
     </Style>
-    
+
     <Style x:Key="MyAccentedSquareButtonStyle" BasedOn="{StaticResource AccentedSquareButtonStyle}" TargetType="{x:Type ButtonBase}">
         <Setter Property="mah:ControlsHelper.ContentCharacterCasing" Value="Normal" />
         <Setter Property="Padding" Value="0" />
@@ -139,6 +170,9 @@
         <Setter Property="Height" Value="30" />
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region NumericUpDown-->
 
     <Style TargetType="{x:Type mah:NumericUpDown}">
         <Setter Property="FontSize" Value="14" />
@@ -146,15 +180,27 @@
         <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region ComboBox-->
+
     <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MetroComboBox}">
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
+    <!--#endregion-->
+
+    <!--#region ListBox-->
+
     <Style TargetType="{x:Type ListBox}" BasedOn="{StaticResource MetroListBox}">
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="14" />
     </Style>
+
+    <!--#endregion-->
+
+    <!--#region DatePicker-->
 
     <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource MetroDatePicker}">
         <Setter Property="FontSize" Value="14" />
@@ -168,20 +214,9 @@
         <Setter Property="ContextMenu" Value="{StaticResource emptyContextMenu}" />
     </Style>
 
-    <Style x:Key="MenuItemContainerStyle" TargetType="MenuItem" BasedOn="{StaticResource MetroMenuItem}">
-        <Setter Property="Header" Value="{Binding Text}"/>
-        <Setter Property="ItemsSource" Value="{Binding SubItems}"/>
-        <Setter Property="IsEnabled" Value="{Binding IsEnabled}"/>
-        <Setter Property="Foreground" Value="#FFFFFF"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="FontStyle" Value="Normal"/>
-    </Style>
+    <!--#endregion-->
 
-    <LinearGradientBrush x:Key="GreyBrush" StartPoint="0,0" EndPoint="1,1" >
-        <GradientStop Color="Black" Offset="0.0" />
-        <GradientStop Color="Gray" Offset="0.33" />
-        <GradientStop Color="White" Offset="0.66" />
-    </LinearGradientBrush>
+    <!--#region TabItem-->
 
     <Style TargetType="{x:Type mah:MetroTabItem}">
         <Setter
@@ -221,6 +256,10 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!--#endregion-->
+
+    <!--#region Tile-->
 
     <Style x:Key="BaseTile" TargetType="{x:Type mah:Tile}">
         <Setter Property="Background" Value="{DynamicResource AccentColorBrush}" />
@@ -301,16 +340,7 @@
         </Setter>
     </Style>
 
-    <!-- Main Menu Tile -->
-    
-    <SolidColorBrush x:Key="MouseOverMainMenuTileBrush" Color="#FF000096" />
-    <SolidColorBrush x:Key="DefaultMainMenuTileBrush" Color="#FF000040" />
-
-    <Style x:Key="MainMenuTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
-        <Setter Property="Background" Value="{StaticResource DefaultMainMenuTileBrush}" />
-    </Style>
-
-    <Style x:Key="MainMenuIcon" TargetType="iconPacks:PackIconModern">
+    <Style x:Key="BaseTileIcon" TargetType="iconPacks:PackIconModern">
         <Setter Property="Width" Value="25" />
         <Setter Property="Height" Value="25" />
         <Setter Property="HorizontalAlignment" Value="Left" />
@@ -319,17 +349,37 @@
         <Setter Property="Margin" Value="12.5,12.5,0,0" />
     </Style>
 
-    <Style x:Key="MainMenuTextblock" TargetType="TextBlock">
+    <Style x:Key="BaseEntypoTileIcon" TargetType="iconPacks:PackIconEntypo">
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="12.5,12.5,0,0" />
+    </Style>
+
+    <Style x:Key="BaseTileTextBlock" TargetType="TextBlock">
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="50,0,0,0" />
     </Style>
 
+    <!-- Main Menu Tile -->
+
+    <SolidColorBrush x:Key="MouseOverMainMenuTileBrush" Color="#FF000096" />
+    <SolidColorBrush x:Key="DefaultMainMenuTileBrush" Color="#FF000040" />
+
+    <Style x:Key="MainMenuTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
+        <Setter Property="Background" Value="{StaticResource DefaultMainMenuTileBrush}" />
+    </Style>
+    <Style x:Key="MainMenuIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}" />
+    <Style x:Key="MainMenuTextblock" TargetType="TextBlock" BasedOn="{StaticResource BaseTileTextBlock}" />
+
     <!-- Main Menu Resize Tile -->
-    
-    <SolidColorBrush x:Key="MouseOverMainMenuResizeTileBrush" Color="#FFDD0000" />
-    <SolidColorBrush x:Key="DefaultMainMenuResizeTileBrush" Color="#00FF0000" />
+
+    <SolidColorBrush x:Key="MouseOverMainMenuResizeTileBrush" Color="DarkRed" />
+    <SolidColorBrush x:Key="DefaultMainMenuResizeTileBrush" Color="#FF1E1E1E" />
 
     <Style x:Key="MainMenuResizeTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Margin" Value="0,0,0,0"/>
@@ -338,17 +388,14 @@
         <Setter Property="VerticalContentAlignment" Value="Top"/>
     </Style>
 
-    <Style x:Key="MainMenuResizeIcon" TargetType="iconPacks:PackIconModern">
+    <Style x:Key="MainMenuResizeIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}">
         <Setter Property="Width" Value="15" />
         <Setter Property="Height" Value="15" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="17.5,7.5,0,0" />
     </Style>
 
     <!-- Flyout Header Tile -->
-    
+
     <SolidColorBrush x:Key="MouseOverFlyoutHeaderTileBrush" Color="#FF000096" />
     <SolidColorBrush x:Key="DefaultFlyoutHeaderTileBrush" Color="#FF000030" />
     <SolidColorBrush x:Key="DefaultFlyoutHeaderIconBrush" Color="#FF000000" />
@@ -360,30 +407,22 @@
         <Setter Property="Background" Value="{StaticResource DefaultFlyoutHeaderTileBrush}" />
     </Style>
 
-    <Style x:Key="FlyoutHeaderArrow" TargetType="iconPacks:PackIconEntypo">
+    <Style x:Key="FlyoutHeaderArrow" TargetType="iconPacks:PackIconEntypo" BasedOn="{StaticResource BaseEntypoTileIcon}">
         <Setter Property="Width" Value="40" />
         <Setter Property="Height" Value="40" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="5,5,0,0" />
         <Setter Property="Kind" Value="ChevronWithCircleLeft" />
     </Style>
 
-    <Style x:Key="FlyoutHeaderIcon" TargetType="iconPacks:PackIconModern">
+    <Style x:Key="FlyoutHeaderIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}">
         <Setter Property="Width" Value="50" />
         <Setter Property="Height" Value="50" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="Padding" Value="12.5" />
         <Setter Property="Margin" Value="50,0,0,0" />
         <Setter Property="Background" Value="{StaticResource DefaultFlyoutHeaderIconBrush}" />
     </Style>
 
-    <Style x:Key="FlyoutHeaderTextblock" TargetType="TextBlock">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Padding" Value="0" />
+    <Style x:Key="FlyoutHeaderTextblock" TargetType="TextBlock" BasedOn="{StaticResource BaseTileTextBlock}">
         <Setter Property="Margin" Value="110,0,0,0" />
     </Style>
 
@@ -391,81 +430,36 @@
 
     <SolidColorBrush x:Key="MouseOverMainGridTabTileBrush" Color="#FF888800" />
     <SolidColorBrush x:Key="DefaultMainGridTabTileBrush" Color="#FF404000" />
-
     <Style x:Key="MainGridTabTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Width" Value="200" />
         <Setter Property="Background" Value="{StaticResource DefaultMainGridTabTileBrush}" />
     </Style>
-
-    <Style x:Key="MainGridTabIcon" TargetType="iconPacks:PackIconModern">
-        <Setter Property="Width" Value="25" />
-        <Setter Property="Height" Value="25" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="12.5,12.5,0,0" />
-    </Style>
-
-    <Style x:Key="MainGridTabTextblock" TargetType="TextBlock">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="50,0,0,0" />
-    </Style>
+    <Style x:Key="MainGridTabIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}" />
+    <Style x:Key="MainGridTabTextblock" TargetType="TextBlock" BasedOn="{StaticResource BaseTileTextBlock}" />
 
     <!-- Database Tab Tile -->
 
     <SolidColorBrush x:Key="MouseOverDatabaseTabTileBrush" Color="#FF963E00" />
     <SolidColorBrush x:Key="DefaultDatabaseTabTileBrush" Color="#FF962D00" />
-
     <Style x:Key="DatabaseTabTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Width" Value="200" />
         <Setter Property="Background" Value="{StaticResource DefaultDatabaseTabTileBrush}" />
     </Style>
-
-    <Style x:Key="DatabaseTabIcon" TargetType="iconPacks:PackIconModern">
-        <Setter Property="Width" Value="25" />
-        <Setter Property="Height" Value="25" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="12.5,12.5,0,0" />
-    </Style>
-
-    <Style x:Key="DatabaseTabTextblock" TargetType="TextBlock">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="50,0,0,0" />
-    </Style>
+    <Style x:Key="DatabaseTabIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}"/>
+    <Style x:Key="DatabaseTabTextblock" TargetType="TextBlock" BasedOn="{StaticResource BaseTileTextBlock}"/>
 
     <!-- Options Tab Tile -->
 
     <SolidColorBrush x:Key="MouseOverOptionsTabTileBrush" Color="#FF009600" />
     <SolidColorBrush x:Key="DefaultOptionsTabTileBrush" Color="#FF003A00" />
-
     <Style x:Key="OptionsTabTile" TargetType="mah:Tile" BasedOn="{StaticResource BaseTile}">
         <Setter Property="Width" Value="200" />
         <Setter Property="Background" Value="{StaticResource DefaultOptionsTabTileBrush}" />
     </Style>
+    <Style x:Key="OptionsTabIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}" />
+    <Style x:Key="OptionsTabTextblock" TargetType="TextBlock" BasedOn="{StaticResource BaseTileTextBlock}" />
 
-    <Style x:Key="OptionsTabIcon" TargetType="iconPacks:PackIconModern">
-        <Setter Property="Width" Value="25" />
-        <Setter Property="Height" Value="25" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="12.5,12.5,0,0" />
-    </Style>
-
-    <Style x:Key="OptionsTabTextblock" TargetType="TextBlock">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="50,0,0,0" />
-    </Style>
-
-    <!-- Context Menu -->
+    <!-- Context Menu Tiles -->
 
     <SolidColorBrush x:Key="MouseOverContextMenuItemTileBrush" Color="#FF000096" />
     <SolidColorBrush x:Key="DefaultContextMenuItemTileBrush" Color="#FF000040" />
@@ -479,19 +473,13 @@
         <Setter Property="FontSize" Value="12" />
     </Style>
 
-    <Style x:Key="ContextMenuItemIcon" TargetType="iconPacks:PackIconModern">
+    <Style x:Key="ContextMenuItemIcon" TargetType="iconPacks:PackIconModern" BasedOn="{StaticResource BaseTileIcon}">
         <Setter Property="Width" Value="15" />
         <Setter Property="Height" Value="15" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="7.5,7.5,0,0" />
     </Style>
 
-    <Style x:Key="ContextMenuItemTextblock" TargetType="TextBlock">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Padding" Value="0" />
+    <Style x:Key="ContextMenuItemTextblock" TargetType="TextBlock" BasedOn="{StaticResource BaseTileTextBlock}">
         <Setter Property="Margin" Value="30,0,0,0" />
     </Style>
 
@@ -502,5 +490,16 @@
         <Setter Property="Orientation" Value="Vertical" />
         <Setter Property="Background" Value="{StaticResource DefaultContextMenuStackPanelBtush}" />
     </Style>
+
+    <DataTemplate x:Key="TilesMenuOptionTileDataTemplate">
+        <Grid>
+            <iconPacks:PackIconModern Kind="{Binding Icon, RelativeSource={RelativeSource FindAncestor, 
+                AncestorType={x:Type controls:TilesMenuOption}}}" Style="{StaticResource BaseTileIcon}" />
+            <TextBlock Text="{Binding Description, RelativeSource={RelativeSource FindAncestor, 
+                AncestorType={x:Type controls:TilesMenuOption}}}" Style="{StaticResource BaseTileTextBlock}" />
+        </Grid>
+    </DataTemplate>
+
+    <!--#endregion-->
 
 </ResourceDictionary>

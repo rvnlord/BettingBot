@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common.UtilityClasses;
 using RestSharp;
 using WebSocketSharp;
 

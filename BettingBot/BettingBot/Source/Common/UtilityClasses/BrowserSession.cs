@@ -4,7 +4,7 @@ using System.Net;
 using System.Text;
 using HtmlAgilityPack;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class BrowserSession
     {

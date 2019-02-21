@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 using BettingBot.Source.DbContext.Models;
 
 namespace BettingBot.Source.Converters

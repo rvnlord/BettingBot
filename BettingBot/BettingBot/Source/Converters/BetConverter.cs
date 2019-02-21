@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using BettingBot.Common;
 using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
 using BettingBot.Source.Clients.Selenium.Asianodds.Responses;
+using BettingBot.Source.Common;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
 using BetshootBetResponse = BettingBot.Source.Clients.Agility.Betshoot.Responses.BetResponse;

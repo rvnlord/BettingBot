@@ -1,9 +1,9 @@
 ﻿using System.Linq;
-using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
 using BettingBot.Source.Clients.Selenium.Asianodds.Requests;
 using BettingBot.Source.Clients.Selenium.Asianodds.Responses;
 using BettingBot.Source.Clients.Selenium.Hintwise;
+using BettingBot.Source.Common;
+using BettingBot.Source.Common.UtilityClasses;
 using BettingBot.Source.ViewModels;
 using OpenQA.Selenium;
 

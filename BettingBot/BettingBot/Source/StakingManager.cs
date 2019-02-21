@@ -1,5 +1,5 @@
 ﻿using System;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 
 namespace BettingBot.Source
 {

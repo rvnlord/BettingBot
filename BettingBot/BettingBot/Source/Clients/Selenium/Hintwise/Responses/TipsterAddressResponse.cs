@@ -1,5 +1,5 @@
 ﻿using System;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 using OpenQA.Selenium;
 
 namespace BettingBot.Source.Clients.Selenium.Hintwise.Responses

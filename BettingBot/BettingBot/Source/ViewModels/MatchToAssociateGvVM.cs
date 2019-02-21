@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common.UtilityClasses;
 
 namespace BettingBot.Source.ViewModels
 {

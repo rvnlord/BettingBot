@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using MoreLinq;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class Parameters : IEnumerable<Parameter>
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 
 namespace BettingBot.Source.ViewModels
 {

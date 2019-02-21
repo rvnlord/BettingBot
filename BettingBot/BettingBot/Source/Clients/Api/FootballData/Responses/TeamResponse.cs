@@ -1,4 +1,4 @@
-﻿using BettingBot.Common;
+﻿using BettingBot.Source.Common;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using Newtonsoft.Json.Linq;

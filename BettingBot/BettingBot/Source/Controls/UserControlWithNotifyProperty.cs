@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Windows.Controls;
 using BettingBot.Source.Common.UtilityClasses;
 
-namespace BettingBot.Source.ViewModels
+namespace BettingBot.Source.Controls
 {
-    public abstract class BaseVM : INotifyPropertyChanged, INotifyPropertyChangedUtils
+    public abstract class UserControlWithNotifyProperty : UserControl, INotifyPropertyChanged, INotifyPropertyChangedUtils
     {
         public void SetPropertyAndNotify<T>(ref T field, T propVal, string propName)
         {

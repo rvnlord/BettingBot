@@ -1,6 +1,6 @@
 ﻿using System;
-using BettingBot.Common;
 using BettingBot.Source.Clients.Api.FootballData.Responses;
+using BettingBot.Source.Common;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.Models;
 using BettingBot.Source.ViewModels;

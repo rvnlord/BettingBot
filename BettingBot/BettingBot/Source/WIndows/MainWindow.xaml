@@ -8,8 +8,9 @@
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-    xmlns:common="clr-namespace:BettingBot.Common"
-    x:Class="BettingBot.MainWindow"
+    xmlns:controls="clr-namespace:BettingBot.Source.Controls"
+
+    x:Class="BettingBot.Source.WIndows.MainWindow"
     mc:Ignorable="d"
     Title="Bot i Symulator Zakładów" 
     Height="1500" Width="2000" 
@@ -35,7 +36,7 @@
                   Background="Transparent"
                   RenderOptions.EdgeMode="Aliased"
                   RenderOptions.BitmapScalingMode="HighQuality">
-                <Image Source="./Resources/Icons/Icon.png"></Image>
+                <Image Source="../../Resources/Icons/Icon.png"></Image>
             </Grid>
         </DataTemplate>
     </mah:MetroWindow.IconTemplate>
@@ -56,10 +57,10 @@
                   RenderOptions.EdgeMode="Aliased"
                   RenderOptions.BitmapScalingMode="HighQuality"
                   VerticalAlignment="Center" HorizontalAlignment="Left">
-                <Image Source="./Resources/Icons/Icon.png"></Image>
+                <Image Source="../../Resources/Icons/Icon.png"></Image>
             </Grid>
             <Label x:Name="lblWindowTitle" FontSize="12" Content="Bot i Symulator Zakładów" HorizontalAlignment="Left" Margin="30,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-            <Label x:Name="lblVersion" FontSize="12" Content="v0.28-alpha" HorizontalAlignment="Right" Margin="0,0,95,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
+            <Label x:Name="lblVersion" FontSize="12" Content="v0.28a-alpha" HorizontalAlignment="Right" Margin="0,0,95,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
             <Button x:Name="btnMinimizeToTray" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Zrzuć na pasek powiadomień" Click="btnMinimizeToTray_Click" MouseEnter="btnMinimizeToTray_MouseEnter" MouseLeave="btnMinimizeToTray_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,60,0" />
             <Button x:Name="btnMinimize" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern WindowMinimize}" ToolTip="Minimalizuj" Click="btnMinimize_Click" MouseEnter="btnMinimize_MouseEnter" MouseLeave="btnMinimize_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" />
             <Button x:Name="btnClose" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern Close}" ToolTip="Zamknij" Click="btnClose_Click" MouseEnter="btnClose_MouseEnter" MouseLeave="btnClose_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" />
@@ -68,61 +69,19 @@
         <Grid x:Name="gridMain" Background="Transparent" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
 
             <StackPanel x:Name="spMenuWithContent" Orientation="Horizontal">
-                <StackPanel x:Name="spMenu" Orientation="Vertical">
-                    <mah:Tile x:Name="tlCalculations" Style="{StaticResource MainMenuTile}">
-                        <mah:Tile.ContentTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <iconPacks:PackIconModern Kind="GreekSigmaUpperCase" Style="{StaticResource MainMenuIcon}" />
-                                    <TextBlock Text="Obliczenia" Style="{StaticResource MainMenuTextblock}" />
-                                </Grid>
-                            </DataTemplate>
-                        </mah:Tile.ContentTemplate>
-                    </mah:Tile>
-                    <mah:Tile x:Name="tlStatistics" Style="{StaticResource MainMenuTile}">
-                        <mah:Tile.ContentTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <iconPacks:PackIconModern Kind="GraphHistogramDescription" Style="{StaticResource MainMenuIcon}" />
-                                    <TextBlock Text="Statystyki" Style="{StaticResource MainMenuTextblock}" />
-                                </Grid>
-                            </DataTemplate>
-                        </mah:Tile.ContentTemplate>
-                    </mah:Tile>
-                    <mah:Tile x:Name="tlDatabase" Style="{StaticResource MainMenuTile}">
-                        <mah:Tile.ContentTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <iconPacks:PackIconModern Kind="Database" Style="{StaticResource MainMenuIcon}" />
-                                    <TextBlock Text="Baza Danych" Style="{StaticResource MainMenuTextblock}" />
-                                </Grid>
-                            </DataTemplate>
-                        </mah:Tile.ContentTemplate>
-                    </mah:Tile>
-                    <mah:Tile x:Name="tlOptions" Style="{StaticResource MainMenuTile}">
-                        <mah:Tile.ContentTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <iconPacks:PackIconModern Kind="Cog" Style="{StaticResource MainMenuIcon}" />
-                                    <TextBlock Text="Ustawienia" Style="{StaticResource MainMenuTextblock}" />
-                                </Grid>
-                            </DataTemplate>
-                        </mah:Tile.ContentTemplate>
-                    </mah:Tile>
-                    <mah:Tile x:Name="tlCalculator" Style="{StaticResource MainMenuTile}">
-                        <mah:Tile.ContentTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <iconPacks:PackIconModern Kind="Calculator" Style="{StaticResource MainMenuIcon}" />
-                                    <TextBlock Text="Kalkulator" Style="{StaticResource MainMenuTextblock}" />
-                                </Grid>
-                            </DataTemplate>
-                        </mah:Tile.ContentTemplate>
-                    </mah:Tile>
-                    <mah:Tile x:Name="tlResizeMainMenu" Style="{StaticResource MainMenuResizeTile}">
-                        <iconPacks:PackIconModern Kind="DoorLeave" Style="{StaticResource MainMenuResizeIcon}" />
-                    </mah:Tile>
-                </StackPanel>
+
+                <controls:TilesMenu x:Name="tmMainMenu" IsFullSize="False" ResizeValue="150"
+                                    MouseOutColor="{StaticResource DefaultMainMenuTileBrush}"
+                                    MouseOverColor="{StaticResource MouseOverMainMenuTileBrush}">
+                    <controls:TilesMenu.Options>
+                        <controls:TilesMenuOption TileName="tlCalculations" Icon="GreekSigmaUpperCase" Description="Obliczenia" />
+                        <controls:TilesMenuOption TileName="tlStatistics" Icon="GraphHistogramDescription" Description="Statystyki" />
+                        <controls:TilesMenuOption TileName="tlDatabase" Icon="Database" Description="Baza Danych" />
+                        <controls:TilesMenuOption TileName="tlOptions" Icon="Cog" Description="Ustawienia" />
+                        <controls:TilesMenuOption TileName="tlCalculator" Icon="Calculator" Description="Kalkulator" />
+                    </controls:TilesMenu.Options>
+                </controls:TilesMenu>
+
                 <Grid x:Name="gridContent">
                     <Button x:Name="btnTEST" ContextMenuService.ShowOnDisabled="True" Style="{DynamicResource MyAccentedSquareButtonStyle}" Content="TEST" HorizontalAlignment="Left" Margin="420,0,0,0" VerticalAlignment="Top" Height="30" Width="117" Click="btnTEST_Click" Visibility="Hidden" IsEnabled="False">
                         <Button.ContextMenu>

@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using BettingBot.Source.DbContext.Models;
-using BettingBot.Source.ViewModels;
 
-namespace BettingBot.Common
+namespace BettingBot.Source.Common
 {
     public static class AutoMapperConfiguration
     {

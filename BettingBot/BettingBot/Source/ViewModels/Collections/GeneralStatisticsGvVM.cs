@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BettingBot.Common.UtilityClasses;
+using BettingBot.Source.Common.UtilityClasses;
 
 namespace BettingBot.Source.ViewModels.Collections
 {

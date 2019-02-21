@@ -1,15 +1,15 @@
 ﻿using System.Linq;
 using System.Text;
-using BettingBot.Common;
 using BettingBot.Source.Clients.Agility.Betshoot.Responses;
 using BettingBot.Source.DbContext.Models;
 using MoreLinq;
-using ArrayUtils = BettingBot.Common.ArrayUtils;
-using StringUtils = BettingBot.Common.StringUtils;
+using ArrayUtils = BettingBot.Source.Common.ArrayUtils;
+using StringUtils = BettingBot.Source.Common.StringUtils;
 using BettingBot.Source.Clients.Selenium.Hintwise.Responses;
 using System;
 using System.Data.Entity.Infrastructure;
 using BettingBot.Source.Clients.Responses;
+using BettingBot.Source.Common;
 
 namespace BettingBot.Source.Converters
 {
@@ -28,7 +28,7 @@ namespace BettingBot.Source.Converters
             const string home = "home";
             const string draw = "draw";
             const string away = "away";
-            const string plus = "+";
+            //const string plus = "+";
             const string minus = "-";
             const string under = "under";
             const string over = "over";
@@ -36,7 +36,7 @@ namespace BettingBot.Source.Converters
             var homeTeam = teams[0].Trim();
             var awayTeam = teams[1].Trim();
             const string yes = "yes";
-            const string no = "no";
+            //const string no = "no";
             const string or = "or";
             string[] btts = { "both to score", "both teams to score", "btts" };
 
@@ -118,7 +118,7 @@ namespace BettingBot.Source.Converters
 
                 return new PickResponse(pickOriginalString, PickChoice.Other, null);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new PickResponse(pickOriginalString, PickChoice.Other, null);
             }

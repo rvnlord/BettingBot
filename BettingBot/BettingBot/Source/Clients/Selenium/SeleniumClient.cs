@@ -1,4 +1,4 @@
-﻿using BettingBot.Common.UtilityClasses;
+﻿using BettingBot.Source.Common.UtilityClasses;
 
 namespace BettingBot.Source.Clients.Selenium
 {

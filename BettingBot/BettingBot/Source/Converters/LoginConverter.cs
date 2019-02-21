@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using BettingBot.Common;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.ViewModels;
 

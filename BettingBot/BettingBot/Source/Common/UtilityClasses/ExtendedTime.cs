@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class ExtendedTime : IComparable<ExtendedTime>
     {

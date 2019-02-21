@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using BettingBot.Common;
+using BettingBot.Source.Common;
 
 namespace BettingBot.Source.Clients
 {

@@ -1,6 +1,5 @@
-﻿using BettingBot.Common;
-using BettingBot.Common.UtilityClasses;
-using BettingBot.Source.Clients.Responses;
+﻿using BettingBot.Source.Clients.Responses;
+using BettingBot.Source.Common.UtilityClasses;
 using BettingBot.Source.Converters;
 using BettingBot.Source.DbContext.Models;
 using BettingBot.Source.Models;

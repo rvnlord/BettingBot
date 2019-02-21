@@ -1,4 +1,4 @@
-## BettingBot v0.28-alpha
+## BettingBot v0.28a-alpha
 
 ### Download:
 
@@ -11,7 +11,7 @@
 
    ![Change language](/Images/2018-09-06_145434.png?raw=true)
 
-2. Add tipsters, add login to broker's website, if you plan to test betting and download bets data.
+2. Add tipsters, add login to broker's website (if you plan to test placing bets) and download tipsters' advices.
 
    ![Load data](/Images/2018-09-06_145956.png?raw=true)
 
@@ -60,9 +60,21 @@ TODOs:
 
 ### Afterword
 
-To be perfectly honest this app is hard to maintain because it requires a lot of time from developer to constantly improve parsing mechanisms. Even minor change to external website has proven to be able to break functionality of the program (Like when Betshoot layout changed slightly in may 2018). I created this project for my Master's degree which I achieved on 12th June 2018. Since that day I didn't even have time to make decisions regarding my future and yet I still continued to work on this project (it surprisingly gained unexpected attention). Since 2010 I didn't have vacations or time for myself (for many personal reasons) and I doubt I will in forseable future. Though now I really need some time to decide what's next and find decent, stable job. Therefore, work on the application will be suspended until further notice. My main interest is blockchain, machine learning algorithms for various predictions and automation of trading and betting experience. But nobody is going to pay me for developing my own projects :).
+To be honest this app is hard to maintain as it requires a lot of time to constantly improve parsing mechanisms. Even minor change to external website has proven to be able to break functionality of the program (Like when Betshoot layout changed slightly in may 2018). I created this project for my Master's degree which I achieved on 12th June 2018. Since that day I still continued to work on this project (mainly because it surprisingly gained unexpected attention). However I am struggling to find time to continue developing this project. Therefore, work on the application is suspended until further notice. 
 
+My main interest is blockchain, machine learning algorithms for making various predictions and automation of trading and betting experience.
 
+I am currently working remotely as a freelancer.
+
+I would like to thank all of you for your interest in my project and for suggestions how to make it better. It is an enriching experience for me. Especially because I am still fairly new and inexperienced programmer.
+
+Recently someone asked me in an email whether I would continue working on this project if I received enough donations so I could pay my bills with it. I replied that it is a good idea but if you statistically look at donations then you can verify that it isn't really possible. Though to be honest, if I made 320 EUR from donations alone per month I could just dump the freelancing for now and start producing viable commits. It would be exciting because I have always wanted to reinforce betting experience with machine learning, add charts, replace football-data API with something better and fix some really riddiculus bugs.
+
+BTC: 1Gb4iwq18FQDpGug1hxyWC8URBDaQ6qLYr
+ETH: 0x6AA24e9B826CA0c50458C7d95d75A061A4908ee6
+XRP: rMsefHwYUVj3TqgNgSSZVdD5BLtr8amKLa
+NEO: AKHf57YdXze4ew8UV12Q8Tggzf6k8FPKS8
+XMR: 43pTPPf3Eo27yCmf8zfLF7fP5NeGcfMxQJQHGwTRN17jRmETUa7UP4kBUtosUDLLPgU6RoRLrsma5GtyY8P4KobG98JHXu8
 
 
 

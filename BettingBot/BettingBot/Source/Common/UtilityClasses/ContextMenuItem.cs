@@ -6,7 +6,7 @@ using System.Windows.Media;
 using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
 
-namespace BettingBot.Common.UtilityClasses
+namespace BettingBot.Source.Common.UtilityClasses
 {
     public class ContextMenuItem
     {

@@ -1,4 +1,4 @@
-﻿namespace BettingBot.Common.UtilityClasses
+﻿namespace BettingBot.Source.Common.UtilityClasses
 {
     public class DdlItem
     {

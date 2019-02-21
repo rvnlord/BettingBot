@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
-using BettingBot.Common;
 using BettingBot.Source.Clients.Selenium.Asianodds;
 using BettingBot.Source.Clients.Selenium.Hintwise;
+using BettingBot.Source.Common;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
@@ -119,7 +119,7 @@ namespace BettingBot.Source.Clients.Selenium
                     if (d?.SessionId != null)
                         d.Quit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ignored
             }
