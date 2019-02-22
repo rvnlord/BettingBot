@@ -60,7 +60,7 @@
                 <Image Source="../../Resources/Icons/Icon.png"></Image>
             </Grid>
             <Label x:Name="lblWindowTitle" FontSize="12" Content="Bot i Symulator Zakładów" HorizontalAlignment="Left" Margin="30,0,0,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
-            <Label x:Name="lblVersion" FontSize="12" Content="v0.28a-alpha" HorizontalAlignment="Right" Margin="0,0,95,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
+            <Label x:Name="lblVersion" FontSize="12" Content="v0.28b-alpha" HorizontalAlignment="Right" Margin="0,0,95,0" VerticalAlignment="Top" Height="30" VerticalContentAlignment="Center"/>
             <Button x:Name="btnMinimizeToTray" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern RefreshCounterclockwiseDown}" ToolTip="Zrzuć na pasek powiadomień" Click="btnMinimizeToTray_Click" MouseEnter="btnMinimizeToTray_MouseEnter" MouseLeave="btnMinimizeToTray_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,60,0" />
             <Button x:Name="btnMinimize" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern WindowMinimize}" ToolTip="Minimalizuj" Click="btnMinimize_Click" MouseEnter="btnMinimize_MouseEnter" MouseLeave="btnMinimize_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" />
             <Button x:Name="btnClose" Style="{StaticResource MyClearButtonStyle}" Content="{iconPacks:Modern Close}" ToolTip="Zamknij" Click="btnClose_Click" MouseEnter="btnClose_MouseEnter" MouseLeave="btnClose_MouseLeave" VerticalAlignment="Center" HorizontalAlignment="Right" />

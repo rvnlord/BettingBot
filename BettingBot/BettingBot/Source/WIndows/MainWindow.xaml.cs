@@ -67,7 +67,8 @@ namespace BettingBot.Source.WIndows
 
         private static readonly object _lock = new object();
         private NotifyIcon _notifyIcon;
-
+        private static readonly NLog.Logger _logger = Logger.Get(MethodBase.GetCurrentMethod());
+        
         private List<UIElement> _lowestHighestOddsByPeriodFilterControls = new List<UIElement>();
         private List<UIElement> _odssLesserGreaterThanFilterControls = new List<UIElement>();
         private List<UIElement> _selectionFilterControls = new List<UIElement>();
@@ -122,7 +123,6 @@ namespace BettingBot.Source.WIndows
         #region Properties
 
         public static string AppDirPath { get; set; }
-        public static string ErrorLogPath { get; set; }
         public ViewState GuiState { get; set; }
 
         #endregion
@@ -153,7 +153,6 @@ namespace BettingBot.Source.WIndows
                     GC.Collect();
                     AutoMapperConfiguration.Configure();
                     AppDirPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                    ErrorLogPath = $@"{AppDirPath}\ErrorLog.log";
 
                     SetupNotifyIcon();
 
@@ -187,7 +186,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
             gridMain.HideLoader();
@@ -205,9 +204,10 @@ namespace BettingBot.Source.WIndows
             catch (Exception ex)
             {
                 e.Cancel = true;
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
+            Logger.Close();
         }
 
         #endregion
@@ -269,7 +269,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
             finally
@@ -331,7 +331,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
 
@@ -351,7 +351,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
 
@@ -463,7 +463,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
 
                 if (ex is DbUpdateException && ex.InnerException is UpdateException)
                 {
@@ -524,7 +524,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
 
                 if (ex is DbUpdateException && ex.InnerException is UpdateException)
                 {
@@ -652,7 +652,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
             finally
@@ -968,7 +968,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
             finally
@@ -1358,7 +1358,7 @@ namespace BettingBot.Source.WIndows
                 }
                 catch (Exception ex)
                 {
-                    File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                    _logger.Error(ex);
                     await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
                 }
 
@@ -1401,7 +1401,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
 
@@ -1721,7 +1721,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
         }
@@ -2781,7 +2781,7 @@ namespace BettingBot.Source.WIndows
             }
             catch (Exception ex)
             {
-                File.WriteAllText(ErrorLogPath, ex.StackTrace);
+                _logger.Error(ex);
                 await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
             }
             finally

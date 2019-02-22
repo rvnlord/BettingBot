@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 using BettingBot.Source;
+using BettingBot.Source.Common.UtilityClasses;
 
 namespace BettingBot
 {
@@ -22,6 +23,8 @@ namespace BettingBot
                 typeof(FrameworkElement),
                 new FrameworkPropertyMetadata(
                     XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+
+            Logger.Create();
 
             base.OnStartup(e);
         }

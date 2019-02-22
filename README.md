@@ -76,6 +76,8 @@ XRP: rMsefHwYUVj3TqgNgSSZVdD5BLtr8amKLa
 NEO: AKHf57YdXze4ew8UV12Q8Tggzf6k8FPKS8
 XMR: 43pTPPf3Eo27yCmf8zfLF7fP5NeGcfMxQJQHGwTRN17jRmETUa7UP4kBUtosUDLLPgU6RoRLrsma5GtyY8P4KobG98JHXu8
 
+Here is the deal: whenever cumulative donations reach that amount I will work on this project for 30 days, 8 hours per day excluding weekends.
+
 
 
 

@@ -40,7 +40,7 @@ namespace BettingBot.Source.Common
                 .Select(item =>
                     new DdlItem(
                         item.Index,
-                        customNamesConverter((T)Enum.ToObject(typeof(T), item.Index))))
+                        customNamesConverter((T) Enum.ToObject(typeof(T), item.Index))))
                 .ToList();
         }
 
@@ -105,7 +105,7 @@ namespace BettingBot.Source.Common
 
         public static INotifyCollectionChanged GetSelectedItems(DependencyObject obj)
         {
-            return (INotifyCollectionChanged)obj.GetValue(SelectedItemsProperty);
+            return (INotifyCollectionChanged) obj.GetValue(SelectedItemsProperty);
         }
 
         public static void SetSelectedItems(DependencyObject obj, INotifyCollectionChanged value)
@@ -115,7 +115,7 @@ namespace BettingBot.Source.Common
 
         private static void OnSelectedItemsChanged(DependencyObject target, DependencyPropertyChangedEventArgs args)
         {
-            var gridView = (DataGrid)target;
+            var gridView = (DataGrid) target;
 
             if (args.OldValue is INotifyCollectionChanged oldCollection)
             {
@@ -132,13 +132,13 @@ namespace BettingBot.Source.Common
                 //newCollection.UnshiftEvent("CollectionChanged", new NotifyCollectionChangedEventHandler(SelectedItems_CollectionChanged));
 
                 AddAssociation(newCollection, gridView);
-                OnSelectedItemsChanged(newCollection, null, (IList)newCollection);
+                OnSelectedItemsChanged(newCollection, null, (IList) newCollection);
             }
         }
 
         private static void SelectedItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
-            var collection = (INotifyCollectionChanged)sender;
+            var collection = (INotifyCollectionChanged) sender;
             OnSelectedItemsChanged(collection, args.OldItems, args.NewItems);
         }
 
@@ -148,7 +148,7 @@ namespace BettingBot.Source.Common
                 return;
 
             var gridView = (DataGrid) sender;
-            var collection = (IList)GetSelectedItems(gridView);
+            var collection = (IList) GetSelectedItems(gridView);
             foreach (var item in e.RemovedItems)
                 collection.Remove(item);
             foreach (var item in e.AddedItems)
@@ -166,7 +166,7 @@ namespace BettingBot.Source.Common
             var gridViews = GetOrCreateGridViews(collection);
             foreach (var gridView in gridViews)
                 SyncSelection(gridView, oldItems, newItems);
-            
+
             _isSyncingSelection = false;
         }
 
