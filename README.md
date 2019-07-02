@@ -60,9 +60,9 @@ TODOs:
 
 ### Afterword
 
-This app is difficult to maintain as it requires a lot of time to constantly improve parsing mechanisms. Even minor change to external website is able to break functionality of the program (Like when Betshoot layout changed slightly in may 2018). I created this project for my Master's degree which I achieved on 12th June 2018. Since that day I still continued working on this project, now I am struggling to find time for it. Therefore, work on the application is suspended until further notice. 
+This app is difficult to maintain as it requires a lot of time to constantly improve parsing mechanisms. Even minor change to external website is able to break functionality of the program (Like when Betshoot layout changed slightly in may 2018). I created this project for my Master's degree which I achieved on 12th June 2018. I continued development after that, struggling to find enough time. Therefore, work on the application is suspended until further notice. 
 
-I would like to thank all of you for your interest in my project and for suggestions how to make it better. It is an enriching experience for me.
+Also, I would like to thank all of you for your interest in my project and for suggestions how to make it better. It is an enriching experience for me.
 
 
 
