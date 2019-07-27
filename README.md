@@ -1,4 +1,4 @@
-## BettingBot v0.28a-alpha
+## \[OUTDATED\] BettingBot v0.28a-alpha
 
 ### Download:
 
