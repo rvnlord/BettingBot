@@ -1,5 +1,7 @@
 ## \[OUTDATED\] BettingBot v0.28a-alpha
 
+## CURRENTLY THIS PROJECT IS NOT UNDER ACTIVE DEVELOPMENT BECAUSE I DON'T HAVE THE RESOURCES TO CONTINUE WORKING ON IT. THIS MEANS THAT DUE TO THE NATURE OF UTILIZED DATA SOURCES IT WON'T WORK OUT OF THE BOX. THE CODE NEED TO BE REVISED TO ADDRESS THE `DOM` CHANGES. USE AT YOUR OWN RISK!
+
 ### Download:
 
 [![Download](https://img.shields.io/badge/download-BettingBot--v0.28--alpha-blue.svg)](https://github.com/rvnlord/BettingBot/releases/download/v0.28-alpha/BettingBot-v0.28-alpha.zip)
