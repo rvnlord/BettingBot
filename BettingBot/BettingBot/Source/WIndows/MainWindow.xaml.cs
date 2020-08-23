@@ -663,6 +663,49 @@ namespace BettingBot.Source.WIndows
             }
         }
 
+        private async void btnCalculatorCovertLossesCalculate_Click(object sender, RoutedEventArgs e)
+        {
+            List<object> actuallyDisabledControls = null;
+            try
+            {
+                actuallyDisabledControls = _buttonsAndContextMenus.DisableControls();
+                gridCalculatorContent.ShowLoader();
+
+                var initStake = numCalculatorCoverLossesInitialStake.Value ?? 0;
+                var lostMoney = numCalculatorCoverLossesLostMoney.Value ?? 0;
+                var percentToCover = numCalculatorCoverPercentage.Value ?? 0;
+                var oddsN = txtCalculatorNewOddsToCoverLosses.Text.Remove(" ").Split(",").Select(x => x.ToDoubleN()).ToArray();
+                if (oddsN.Any(x => x == null))
+                {
+                    txtCalculatorNewOddsToCoverLosses.Text = "Niepoprawny ciąg wejściowy (kursy oddzielone ',')";
+                    return;
+                }
+
+                var odds = await Task.Run(() => oddsN.Select(x => x.ToDouble()).ToArray());
+                var s = await Task.Run(() => new CoverPercentOfLosesFlatStaking(true, initStake, initStake, false, percentToCover, lostMoney, odds.Sum(), odds.Length));
+                var stake = s.Apply();
+
+                var toWin = odds.Select(o => o * stake).Sum();
+                var totalNewStake = stake * odds.Length;
+
+                txtCalculatorCoverLossesResult.Text = odds.Select((o, i)
+                    => $"[{i + 1}]: {o:0.000} * {stake:0.##} € +").JoinAsString("\n")
+                    + $"\n= {toWin:0.##} € (+{toWin - totalNewStake - lostMoney:0.##} €)" 
+                    + $"\nNowa stawka: {totalNewStake:0.##} €";           
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                await this.ShowMessageAsync("Wystąpił Błąd", ex.Message);
+            }
+            finally
+            {
+                gridCalculatorContent.HideLoader();
+                if (!gridMain.HasLoader())
+                    actuallyDisabledControls.EnableControls();
+            }
+        }
+
         private void btnMinimizeToTray_Click(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
@@ -1995,6 +2038,9 @@ namespace BettingBot.Source.WIndows
             var dm = new DataManager();
             _ocLogins.ReplaceAll(dm.GetLogins().ToLoginsGvVM());
             gvLogins.ScrollToEnd();
+
+            //var t = GridViewSelectionUtils._collectionToGridViews
+            //    .SelectMany(tu => tu.Item2).Select(gv => gv.Name).ToArray();
 
             RefreshBets(dm);
         }

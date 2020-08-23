@@ -73,7 +73,7 @@ namespace BettingBot.Source.Clients.Selenium.Hintwise
             var loginUrl = $"{_address}login";
             var urlFromBeforeLogin = _hsdm.Url;
             _hsdm.NavigateToAndStopWaitingForUrlAfter(loginUrl, 5);
-            loginUrl = _hsdm.Url; // dokładny adres logowania, żeby póxniej sprawdzić czy adres się zmienił, jeśli zostawimy domyślny, np  z http a po zalogowaniu przekieruje na ten sam adres z https to sprawdzenie czy d.Url != _prevUrl od razu zwróci true i przejdzie dalej nie oczekując w Waicie
+            loginUrl = _hsdm.Url; // dokładny adres logowania, żeby później sprawdzić czy adres się zmienił, jeśli zostawimy domyślny, np  z http a po zalogowaniu przekieruje na ten sam adres z https to sprawdzenie czy d.Url != _prevUrl od razu zwróci true i przejdzie dalej nie oczekując w Waicie
 
             var userNameField = _hsdm.FindElementByName("LoginForm[username]");
             var userPasswordField = _hsdm.FindElementByName("LoginForm[password]");

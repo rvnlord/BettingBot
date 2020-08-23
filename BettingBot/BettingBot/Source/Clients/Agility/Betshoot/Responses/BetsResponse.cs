@@ -35,8 +35,9 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                 var strDate = spanBp.Descendants()
                     .Single(x => x.HasClass("bettingpickdate"))
                     .InnerText;
-                var dateArr = strDate.Split('-').Swap(0, 2);
-                var date = new ExtendedTime(new DateTime(dateArr[2].ToInt(), dateArr[1].ToInt(), dateArr[0].ToInt()));
+                var dateArr = strDate.Split('.'); // year is currently always 2020
+                var year = dateArr.Length > 2 ? dateArr[2] : DateTime.UtcNow.Year.ToString();
+                var date = new ExtendedTime(new DateTime(year.ToInt(), dateArr[1].ToInt(), dateArr[0].ToInt()));
                 var spanBetResultClass = spanBp.Descendants("span")
                     .Single(span => span.HasClass("mgreen", "mred", "morange", "munits2"))
                     .GetOnlyClass(); // fix opisany w konwerterze
@@ -55,8 +56,20 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                 string leagueName = null;
                 if (hrefAPickTeams != null)
                 {
-                    var disciplineLeagueStr = arm.GetHtml(hrefAPickTeams).HtmlRoot().Descendants("p")
-                        .Single(p => p.InnerText.Trim().EndsWithAny(tipster.Name)).InnerText.RemoveHTMLSymbols().Split(" - ");
+                    var divs = arm.GetHtml(hrefAPickTeams).HtmlRoot().Descendants("div").ToArray();
+                    var divBetContainer = divs.Single(div => div.HasClass("post-byline"));
+                    var divsBetInfo = divBetContainer.Descendants("div").ToArray();
+                    var disciplineLeagueStr = divsBetInfo[1].InnerText.Trim().RemoveHTMLSymbols().Split(" - ");
+                    var dateStr = divsBetInfo.Single(p => p.InnerText.Trim().EndsWithAny(tipster.Name)).InnerText.RemoveHTMLSymbols().Between("Posted: ", " By ");
+                    var tzOp = dateStr.First(c => c.In('+', '-')).ToString();
+                    var timeShift = dateStr.After(tzOp).BeforeFirstOrWhole(" ").ToInt() * (tzOp == "+" ? 1 : -1);
+                    var dateSplit = dateStr.Before(" ", 5).SplitByMany(" at ", ":", " ");
+                    date = new ExtendedTime(
+                        dateSplit[2].ToInt(), 
+                        dateSplit[1].MonthNameToNumber(), 
+                        dateSplit[0].ToInt(), 
+                        (dateSplit[3].ToInt() + -timeShift) % 24,
+                        dateSplit[4].ToInt(), 0);
                     disciplineStr = disciplineLeagueStr[0];
                     leagueName = disciplineLeagueStr[1];
                 }
@@ -64,8 +77,8 @@ namespace BettingBot.Source.Clients.Agility.Betshoot.Responses
                 var newBet = new BetResponse
                 {
                     Date = date,
-                    HomeName = matchStr.BeforeFirst(" - "),
-                    AwayName = matchStr.AfterFirst(" - "),
+                    HomeName = matchStr.BeforeFirst(" vs "),
+                    AwayName = matchStr.AfterFirst(" vs "),
                     Pick = PickConverter.ParseToPickResponse(pickStr, matchStr),
                     MatchResult = MatchConverter.ToMatchResultResponse(rawMatchResultStr),
                     BetResult = BetConverter.ParseBetshootResultStringToBetResult(spanBetResultClass, stake, odds, profit),

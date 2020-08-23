@@ -8,6 +8,7 @@ using BettingBot.Source.Common;
 using BettingBot.Source.Common.UtilityClasses;
 using MoreLinq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using WebSocketSharp;
 
@@ -99,8 +100,16 @@ namespace BettingBot.Source.Clients.Api.FootballData
                     OnInformationSending($"Łączenie z Football-Data, próba {catchNum + 1} z {maxCatchNum}");
 
                     var rawResponse = new RestClient(uri).Execute(request);
-                    if (!rawResponse.StatusCode.ToInt().Between(200, 299) && !rawResponse.ContentType?.Split(";").Any(m => m.EqIgnoreCase("application/json")) == true) // jeśli kod wskazuje błąd i json nie opisuje tego błędu to zwróć ogólny
-                        throw new FootballDataException($"{rawResponse.StatusCode.ToInt()}: {rawResponse.StatusDescription}");
+                    if (!rawResponse.StatusCode.ToInt().Between(200, 299)) // jeśli kod wskazuje błąd i json nie opisuje tego błędu to zwróć ogólny
+                    {
+                        if (rawResponse.ContentType?.Split(";").Any(m => m.EqIgnoreCase("application/json")) != true)
+                            throw new FootballDataException($"{rawResponse.StatusCode.ToInt()}: {rawResponse.StatusDescription}");
+
+                        if (rawResponse.StatusCode.ToInt() == 410) // Gone, means API version changed, fall-through until update
+                            return (T) typeof(T).GetConstructor(new Type[] {}).Invoke(new object[] {});
+                        var message = JToken.Parse(rawResponse.Content)["message"];
+                        throw new FootballDataException($"{rawResponse.StatusCode.ToInt()}: {message}");
+                    }
                     if (string.IsNullOrEmpty(rawResponse.Content))
                         throw new FootballDataException("Serwer zwrócił pustą zawartość, prawdopodobnie ochrona przed spamem");
 

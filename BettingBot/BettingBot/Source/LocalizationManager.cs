@@ -333,7 +333,7 @@ namespace BettingBot.Source
 
         public static List<string[]> GetLoaderBetshootResponseParseLocalizedStrings()
         {
-            return LocalizedStrings.Where(ls => ls.Key.AfterFirst("_").BeforeLast("_") == "Loader_Betshoot_BetsResponse_Parse")
+            return LocalizedStrings.Where(ls => ls.Key.AfterFirst("_").BeforeLastOrWhole("_") == "Loader_Betshoot_BetsResponse_Parse")
                 .OrderBy(ls => ls.Key.AfterLast("_")).Select(ls => ls.Value.Split("|")).ToList();
         }
     }

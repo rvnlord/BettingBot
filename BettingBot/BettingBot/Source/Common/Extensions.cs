@@ -115,11 +115,6 @@ namespace BettingBot.Source.Common
                 str.IndexOf(start, StringComparison.Ordinal) < str.IndexOf(end, StringComparison.Ordinal);
         }
 
-        public static string Between(this string str, string start, string end)
-        {
-            return str.AfterFirst(start).BeforeLast(end);
-        }
-
         public static string TakeUntil(this string str, string end)
         {
             return str.Split(new[] { end }, StringSplitOptions.None)[0];
@@ -293,53 +288,363 @@ namespace BettingBot.Source.Common
             return DomainName.TryParse(new Uri(str).Host, out DomainName completeDomain) ? completeDomain.SLD : "";
         }
 
-        public static string AfterFirst(this string str, string substring)
+        public static string After(this string str, string substring, int occurance = 1)
         {
-            if (str == null) return null;
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Throw, 
+                BeforeAfterInternalCaseType.MaintainCase, BeforeAfterInternalForMethodType.After);
+        }
+
+        public static string AfterIgnoreCase(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Throw, 
+                BeforeAfterInternalCaseType.IgnoreCase, BeforeAfterInternalForMethodType.After);
+        }
+
+        public static string AfterOrNull(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Null, 
+                BeforeAfterInternalCaseType.MaintainCase, BeforeAfterInternalForMethodType.After);
+        }
+
+        public static string AfterOrNullIgnoreCase(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Null, 
+                BeforeAfterInternalCaseType.IgnoreCase, BeforeAfterInternalForMethodType.After);
+        }
+
+        public static string AfterOrWhole(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Whole, 
+                BeforeAfterInternalCaseType.MaintainCase, BeforeAfterInternalForMethodType.After);
+        }
+
+        public static string AfterOrWholeIgnoreCase(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Whole, 
+                BeforeAfterInternalCaseType.IgnoreCase, BeforeAfterInternalForMethodType.After);
+        }
+
+        public static string AfterN(this string str, string substring, int occurance = 1) => str.AfterOrNull(substring, occurance);
+        public static string AfterIgnoreCaseN(this string str, string substring, int occurance = 1) => str.AfterOrNullIgnoreCase(substring, occurance);
+
+        public static string AfterFirst(this string s, string substring)
+        {
+            return s.After(substring);
+        }
+
+        public static string AfterFirstIgnoreCase(this string s, string substring)
+        {
+            return s.AfterIgnoreCase(substring);
+        }
+
+        public static string AfterFirstOrNull(this string s, string substring)
+        {
+            return s.AfterOrNull(substring);
+        }
+
+        public static string AfterFirstN(this string s, string substring)
+        {
+            return s.AfterFirstOrNull(substring);
+        }
+
+        public static string AfterFirstOrNullIgnoreCase(this string s, string substring)
+        {
+            return s.AfterOrNullIgnoreCase(substring);
+        }
+
+        public static string AfterFirstIgnoreCaseN(this string s, string substring)
+        {
+            return s.AfterFirstOrNullIgnoreCase(substring);
+        }
+
+        public static string AfterFirstOrWhole(this string s, string substring)
+        {
+            return s.AfterOrWhole(substring);
+        }
+
+        public static string AfterFirstOrWholeIgnoreCase(this string s, string substring)
+        {
+            return s.AfterOrWholeIgnoreCase(substring);
+        }
+
+        public static string AfterLast(this string s, string substring)
+        {
+            return s.After(substring, -1);
+        }
+
+        public static string AfterLastIgnoreCase(this string s, string substring)
+        {
+            return s.AfterIgnoreCase(substring, -1);
+        }
+
+        public static string AfterLastOrNull(this string s, string substring)
+        {
+            return s.AfterOrNull(substring, -1);
+        }
+
+        public static string AfterLastOrNullIgnoreCase(this string s, string substring)
+        {
+            return s.AfterOrNullIgnoreCase(substring, -1);
+        }
+
+        public static string AfterLastN(this string s, string substring) => s.AfterLastOrNull(substring);
+        public static string AfterLastIgnoreCaseN(this string s, string substring) => s.AfterLastOrNullIgnoreCase(substring);
+
+        public static string AfterLastOrWhole(this string s, string substring)
+        {
+            return s.AfterOrWhole(substring, -1);
+        }
+
+        public static string AfterLastOrWholeIgnoreCase(this string s, string substring)
+        {
+            return s.AfterOrWholeIgnoreCase(substring, -1);
+        }
+
+        public static string Before(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Throw, 
+                BeforeAfterInternalCaseType.MaintainCase, BeforeAfterInternalForMethodType.Before);
+        }
+
+        public static string BeforeIgnoreCase(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Throw, 
+                BeforeAfterInternalCaseType.IgnoreCase, BeforeAfterInternalForMethodType.Before);
+        }
+
+        public static string BeforeOrNull(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Null, 
+                BeforeAfterInternalCaseType.MaintainCase, BeforeAfterInternalForMethodType.Before);
+        }
+
+        public static string BeforeOrNullIgnoreCase(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Null, 
+                BeforeAfterInternalCaseType.IgnoreCase, BeforeAfterInternalForMethodType.Before);
+        }
+
+        public static string BeforeOrWhole(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Whole, 
+                BeforeAfterInternalCaseType.MaintainCase, BeforeAfterInternalForMethodType.Before);
+        }
+
+        public static string BeforeOrWholeIgnoreCase(this string str, string substring, int occurance = 1)
+        {
+            return str.BeforeAfterInternal(substring, occurance, BeforeAfterInternalNoValueType.Whole, 
+                BeforeAfterInternalCaseType.IgnoreCase, BeforeAfterInternalForMethodType.Before);
+        }
+
+        public static string BeforeN(this string str, string substring, int occurance = 1) => str.BeforeOrNull(substring, occurance);
+        public static string BeforeIgnoreCaseN(this string str, string substring, int occurance = 1) => str.BeforeOrNullIgnoreCase(substring, occurance);
+
+        public static string BeforeFirst(this string s, string substring)
+        {
+            return s.Before(substring);
+        }
+
+        public static string BeforeFirstIgnoreCase(this string s, string substring)
+        {
+            return s.BeforeIgnoreCase(substring);
+        }
+
+        public static string BeforeFirstOrNull(this string s, string substring)
+        {
+            return s.BeforeOrNull(substring);
+        }
+
+        public static string BeforeFirstN(this string s, string substring)
+        {
+            return s.BeforeFirstOrNull(substring);
+        }
+
+        public static string BeforeFirstOrNullIgnoreCase(this string s, string substring)
+        {
+            return s.BeforeOrNullIgnoreCase(substring);
+        }
+
+        public static string BeforeFirstIgnoreCaseN(this string s, string substring)
+        {
+            return s.BeforeFirstOrNullIgnoreCase(substring);
+        }
+
+        public static string BeforeFirstOrWhole(this string s, string substring)
+        {
+            return s.BeforeOrWhole(substring);
+        }
+
+        public static string BeforeFirstOrWholeIgnoreCase(this string s, string substring)
+        {
+            return s.BeforeOrWholeIgnoreCase(substring);
+        }
+
+        public static string BeforeLast(this string s, string substring)
+        {
+            return s.Before(substring, -1);
+        }
+
+        public static string BeforeLastIgnoreCase(this string s, string substring)
+        {
+            return s.BeforeIgnoreCase(substring, -1);
+        }
+
+        public static string BeforeLastOrNull(this string s, string substring)
+        {
+            return s.BeforeOrNull(substring, -1);
+        }
+
+        public static string BeforeLastOrNullIgnoreCase(this string s, string substring)
+        {
+            return s.BeforeOrNullIgnoreCase(substring, -1);
+        }
+
+        public static string BeforeLastN(this string s, string substring) => s.BeforeLastOrNull(substring);
+        public static string BeforeLastIgnoreCaseN(this string s, string substring) => s.BeforeLastOrNullIgnoreCase(substring);
+
+        public static string BeforeLastOrWhole(this string s, string substring)
+        {
+            return s.BeforeOrWhole(substring, -1);
+        }
+
+        public static string BeforeLastOrWholeIgnoreCase(this string s, string substring)
+        {
+            return s.BeforeOrWholeIgnoreCase(substring, -1);
+        }
+
+        private static string BeforeAfterInternal(this string str, string substring, int occurance, BeforeAfterInternalNoValueType nullValue, BeforeAfterInternalCaseType casing, BeforeAfterInternalForMethodType methodType)
+        {
+            if (occurance == 0)
+                throw new ArgumentOutOfRangeException(nameof(occurance));
+
+            if (str.IsNullOrEmpty())
             {
-                var split = str.Split(substring);
-                if (str.StartsWith(substring))
-                    split = new[] { "" }.Concat(split).ToArray();
-                return split.Skip(1).JoinAsString(substring);
+                switch (nullValue)
+                {
+                    case BeforeAfterInternalNoValueType.Null:
+                        return null;
+                    case BeforeAfterInternalNoValueType.Whole:
+                        return str;
+                    case BeforeAfterInternalNoValueType.Throw:
+                    default:
+                        throw new ArgumentNullException(nameof(str));
+                }
             }
-            return str;
-        }
 
-        public static string BeforeFirst(this string str, string substring)
-        {
-            if (str == null) return null;
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
-                return str.Split(substring).First();
-            return str;
-        }
-
-        public static string AfterLast(this string str, string substring)
-        {
-            if (str == null) return null;
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
-                return str.Split(substring).Last();
-            return str;
-        }
-
-        public static string BeforeLast(this string str, string substring)
-        {
-            if (str == null) return null;
-            if (!String.IsNullOrEmpty(substring) && str.Contains(substring))
+            if (substring.IsNullOrEmpty())
             {
-                var split = str.Split(substring);
-                if (str.EndsWith(substring))
-                    split = split.Concat(new[] { "" }).ToArray();
-                var l = split.Length;
-                return split.Take(l - 1).JoinAsString(substring);
+                switch (nullValue)
+                {
+                    case BeforeAfterInternalNoValueType.Null:
+                        return null;
+                    case BeforeAfterInternalNoValueType.Whole:
+                        return str;
+                    case BeforeAfterInternalNoValueType.Throw:
+                    default:
+                        throw new ArgumentNullException(nameof(substring));
+                }
             }
 
-            return str;
+            if (casing == BeforeAfterInternalCaseType.IgnoreCase ? !str.ContainsIgnoreCase(substring) : !str.Contains(substring))
+            {
+                switch (nullValue)
+                {
+                    case BeforeAfterInternalNoValueType.Null:
+                        return null;
+                    case BeforeAfterInternalNoValueType.Whole:
+                        return str;
+                    case BeforeAfterInternalNoValueType.Throw:
+                    default:
+                        throw new Exception("String doesn't contain substring");
+                }
+            }
+            
+            if (casing == BeforeAfterInternalCaseType.IgnoreCase ? str.EqualsIgnoreCase(substring) : str.Equals(substring))
+            {
+                switch (nullValue)
+                {
+                    case BeforeAfterInternalNoValueType.Null:
+                        return null;
+                    case BeforeAfterInternalNoValueType.Whole:
+                        return str;
+                    case BeforeAfterInternalNoValueType.Throw:
+                    default:
+                        throw new Exception("String equals substring");
+                }
+            }
+            var split = casing == BeforeAfterInternalCaseType.IgnoreCase ? str.SplitIgnoreCase(substring) : str.Split(substring, false, StringSplitOptions.None);
+            var separators = str.SeparatorsIgnoreCaseOrNull(substring);
+
+            string result;
+            switch (casing)
+            {
+                case BeforeAfterInternalCaseType.IgnoreCase:
+                    switch (methodType)
+                    {
+                        case BeforeAfterInternalForMethodType.After:
+                            result = (occurance < 0 ? split.TakeLast(-occurance) : split.Skip(occurance)).JoinAsString((occurance < 0 ? separators.TakeLast(-(occurance + 1)) : separators.Skip(occurance)).ToArray());
+                            break;
+                        case BeforeAfterInternalForMethodType.Before:
+                            result = (occurance < 0 ? split.SkipLast(-occurance) : split.Take(occurance)).JoinAsString((occurance < 0 ? separators.SkipLast(-(occurance + 1)) : separators.Take(occurance)).ToArray());
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(methodType));
+                    }
+
+                    break;
+                case BeforeAfterInternalCaseType.MaintainCase:
+                    switch (methodType)
+                    {
+                        case BeforeAfterInternalForMethodType.After:
+                            result = (occurance < 0 ? split.TakeLast(-occurance) : split.Skip(occurance)).JoinAsString(substring);
+                            break;
+                        case BeforeAfterInternalForMethodType.Before:
+                            result = (occurance < 0 ? split.SkipLast(-occurance) : split.Take(occurance)).JoinAsString(substring);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(methodType));
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(casing));
+            }
+
+            switch (nullValue)
+            {
+                case BeforeAfterInternalNoValueType.Null:
+                    return result.IsNullOrEmpty() ? null : result;
+                case BeforeAfterInternalNoValueType.Whole:
+                    return result.IsNullOrEmpty() ? str : result;
+                case BeforeAfterInternalNoValueType.Throw:
+                    return result.IsNullOrEmpty() ? throw new NullReferenceException(nameof(result)) : result;
+                default:
+                    throw new NullReferenceException(nameof(result));
+            }
+        }
+
+        private enum BeforeAfterInternalNoValueType
+        {
+            Null,
+            Whole,
+            Throw
+        }
+
+        private enum BeforeAfterInternalCaseType
+        {
+            MaintainCase,
+            IgnoreCase
+        }
+
+        private enum BeforeAfterInternalForMethodType
+        {
+            Before,
+            After
         }
 
         public static string ToStringDelimitedBy<T>(this IEnumerable<T> enumerable, string strBetween = "")
         {
-            return String.Join(strBetween, enumerable);
+            return string.Join(strBetween, enumerable);
         }
 
         public static string ToUrlEncoded(this string str)
@@ -372,7 +677,7 @@ namespace BettingBot.Source.Common
 
         public static bool EqIgnoreCase(this string str, string ostr)
         {
-            return String.Equals(str, ostr, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(str, ostr, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool EqAnyIgnoreCase(this string str, params string[] os)
@@ -430,6 +735,69 @@ namespace BettingBot.Source.Common
         {
             var lStr = str.ToLower();
             return strings.Select(s => s.ToLower()).All(lStr.Contains);
+        }
+
+        public static string[] SeparatorsIgnoreCaseOrNull(this string s, string substring)
+        {
+            var matches = Regex.Matches(s, Regex.Escape(substring), RegexOptions.CultureInvariant | RegexOptions.IgnoreCase).Cast<Match>().Select(m => m.Value).ToArray();
+            return matches.Any() ? matches : null;
+        }
+
+        public static bool EqualsIgnoreCase(this string str, string ostr)
+        {
+            return string.Equals(str, ostr, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public static bool ContainsIgnoreCase(this string s, string substring)
+        {
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+
+            return s.ToLower().Contains(substring.ToLower());
+        }
+
+        public static string[] SplitByMany(this string s, params string[] separators)
+        {
+            return Regex.Split(s, separators.Select(Regex.Escape).JoinAsString("|"), RegexOptions.CultureInvariant);
+        }
+
+        public static string[] SplitByManyIgnoreCase(this string s, params string[] separators)
+        {
+            return Regex.Split(s, separators.Select(Regex.Escape).JoinAsString("|"), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        public static string Between(this string str, string start, string end)
+        {
+            return str.AfterFirst(start).BeforeFirst(end);
+        }
+
+        public static int MonthNameToNumber(this string month)
+        {
+            if (month.EqAnyIgnoreCase("jan", "january"))
+                return 1;
+            if (month.EqAnyIgnoreCase("feb", "february"))
+                return 2;
+            if (month.EqAnyIgnoreCase("mar", "march"))
+                return 3;
+            if (month.EqAnyIgnoreCase("apr", "april"))
+                return 4;
+            if (month.EqAnyIgnoreCase("may"))
+                return 5;
+            if (month.EqAnyIgnoreCase("jun", "june"))
+                return 6;
+            if (month.EqAnyIgnoreCase("jul", "july"))
+                return 7;
+            if (month.EqAnyIgnoreCase("aug", "august"))
+                return 8;
+            if (month.EqAnyIgnoreCase("sep", "september"))
+                return 9;
+            if (month.EqAnyIgnoreCase("oct", "october"))
+                return 10;
+            if (month.EqAnyIgnoreCase("nov", "november"))
+                return 11;
+            if (month.EqAnyIgnoreCase("dec", "december"))
+                return 12;
+            return 0;
         }
 
         #endregion
@@ -727,7 +1095,21 @@ namespace BettingBot.Source.Common
 
         public static string JoinAsString<T>(this IEnumerable<T> enumerable, string strBetween = "")
         {
-            return enumerable.ToStringDelimitedBy(strBetween);
+            return string.Join(strBetween, enumerable);
+        }
+
+        public static string JoinAsString<T>(this IEnumerable<T> enumerable, string[] substrings)
+        {
+            if (substrings == null)
+                throw new ArgumentNullException(nameof(substrings));
+            
+            var strings = enumerable.Cast<string>().ToArray();
+
+            if (strings.Length == 1)
+                return strings[0]; // whatever is the separator we have nothing to separate
+            if (strings.Length - 1 != substrings.Length)
+                throw new ArgumentOutOfRangeException(nameof(substrings));
+            return strings.Select((s, i) => s + (i < substrings.Length ? substrings[i] : "")).Aggregate((s1, s2) => s1 + s2);
         }
         
         public static int Index<T>(this IEnumerable<T> en, T el)
@@ -2308,7 +2690,7 @@ namespace BettingBot.Source.Common
         public static string GetId(this IWebElement element)
         {
             var id = element.GetAttribute("id");
-            return String.IsNullOrWhiteSpace(id) ? null : id;
+            return string.IsNullOrWhiteSpace(id) ? null : id;
         }
 
         public static bool HasClass(this IWebElement element, string cl)
@@ -2374,7 +2756,7 @@ namespace BettingBot.Source.Common
         {
             string strO = null;
             try { strO = o.ToString(); } catch (Exception) {  }
-            return String.IsNullOrWhiteSpace(strO) ? null : strO;
+            return string.IsNullOrWhiteSpace(strO) ? null : strO;
         }
 
         public static T ToEnum<T>(this object value) where T : struct
@@ -2383,19 +2765,19 @@ namespace BettingBot.Source.Common
             return (T)Enum.Parse(typeof(T), value.ToString().RemoveMany(" ", "-"), true);
         }
 
-        public static int? ToIntN(this object obj)
+        public static int? ToIntN(this object o)
         {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToInt32(obj);
-            if (obj.GetType().IsEnum) return (int) obj;
-            return int.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, LocalizationManager.Culture, out int val) ? val : (int?) null;
+            if (o == null) return null;
+            if (o is bool) return Convert.ToInt32(o, CultureInfo.InvariantCulture);
+            if (o.GetType().IsEnum) return (int)o;
+            return int.TryParse(o.ToDoubleN()?.Round().ToString().BeforeFirstOrWhole("."), NumberStyles.Any, CultureInfo.InvariantCulture, out var val) ? val : (int?)null;
         }
 
-        public static int ToInt(this object obj)
+        public static int ToInt(this object o)
         {
-            var intN = obj.ToIntN();
+            var intN = o.ToIntN();
             if (intN != null) return (int)intN;
-            throw new ArgumentNullException(nameof(obj));
+            throw new ArgumentNullException(nameof(o));
         }
 
         public static uint? ToUIntN(this object obj)
@@ -2403,7 +2785,7 @@ namespace BettingBot.Source.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToUInt32(obj);
             if (obj.GetType().IsEnum) return (uint) obj;
-            return UInt32.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, LocalizationManager.Culture, out uint val) ? val : (uint?)null;
+            return uint.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirstOrWhole("."), NumberStyles.Any, LocalizationManager.Culture, out uint val) ? val : (uint?)null;
         }
 
         public static uint ToUInt(this object obj)
@@ -2418,7 +2800,7 @@ namespace BettingBot.Source.Common
             if (obj == null) return null;
             if (obj is bool) return Convert.ToInt64(obj);
             if (obj.GetType().IsEnum) return (long) obj;
-            return Int64.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirst("."), NumberStyles.Any, LocalizationManager.Culture, out long val) ? val : (long?)null;
+            return long.TryParse(obj.ToDoubleN()?.Round().ToString().BeforeFirstOrWhole("."), NumberStyles.Any, LocalizationManager.Culture, out var val) ? val : (long?)null;
         }
 
         public static long ToLong(this object obj)
@@ -2428,41 +2810,71 @@ namespace BettingBot.Source.Common
             throw new ArgumentNullException(nameof(obj));
         }
 
-        public static double? ToDoubleN(this object obj)
+        public static double? ToDoubleN(this object o)
         {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToDouble(obj);
-            
-            var strD = obj.ToString().Replace(",", ".");
+            if (o == null) return null;
+            if (o is bool) return Convert.ToDouble(o, CultureInfo.InvariantCulture);
+
+            var strD = o.ToString().Replace(",", ".");
             var isNegative = strD.StartsWith("-");
             if (isNegative || strD.StartsWith("+"))
                 strD = strD.Skip(1);
-            
-            var parsedVal = Double.TryParse(strD, NumberStyles.Any, LocalizationManager.Culture, out double tmpvalue) ? tmpvalue : (double?)null;
+
+            var parsedVal = double.TryParse(strD, NumberStyles.Any, CultureInfo.InvariantCulture, out var tmpvalue) ? tmpvalue : (double?)null;
             if (isNegative)
                 parsedVal = -parsedVal;
             return parsedVal;
         }
 
-        public static double ToDouble([NotNull] this object obj)
+        public static double ToDouble(this object o)
         {
-            var doubleN = obj.ToDoubleN();
+            var doubleN = o.ToDoubleN();
             if (doubleN != null) return (double)doubleN;
-            throw new ArgumentNullException(nameof(obj));
+            throw new ArgumentNullException(nameof(o));
         }
 
-        public static decimal? ToDecimalN(this object obj)
+        public static string ToStringInvariant(this double d, string separator)
         {
-            if (obj == null) return null;
-            if (obj is bool) return Convert.ToDecimal(obj);
-            return Decimal.TryParse(obj.ToString().Replace(",", "."), NumberStyles.Any, LocalizationManager.Culture, out decimal tmpvalue) ? tmpvalue : (decimal?)null;
+            return d.ToString(new NumberFormatInfo { NumberDecimalSeparator = separator });
         }
 
-        public static decimal ToDecimal([NotNull] this object obj)
+        public static double? TryToDouble(this string str)
         {
-            var decimalN = obj.ToDecimalN();
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+
+            str = str.Replace(',', '.');
+
+            var ending = new[] { "rem", "em", "px", "%" }.FirstOrDefault(str.EndsWith);
+            if (ending != null)
+                str = str.BeforeLast(ending);
+
+            var isParsable = double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out var value);
+            if (isParsable)
+                return value;
+            return null;
+        }
+
+        public static double ToDouble(this string str)
+        {
+            var parsedD = str.TryToDouble();
+            if (parsedD == null)
+                throw new InvalidCastException("Nie można sparsować wartości double");
+            return (double)parsedD;
+        }
+
+        public static decimal? ToDecimalN(this object o)
+        {
+            if (o == null) return null;
+            if (o is bool) return Convert.ToDecimal(o, CultureInfo.InvariantCulture);
+            return decimal.TryParse(o.ToString().Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out var tmpvalue) ? tmpvalue : (decimal?)null;
+        }
+
+        public static decimal ToDecimal(this object o)
+        {
+            var decimalN = o.ToDecimalN();
             if (decimalN != null) return (decimal)decimalN;
-            throw new ArgumentNullException(nameof(obj));
+            throw new ArgumentNullException(nameof(o));
         }
 
         public static DateTime? ToDateTimeN(this object obj)
@@ -2487,7 +2899,7 @@ namespace BettingBot.Source.Common
             if (obj == null) return null;
             if (obj is bool) return (bool) obj;
             if (obj.ToIntN() != null) return Convert.ToBoolean(obj.ToInt());
-            return Boolean.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
+            return bool.TryParse(obj.ToString(), out bool tmpvalue) ? tmpvalue : (bool?)null;
         }
 
         public static bool ToBool(this object obj)
@@ -2499,7 +2911,7 @@ namespace BettingBot.Source.Common
 
         public static ExtendedTime ToExtendedTimeN(this object o, string format = null, TimeZoneKind tz = TimeZoneKind.UTC)
         {
-            if (String.IsNullOrWhiteSpace(o?.ToString()))
+            if (string.IsNullOrWhiteSpace(o?.ToString()))
                 return null;
 
             var parsedDateTime = format != null
@@ -2545,6 +2957,16 @@ namespace BettingBot.Source.Common
         public static List<Delegate> RemoveEventHandlers(this object o, string eventName)
         {
             return EventHelper.RemoveEventHandlers(o, eventName);
+        }
+
+        public static bool IsNullOrEmpty(this string str)
+        {
+            return string.IsNullOrEmpty(str);
+        }
+
+        public static string[] SplitIgnoreCase(this string s, string separator)
+        {
+            return Regex.Split(s, Regex.Escape(separator), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
 
         #endregion

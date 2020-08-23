@@ -95,7 +95,7 @@ namespace BettingBot.Source.Common
     public static class GridViewSelectionUtils
     {
         private static bool _isSyncingSelection;
-        private static readonly List<Tuple<WeakReference, List<DataGrid>>> _collectionToGridViews = new List<Tuple<WeakReference, List<DataGrid>>>();
+        public static readonly List<Tuple<WeakReference, List<DataGrid>>> _collectionToGridViews = new List<Tuple<WeakReference, List<DataGrid>>>();
 
         public static readonly DependencyProperty SelectedItemsProperty = DependencyProperty.RegisterAttached(
             "SelectedItems",
@@ -207,11 +207,10 @@ namespace BettingBot.Source.Common
 
         private static List<DataGrid> GetOrCreateGridViews(INotifyCollectionChanged collection)
         {
-            foreach (var t in _collectionToGridViews)
+            foreach (var (wr, gv) in _collectionToGridViews)
             {
-                var wr = t.Item1;
                 if (wr.Target == collection)
-                    return t.Item2;
+                    return gv;
             }
 
             _collectionToGridViews.Add(new Tuple<WeakReference, List<DataGrid>>(new WeakReference(collection), new List<DataGrid>()));
